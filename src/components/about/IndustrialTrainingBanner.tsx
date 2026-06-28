@@ -35,7 +35,7 @@ export const IndustrialTrainingBanner: React.FC<IndustrialTrainingBannerProps> =
                   <span className="text-xs font-extrabold uppercase tracking-widest text-accent block">
                     INDUSTRIAL TRAINING
                   </span>
-                  <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-display mt-0.5">
+                  <h3 className="text-2xl sm:text-3xl font-extrabold !text-white tracking-tight font-display mt-0.5" style={{ color: '#ffffff' }}>
                     {training.title}
                   </h3>
                 </div>

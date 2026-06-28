@@ -34,7 +34,7 @@ const navItems: NavItemConfig[] = [
   { label: "Results", href: "#results", iconName: "TrendingUp" },
   { label: "Free Classes", href: "#youtube-classes", iconName: "PlayCircle" },
   { label: "Gallery", href: "/gallery", iconName: "Image" },
-  { label: "Contact Me", href: "#contact", iconName: "Mail" },
+  { label: "Contact Me", href: "/contact", iconName: "Mail" },
   { label: "FAQ", href: "#faq", iconName: "HelpCircle" },
 ];
 
