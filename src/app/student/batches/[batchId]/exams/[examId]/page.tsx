@@ -45,6 +45,7 @@ export default async function StudentExamScorePage({ params }: PageProps) {
     .from("exams")
     .select("*, batches(name, code)")
     .eq("id", examId)
+    .eq("batch_id", batchId)
     .single();
 
   if (examError || !exam) {

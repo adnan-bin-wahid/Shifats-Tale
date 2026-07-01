@@ -1,6 +1,5 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveAuthenticatedDestination } from "@/lib/supabase/auth";
 import { createAuditLog } from "@/lib/audit";
@@ -32,6 +31,20 @@ function validatePaymentInputs(expectedAmount: number, paidAmount: number) {
   }
   if (paidAmount < 0) {
     throw new Error("Paid amount cannot be negative.");
+  }
+}
+
+type PaymentStatus = "UNPAID" | "PAID" | "PARTIALLY_PAID" | "WAIVED" | "REFUNDED" | "CANCELLED";
+
+function validatePaymentState(status: PaymentStatus, expectedAmount: number, paidAmount: number) {
+  if (status === "UNPAID" && paidAmount !== 0) {
+    throw new Error("UNPAID status requires the paid amount to be zero.");
+  }
+  if (status === "PARTIALLY_PAID" && !(paidAmount > 0 && paidAmount < expectedAmount)) {
+    throw new Error("PARTIALLY_PAID requires a paid amount greater than zero and below the expected amount.");
+  }
+  if (status === "PAID" && paidAmount < expectedAmount) {
+    throw new Error("PAID status requires the paid amount to meet or exceed the expected amount.");
   }
 }
 
@@ -82,14 +95,34 @@ export async function createPaymentAction(rawInput: {
       return { success: false, message: "Billing year must be 2020 or later." };
     }
 
+    // Resolve the authoritative relationship from the enrollment instead of
+    // trusting three independently supplied client identifiers.
+    const { data: enrollment, error: enrollmentError } = await admin
+      .from("enrollments")
+      .select("id, student_id, batch_id")
+      .eq("id", enrollmentId)
+      .single();
+
+    if (enrollmentError || !enrollment) {
+      return { success: false, message: "Enrollment not found for this payment." };
+    }
+
+    if (enrollment.student_id !== studentId || enrollment.batch_id !== batchId) {
+      return { success: false, message: "Payment student, enrollment, and batch do not match." };
+    }
+
     // Check for duplicate monthly payment
-    const { data: existing } = await admin
+    const { data: existing, error: existingError } = await admin
       .from("payments")
       .select("id")
       .eq("enrollment_id", enrollmentId)
       .eq("billing_month", billingMonth)
       .eq("billing_year", billingYear)
       .maybeSingle();
+
+    if (existingError) {
+      return { success: false, message: existingError.message };
+    }
 
     if (existing) {
       return {
@@ -108,6 +141,8 @@ export async function createPaymentAction(rawInput: {
       else status = "PAID";
     }
 
+    validatePaymentState(status, expectedAmount, paidAmount);
+
     // Require appropriate notes for exceptional statuses
     if (["WAIVED", "REFUNDED", "CANCELLED"].includes(status)) {
       if (!teacherNote || teacherNote.trim() === "") {
@@ -118,16 +153,13 @@ export async function createPaymentAction(rawInput: {
       }
     }
 
-    // Calculate due amount
-    const dueAmount = status === "WAIVED" ? 0 : Math.max(expectedAmount - paidAmount, 0);
-
     // Insert record
     const { data: newPayment, error } = await admin
       .from("payments")
       .insert({
-        student_id: studentId,
-        enrollment_id: enrollmentId,
-        batch_id: batchId,
+        student_id: enrollment.student_id,
+        enrollment_id: enrollment.id,
+        batch_id: enrollment.batch_id,
         billing_month: billingMonth,
         billing_year: billingYear,
         expected_amount: expectedAmount,
@@ -181,6 +213,8 @@ export async function createPaymentAction(rawInput: {
     revalidatePath("/teacher/payments");
     revalidatePath(`/teacher/students/${studentId}`);
     revalidatePath(`/teacher/batches/${batchId}`);
+    revalidatePath("/student/payments");
+    revalidatePath(`/student/batches/${batchId}/payments`);
     return { success: true, payment: newPayment };
   } catch (err: any) {
     return { success: false, message: err.message || "Internal server error" };
@@ -223,6 +257,7 @@ export async function updatePaymentAction(
     } = rawInput;
 
     validatePaymentInputs(expectedAmount, paidAmount);
+    validatePaymentState(status, expectedAmount, paidAmount);
 
     // Fetch existing payment
     const { data: oldPayment, error: fetchError } = await admin
@@ -268,9 +303,6 @@ export async function updatePaymentAction(
       }
     }
 
-    // Recalculate due amount
-    const dueAmount = status === "WAIVED" ? 0 : Math.max(expectedAmount - paidAmount, 0);
-
     // Prepare updates
     const updates: any = {
       expected_amount: expectedAmount,
@@ -283,13 +315,10 @@ export async function updatePaymentAction(
       student_note: studentNote || null,
     };
 
-    // If status became PAID/PARTIALLY_PAID and wasn't before, set confirmed_at
-    if (
-      ["PAID", "PARTIALLY_PAID"].includes(status) &&
-      !["PAID", "PARTIALLY_PAID"].includes(oldPayment.status)
-    ) {
-      updates.confirmed_at = new Date().toISOString();
-    }
+    // Keep confirmation metadata synchronized with the current status.
+    updates.confirmed_at = ["PAID", "PARTIALLY_PAID"].includes(status)
+      ? oldPayment.confirmed_at || new Date().toISOString()
+      : null;
 
     // If reason was provided for downgrade/exceptional status, append to teacher note
     if (reasonForPaidToUnpaidRefundCancelled) {
@@ -354,6 +383,8 @@ export async function updatePaymentAction(
     revalidatePath(`/teacher/payments/${paymentId}`);
     revalidatePath(`/teacher/students/${oldPayment.student_id}`);
     revalidatePath(`/teacher/batches/${oldPayment.batch_id}`);
+    revalidatePath("/student/payments");
+    revalidatePath(`/student/batches/${oldPayment.batch_id}/payments`);
     return { success: true, payment: updatedPayment };
   } catch (err: any) {
     return { success: false, message: err.message || "Internal server error" };
@@ -411,51 +442,35 @@ export async function generateMonthlyDuesAction(
       };
     }
 
-    // Fetch existing payment records for this batch, month, year
-    const { data: existingPayments } = await admin
+    const recordsToInsert = enrollments.map((enrollment) => ({
+      student_id: enrollment.student_id,
+      enrollment_id: enrollment.id,
+      batch_id: batchId,
+      billing_month: billingMonth,
+      billing_year: billingYear,
+      expected_amount: batch.monthly_fee,
+      paid_amount: 0.00,
+      status: "UNPAID" as const,
+    }));
+
+    // The unique constraint plus ignoreDuplicates makes concurrent generation
+    // idempotent instead of exposing a check-then-insert race.
+    const { data: inserted, error: insertError } = await admin
       .from("payments")
-      .select("enrollment_id")
-      .eq("batch_id", batchId)
-      .eq("billing_month", billingMonth)
-      .eq("billing_year", billingYear);
+      .upsert(recordsToInsert, {
+        onConflict: "enrollment_id,billing_month,billing_year",
+        ignoreDuplicates: true,
+      })
+      .select("id");
 
-    const existingEnrollmentIds = new Set(
-      existingPayments?.map((p) => p.enrollment_id) || []
-    );
-
-    const recordsToInsert = [];
-    let skippedCount = 0;
-
-    for (const enr of enrollments) {
-      if (existingEnrollmentIds.has(enr.id)) {
-        skippedCount++;
-      } else {
-        recordsToInsert.push({
-          student_id: enr.student_id,
-          enrollment_id: enr.id,
-          batch_id: batchId,
-          billing_month: billingMonth,
-          billing_year: billingYear,
-          expected_amount: batch.monthly_fee,
-          paid_amount: 0.00,
-          status: "UNPAID",
-        });
-      }
+    if (insertError) {
+      return { success: false, message: insertError.message };
     }
 
-    let createdCount = 0;
-    if (recordsToInsert.length > 0) {
-      const { data: inserted, error: insertError } = await admin
-        .from("payments")
-        .insert(recordsToInsert)
-        .select("id");
+    const createdCount = inserted?.length || 0;
+    const skippedCount = enrollments.length - createdCount;
 
-      if (insertError) {
-        return { success: false, message: insertError.message };
-      }
-      createdCount = inserted?.length || 0;
-
-      // Audit log the generation event
+    if (createdCount > 0) {
       await createAuditLog({
         actorProfileId: teacher.id,
         action: "MONTHLY_DUES_GENERATED",
@@ -472,6 +487,8 @@ export async function generateMonthlyDuesAction(
 
     revalidatePath("/teacher/payments");
     revalidatePath(`/teacher/batches/${batchId}`);
+    revalidatePath("/student/payments");
+    revalidatePath(`/student/batches/${batchId}/payments`);
     return {
       success: true,
       createdCount,

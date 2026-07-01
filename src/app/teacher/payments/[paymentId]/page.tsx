@@ -1,4 +1,5 @@
 import React from "react";
+import { requireTeacher } from "@/lib/auth-guards";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
@@ -17,6 +18,7 @@ interface PageProps {
 }
 
 export default async function PaymentDetailsPage({ params }: PageProps) {
+  await requireTeacher();
   const { paymentId } = await params;
   
   // Create Supabase clients

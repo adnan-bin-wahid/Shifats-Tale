@@ -72,29 +72,17 @@ export async function updateStudentProfileSelfAction(rawInput: any) {
       return { success: false, message: "Student profile record not found." };
     }
 
-    // Update profiles table (phone)
-    const { error: profileErr } = await admin
-      .from("profiles")
-      .update({ phone: data.phone })
-      .eq("id", profile.id);
+    const supabase = await createClient();
+    const { error: updateError } = await supabase.rpc("update_student_profile_self_atomic", {
+      p_phone: data.phone,
+      p_guardian_name: data.guardianName,
+      p_guardian_phone: data.guardianPhone,
+      p_address: data.address,
+      p_date_of_birth: data.dateOfBirth,
+    });
 
-    if (profileErr) {
-      return { success: false, message: `Failed to update profile: ${profileErr.message}` };
-    }
-
-    // Update student_profiles table
-    const { error: studentErr } = await admin
-      .from("student_profiles")
-      .update({
-        guardian_name: data.guardianName,
-        guardian_phone: data.guardianPhone,
-        address: data.address,
-        date_of_birth: data.dateOfBirth,
-      })
-      .eq("profile_id", profile.id);
-
-    if (studentErr) {
-      return { success: false, message: `Failed to update student details: ${studentErr.message}` };
+    if (updateError) {
+      return { success: false, message: `Failed to update student profile: ${updateError.message}` };
     }
 
     // Create Audit Log
@@ -152,55 +140,23 @@ export async function updateTeacherProfileSelfAction(rawInput: any) {
     }
 
     const data = validated.data;
-    const admin = createAdminClient();
+    const supabase = await createClient();
 
-    // Fetch existing teacher profile details
-    const { data: teacherProfile, error: fetchErr } = await admin
-      .from("teacher_profiles")
-      .select("*")
-      .eq("profile_id", profile.id)
-      .single();
+    const { error: profileUpdateError } = await supabase.rpc("update_teacher_profile_self_atomic", {
+      p_full_name: data.fullName,
+      p_phone: data.phone,
+      p_designation: data.designation,
+      p_coaching_center_name: data.coachingCenterName,
+      p_public_contact_info: data.publicContactInfo,
+    });
 
-    // Update profiles table
-    const { error: profileErr } = await admin
-      .from("profiles")
-      .update({
-        full_name: data.fullName,
-        phone: data.phone,
-      })
-      .eq("id", profile.id);
-
-    if (profileErr) {
-      return { success: false, message: `Failed to update profiles: ${profileErr.message}` };
-    }
-
-    // Update or insert teacher_profiles table
-    if (teacherProfile) {
-      const { error: tErr } = await admin
-        .from("teacher_profiles")
-        .update({
-          designation: data.designation,
-          coaching_center_name: data.coachingCenterName,
-          public_contact_info: data.publicContactInfo,
-        })
-        .eq("profile_id", profile.id);
-
-      if (tErr) return { success: false, message: `Failed to update teacher profile details: ${tErr.message}` };
-    } else {
-      const { error: tErr } = await admin.from("teacher_profiles").insert({
-        profile_id: profile.id,
-        designation: data.designation,
-        coaching_center_name: data.coachingCenterName,
-        public_contact_info: data.publicContactInfo,
-      });
-
-      if (tErr) return { success: false, message: `Failed to insert teacher profile details: ${tErr.message}` };
+    if (profileUpdateError) {
+      return { success: false, message: `Failed to update teacher profile: ${profileUpdateError.message}` };
     }
 
     // Handle email change securely via Supabase Auth
     let emailChangeTriggered = false;
     if (data.email.toLowerCase() !== profile.email.toLowerCase()) {
-      const supabase = await createClient();
       const { error: authEmailErr } = await supabase.auth.updateUser({ email: data.email });
       if (authEmailErr) {
         return {
@@ -281,8 +237,9 @@ export async function updateStudentProfileByTeacherAction(studentId: string, raw
 
     const studentProfileObj = student.profiles as any;
 
-    // 1. Handle Student ID Correction
-    if (data.studentCode !== student.student_code) {
+    const isStudentCodeCorrection = data.studentCode !== student.student_code;
+
+    if (isStudentCodeCorrection) {
       if (!data.confirmCorrection) {
         return { success: false, message: "Student ID correction requires explicit confirmation." };
       }
@@ -290,29 +247,43 @@ export async function updateStudentProfileByTeacherAction(studentId: string, raw
         return { success: false, message: "Student ID correction requires a documented reason." };
       }
 
-      // Check unique code constraint
-      const { data: duplicate } = await admin
+      const { data: duplicate, error: duplicateError } = await admin
         .from("student_profiles")
         .select("id")
         .eq("student_code", data.studentCode)
         .neq("id", studentId)
         .maybeSingle();
 
+      if (duplicateError) {
+        return { success: false, message: duplicateError.message };
+      }
       if (duplicate) {
         return { success: false, message: `Student ID '${data.studentCode}' is already assigned to another student.` };
       }
+    }
 
-      // Invoke DB function to update code (which sets postgres config bypass)
-      const { error: rpcError } = await admin.rpc("update_student_code_admin", {
-        student_profile_id: studentId,
-        new_code: data.studentCode,
-      });
+    const supabase = await createClient();
+    const { error: updateError } = await supabase.rpc("update_student_profile_by_teacher_atomic", {
+      p_student_id: studentId,
+      p_student_code: data.studentCode,
+      p_full_name: data.fullName,
+      p_phone: data.phone,
+      p_account_status: data.accountStatus,
+      p_academic_level: data.academicLevel,
+      p_institution: data.institution,
+      p_guardian_name: data.guardianName,
+      p_guardian_phone: data.guardianPhone,
+      p_address: data.address,
+      p_date_of_birth: data.dateOfBirth,
+      p_registration_status: data.registrationStatus,
+      p_teacher_note: data.teacherNote,
+    });
 
-      if (rpcError) {
-        return { success: false, message: `Failed to correct Student ID: ${rpcError.message}` };
-      }
+    if (updateError) {
+      return { success: false, message: `Failed to update student profile: ${updateError.message}` };
+    }
 
-      // Audit log student code correction
+    if (isStudentCodeCorrection) {
       await createAuditLog({
         actorProfileId: teacher.id,
         action: "STUDENT_ID_CORRECTED",
@@ -321,39 +292,6 @@ export async function updateStudentProfileByTeacherAction(studentId: string, raw
         oldValue: { student_code: student.student_code },
         newValue: { student_code: data.studentCode, reason: data.correctionReason },
       });
-    }
-
-    // 2. Update profiles table
-    const { error: profileErr } = await admin
-      .from("profiles")
-      .update({
-        full_name: data.fullName,
-        phone: data.phone,
-        account_status: data.accountStatus,
-      })
-      .eq("id", student.profile_id);
-
-    if (profileErr) {
-      return { success: false, message: `Failed to update profiles: ${profileErr.message}` };
-    }
-
-    // 3. Update student_profiles table
-    const { error: studentErr } = await admin
-      .from("student_profiles")
-      .update({
-        academic_level: data.academicLevel,
-        institution: data.institution,
-        guardian_name: data.guardianName,
-        guardian_phone: data.guardianPhone,
-        address: data.address,
-        date_of_birth: data.dateOfBirth,
-        registration_status: data.registrationStatus,
-        teacher_note: data.teacherNote,
-      })
-      .eq("id", studentId);
-
-    if (studentErr) {
-      return { success: false, message: `Failed to update student details: ${studentErr.message}` };
     }
 
     // Log general updates
@@ -409,6 +347,8 @@ export async function updateStudentProfileByTeacherAction(studentId: string, raw
     revalidatePath("/teacher/students");
     revalidatePath(`/teacher/students/${studentId}`);
     revalidatePath(`/teacher/students/${studentId}/edit`);
+    revalidatePath("/student/profile");
+    revalidatePath("/student");
     return { success: true };
   } catch (err: any) {
     return { success: false, message: err.message || "Internal server error" };

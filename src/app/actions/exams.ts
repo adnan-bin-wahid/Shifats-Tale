@@ -1,11 +1,11 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { resolveAuthenticatedDestination } from "@/lib/supabase/auth";
 import { createAuditLog } from "@/lib/audit";
 import { createNotificationForProfile } from "@/lib/notifications";
 import { examSchema } from "@/lib/validations/exams";
-import { calculateGrade, calculatePassFailStatus, calculateCompetitionRanks } from "@/lib/exams/grading";
 import { revalidatePath } from "next/cache";
 
 async function assertActiveTeacher() {
@@ -247,17 +247,9 @@ export async function updateExamAction(examId: string, formData: FormData) {
         };
       }
 
-      // If validation passes, recalculate grades for all present students
-      for (const res of existingResults) {
-        if (res.obtained_marks !== null) {
-          const newPercentage = (res.obtained_marks / data.totalMarks) * 100;
-          const newGrade = calculateGrade(newPercentage);
-          await admin
-            .from("exam_results")
-            .update({ grade: newGrade })
-            .eq("id", res.id);
-        }
-      }
+      // Grade recalculation is performed transactionally by the database trigger
+      // when total_marks changes. The pre-check above preserves the existing
+      // user-facing validation message.
     }
 
     // Perform database update
@@ -330,73 +322,25 @@ export async function saveDraftResultsAction(
 ) {
   try {
     const teacher = await assertActiveTeacher();
-    const admin = createAdminClient();
+    const supabase = await createClient();
 
-    // Fetch exam details
-    const { data: exam, error: examError } = await admin
-      .from("exams")
-      .select("*")
-      .eq("id", examId)
-      .single();
-
-    if (examError || !exam) {
-      return { success: false, message: "Examination not found." };
-    }
-
-    if (exam.status === "RESULT_PUBLISHED") {
-      return { success: false, message: "Cannot modify results of a published examination." };
-    }
-
-    // Process and validate results list
-    const upsertRows = results.map((res) => {
-      const attendanceStatus = res.attendanceStatus;
-      let obtainedMarks = res.obtainedMarks;
-      let grade: string | null = null;
-
-      if (attendanceStatus === "ABSENT") {
-        obtainedMarks = null;
-      } else {
-        if (obtainedMarks !== null) {
-          if (obtainedMarks < 0) {
-            throw new Error(`Obtained marks cannot be negative for student.`);
-          }
-          if (obtainedMarks > exam.total_marks) {
-            throw new Error(`Obtained marks (${obtainedMarks}) cannot exceed exam total marks (${exam.total_marks}).`);
-          }
-          const percentage = (obtainedMarks / exam.total_marks) * 100;
-          grade = calculateGrade(percentage);
-        }
-      }
-
-      return {
-        exam_id: examId,
-        student_id: res.studentId,
-        enrollment_id: res.enrollmentId,
-        attendance_status: attendanceStatus,
-        obtained_marks: obtainedMarks,
-        grade,
-        remarks: res.remarks || null,
-      };
+    // The RPC validates every student/enrollment/exam relationship and commits
+    // all result rows together with the RESULT_DRAFT state transition.
+    const { error } = await supabase.rpc("save_exam_results_draft_atomic", {
+      p_exam_id: examId,
+      p_results: results.map((result) => ({
+        student_id: result.studentId,
+        enrollment_id: result.enrollmentId,
+        attendance_status: result.attendanceStatus,
+        obtained_marks: result.obtainedMarks,
+        remarks: result.remarks || null,
+      })),
     });
 
-    // Bulk upsert results list
-    const { error: upsertError } = await admin
-      .from("exam_results")
-      .upsert(upsertRows, { onConflict: "exam_id,student_id" });
-
-    if (upsertError) {
-      return { success: false, message: `Failed to save results draft: ${upsertError.message}` };
+    if (error) {
+      return { success: false, message: `Failed to save results draft: ${error.message}` };
     }
 
-    // Update exam status to RESULT_DRAFT if currently draft, scheduled or completed
-    if (["DRAFT", "SCHEDULED", "COMPLETED"].includes(exam.status)) {
-      await admin
-        .from("exams")
-        .update({ status: "RESULT_DRAFT" })
-        .eq("id", examId);
-    }
-
-    // Audit log
     await createAuditLog({
       actorProfileId: teacher.id,
       action: "RESULTS_DRAFT_SAVED",
@@ -479,21 +423,9 @@ export async function publishResultsAction(examId: string, publicationNote: stri
       }
     }
 
-    // Calculate ranking & update ranks in database
-    const rankedResults = calculateCompetitionRanks(results as any[]);
-
-    for (const row of rankedResults) {
-      const percentage = row.obtained_marks !== null ? (row.obtained_marks / exam.total_marks) * 100 : 0;
-      const calculatedGrade = row.obtained_marks !== null ? calculateGrade(percentage) : null;
-
-      await admin
-        .from("exam_results")
-        .update({
-          rank: row.rank,
-          grade: calculatedGrade,
-        })
-        .eq("id", row.id);
-    }
+    // Ranking, grade refresh, relationship validation, and completeness checks
+    // are executed atomically by the database trigger when the exam state is
+    // changed to RESULT_PUBLISHED.
 
     // Update examination state
     const { data: updatedExam, error: dbError } = await admin
