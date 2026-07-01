@@ -6,6 +6,7 @@ import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-heade
 import { DashboardCard } from "@/components/dashboard/dashboard-card";
 import { ArrowLeft, Award, Calendar, Layers, CheckCircle2, XCircle, Bell, Star } from "lucide-react";
 import Link from "next/link";
+import { getStudentFacingSettings } from "@/lib/student-facing-settings";
 
 interface PageProps {
   params: Promise<{
@@ -26,6 +27,14 @@ export default async function StudentExamScorePage({ params }: PageProps) {
   }
 
   const supabase = await createClient();
+  const displaySettings = await getStudentFacingSettings();
+  const gradesDisplayed = displaySettings.gradesDisplayed;
+  const studentRankVisible = displaySettings.studentRankVisible;
+  const scoreGridClass = gradesDisplayed && studentRankVisible
+    ? "grid grid-cols-2 sm:grid-cols-4 gap-4"
+    : gradesDisplayed || studentRankVisible
+      ? "grid grid-cols-2 sm:grid-cols-3 gap-4"
+      : "grid grid-cols-2 gap-4";
 
   // Authorization Check: Student must have an ACTIVE enrollment in this batch.
   const { data: enrollment, error: enrollError } = await supabase
@@ -45,6 +54,7 @@ export default async function StudentExamScorePage({ params }: PageProps) {
     .from("exams")
     .select("*, batches(name, code)")
     .eq("id", examId)
+    .eq("batch_id", batchId)
     .single();
 
   if (examError || !exam) {
@@ -139,7 +149,7 @@ export default async function StudentExamScorePage({ params }: PageProps) {
           <div className="p-6 sm:p-8 space-y-6">
             
             {/* Main Score widgets */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className={scoreGridClass}>
               <div className="bg-slate-50 p-4 rounded-xl border border-border/20 text-center">
                 <span className="text-[10px] uppercase font-bold text-muted tracking-wider block">Your Marks</span>
                 <span className={`text-xl font-black font-display block mt-1.5 ${
@@ -158,21 +168,25 @@ export default async function StudentExamScorePage({ params }: PageProps) {
                 <span className="text-[9px] text-slate-400 block mt-0.5">of total criteria</span>
               </div>
 
-              <div className="bg-slate-50 p-4 rounded-xl border border-border/20 text-center">
-                <span className="text-[10px] uppercase font-bold text-muted tracking-wider block">Letter Grade</span>
-                <span className="text-xl font-black font-display text-slate-800 block mt-1.5">
-                  {isAbs ? "F" : result?.grade || "-"}
-                </span>
-                <span className="text-[9px] text-slate-400 block mt-0.5">grading scale</span>
-              </div>
+              {gradesDisplayed && (
+                <div className="bg-slate-50 p-4 rounded-xl border border-border/20 text-center">
+                  <span className="text-[10px] uppercase font-bold text-muted tracking-wider block">Letter Grade</span>
+                  <span className="text-xl font-black font-display text-slate-800 block mt-1.5">
+                    {isAbs ? "F" : result?.grade || "-"}
+                  </span>
+                  <span className="text-[9px] text-slate-400 block mt-0.5">grading scale</span>
+                </div>
+              )}
 
-              <div className="bg-slate-50 p-4 rounded-xl border border-border/20 text-center">
-                <span className="text-[10px] uppercase font-bold text-muted tracking-wider block">Class Rank</span>
-                <span className="text-xl font-black font-display text-amber-700 block mt-1.5">
-                  {isAbs || !result || result.rank === null ? "-" : `#${result.rank}`}
-                </span>
-                <span className="text-[9px] text-slate-400 block mt-0.5">competition rank</span>
-              </div>
+              {studentRankVisible && (
+                <div className="bg-slate-50 p-4 rounded-xl border border-border/20 text-center">
+                  <span className="text-[10px] uppercase font-bold text-muted tracking-wider block">Class Rank</span>
+                  <span className="text-xl font-black font-display text-amber-700 block mt-1.5">
+                    {isAbs || !result || result.rank === null ? "-" : `#${result.rank}`}
+                  </span>
+                  <span className="text-[9px] text-slate-400 block mt-0.5">competition rank</span>
+                </div>
+              )}
             </div>
 
             {/* Exam Parameters details card */}

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { resolveAuthenticatedDestination } from "@/lib/supabase/auth";
 import { siteInfo } from "@/data/site";
 import { AccountDisabledView } from "./account-disabled-view";
+import { getStudentFacingSettings } from "@/lib/student-facing-settings";
 
 export default async function AccountDisabledPage() {
   // Authoritative server-side verification checks
@@ -28,6 +29,7 @@ export default async function AccountDisabledPage() {
     redirect("/login?error=invalid_profile");
   }
 
+  const settings = await getStudentFacingSettings();
   const studentName = profile?.full_name || "User";
   const studentCode = studentProfile?.student_code || "N/A";
 
@@ -35,7 +37,8 @@ export default async function AccountDisabledPage() {
     <AccountDisabledView
       studentName={studentName}
       studentCode={studentCode}
-      contactPhone={siteInfo.phone}
+      contactText={settings.disabledAccountContactText}
+      contactPhone={settings.publicPhone || siteInfo.phone}
     />
   );
 }

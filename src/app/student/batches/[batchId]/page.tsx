@@ -8,6 +8,7 @@ import { DashboardCard } from "@/components/dashboard/dashboard-card";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { Calendar, Clock, CreditCard, FileText, Award, Layers, Bell } from "lucide-react";
 import { formatCurrency } from "@/lib/currency";
+import { getStudentFacingSettings } from "@/lib/student-facing-settings";
 
 interface PageProps {
   params: Promise<{
@@ -36,6 +37,9 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
 
   // 2. Query Batch details
   const supabase = await createClient();
+  const displaySettings = await getStudentFacingSettings();
+  const gradesDisplayed = displaySettings.gradesDisplayed;
+
   const { data: batch, error: batchError } = await supabase
     .from("batches")
     .select("*")
@@ -342,7 +346,7 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
         {/* Results */}
         <DashboardCard
           title="Academic Performance Results"
-          description="Exam scores & letter grades"
+          description={gradesDisplayed ? "Exam scores & letter grades" : "Exam scores & percentages"}
           icon={<Layers className="h-5 w-5 text-accent" />}
         >
           <div className="space-y-4 pt-2 text-xs font-bold text-primary">
@@ -362,7 +366,9 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
                       <div>
                         <span className="font-extrabold text-slate-800 text-sm block">{r.exam.name}</span>
                         <span className="text-[9px] text-slate-400 font-semibold block mt-0.5">
-                          Grade: {isAbs ? "F (ABSENT)" : `${r.grade || "-"} (${((marks/total)*100).toFixed(0)}%)`}
+                          {gradesDisplayed
+                            ? `Grade: ${isAbs ? "F (ABSENT)" : `${r.grade || "-"} (${((marks / total) * 100).toFixed(0)}%)`}`
+                            : `Score: ${isAbs ? "ABSENT" : `${marks} / ${total} (${((marks / total) * 100).toFixed(0)}%)`}`}
                         </span>
                       </div>
                       <span className="text-xs font-extrabold text-primary">

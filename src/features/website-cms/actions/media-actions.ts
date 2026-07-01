@@ -3,6 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireTeacher } from "@/lib/auth-guards";
 import { cloudinary } from "@/lib/cloudinary";
+import { createAuditLog } from "@/lib/audit";
+import { revalidatePath } from "next/cache";
 
 // Define the allowed folder keys to prevent arbitrary folder uploads
 const ALLOWED_FOLDERS: Record<string, string> = {
@@ -116,7 +118,7 @@ export async function finalizeMediaUpload(payload: {
 
   // 3. Server-side validation of bounds and types WITH Cleanup
   const isAllowedFolder = Object.values(ALLOWED_FOLDERS).includes(payload.folder);
-  let validationError = null;
+  let validationError: string | null = null;
 
   if (!isAllowedFolder || !verifiedAsset.public_id.startsWith(`${payload.folder}/`)) {
     validationError = "Validation failed: Mismatched or unauthorized folder.";
@@ -158,29 +160,92 @@ export async function finalizeMediaUpload(payload: {
     .single();
 
   if (error) {
-    // 5. Safe Duplicate Handling
-    if (error.code === "23505" && verifiedAsset.asset_id) {
-      // Race condition: another request just inserted this identical asset_id.
-      // Lookup the existing record. Do NOT delete from Cloudinary.
-      const { data: existing, error: existingError } = await supabase
+    // 5. Safe duplicate handling also revives a previously soft-deleted row.
+    if (error.code === "23505") {
+      const { data: publicIdMatch, error: publicIdError } = await supabase
         .from("media_assets")
-        .select("id")
-        .eq("asset_id", verifiedAsset.asset_id)
+        .select("id, deleted_at")
+        .eq("provider", "CLOUDINARY")
+        .eq("public_id", verifiedAsset.public_id)
         .maybeSingle();
 
-      if (existingError || !existing) {
+      if (publicIdError) {
+        throw new Error("Failed to resolve duplicate media metadata.");
+      }
+
+      let existing = publicIdMatch;
+      if (!existing && verifiedAsset.asset_id) {
+        const { data: assetIdMatch, error: assetIdError } = await supabase
+          .from("media_assets")
+          .select("id, deleted_at")
+          .eq("asset_id", verifiedAsset.asset_id)
+          .maybeSingle();
+
+        if (assetIdError) {
+          throw new Error("Failed to resolve duplicate media metadata.");
+        }
+        existing = assetIdMatch;
+      }
+
+      if (!existing) {
         throw new Error("Failed to resolve unique duplicate record. Manual investigation required.");
       }
 
-      return { success: true, mediaId: existing.id, secureUrl: verifiedAsset.secure_url };
+      const { data: restored, error: restoreError } = await supabase
+        .from("media_assets")
+        .update({
+          public_id: verifiedAsset.public_id,
+          asset_id: verifiedAsset.asset_id || null,
+          asset_type: "IMAGE",
+          resource_type: verifiedAsset.resource_type,
+          delivery_type: verifiedAsset.type,
+          secure_url: verifiedAsset.secure_url,
+          version: verifiedAsset.version,
+          format: verifiedAsset.format,
+          folder: payload.folder,
+          original_filename: verifiedAsset.original_filename,
+          width: verifiedAsset.width,
+          height: verifiedAsset.height,
+          bytes: verifiedAsset.bytes,
+          is_public: true,
+          deleted_at: null,
+        })
+        .eq("id", existing.id)
+        .select("id")
+        .single();
+
+      if (restoreError || !restored) {
+        throw new Error("Failed to restore existing media metadata.");
+      }
+
+      await createAuditLog({
+        actorProfileId: profile.id,
+        action: existing.deleted_at ? "CMS_MEDIA_RESTORED" : "CMS_MEDIA_REUSED",
+        entityType: "media_assets",
+        entityId: restored.id,
+        oldValue: { deleted_at: existing.deleted_at },
+        newValue: { public_id: verifiedAsset.public_id, secure_url: verifiedAsset.secure_url },
+      });
+
+      revalidatePath("/teacher/website");
+      return { success: true, mediaId: restored.id, secureUrl: verifiedAsset.secure_url };
     }
 
-    // Standard database failure (not a duplicate) - we should clean up the orphan
+    // Standard database failure (not a duplicate) - clean up the orphan.
     console.error("Failed to save media asset to database:", error);
     await cleanupCloudinaryAsset(verifiedAsset.public_id, verifiedAsset.resource_type, verifiedAsset.type);
     throw new Error("Failed to save media metadata to database");
   }
 
+  await createAuditLog({
+    actorProfileId: profile.id,
+    action: "CMS_MEDIA_UPLOADED",
+    entityType: "media_assets",
+    entityId: data.id,
+    newValue: { public_id: verifiedAsset.public_id, secure_url: verifiedAsset.secure_url },
+  });
+
+  revalidatePath("/teacher/website");
   return { success: true, mediaId: data.id, secureUrl: verifiedAsset.secure_url };
 }
 
@@ -207,6 +272,15 @@ export async function findMediaReferences(mediaId: string): Promise<string[]> {
   if (itemsError) throw new Error("Could not verify section items references. Deletion was cancelled.");
   if (items && items.length > 0) references.push(`Section Item: ${items[0].title}`);
 
+  // Check media IDs stored inside page-section JSON content (for example hero images).
+  const { data: sections, error: sectionsError } = await supabase
+    .from("site_page_sections")
+    .select("section_key")
+    .contains("content", { mediaId })
+    .limit(1);
+  if (sectionsError) throw new Error("Could not verify page section references. Deletion was cancelled.");
+  if (sections && sections.length > 0) references.push(`Page Section: ${sections[0].section_key}`);
+
   return references;
 }
 
@@ -215,7 +289,7 @@ export async function findMediaReferences(mediaId: string): Promise<string[]> {
  * Implements a rollback if Cloudinary deletion fails.
  */
 export async function deleteMediaAsset(mediaId: string) {
-  await requireTeacher();
+  const { profile } = await requireTeacher();
   const supabase = await createClient();
 
   const references = await findMediaReferences(mediaId);
@@ -225,7 +299,7 @@ export async function deleteMediaAsset(mediaId: string) {
 
   const { data: asset, error: fetchError } = await supabase
     .from("media_assets")
-    .select("public_id, asset_id, resource_type, delivery_type")
+    .select("id, public_id, asset_id, resource_type, delivery_type, secure_url, deleted_at")
     .eq("id", mediaId)
     .single();
 
@@ -234,12 +308,15 @@ export async function deleteMediaAsset(mediaId: string) {
   }
 
   // Soft delete in DB first
-  const { error: deleteError } = await supabase
+  const { data: softDeleted, error: deleteError } = await supabase
     .from("media_assets")
     .update({ deleted_at: new Date().toISOString() })
-    .eq("id", mediaId);
+    .eq("id", mediaId)
+    .is("deleted_at", null)
+    .select("id")
+    .single();
 
-  if (deleteError) {
+  if (deleteError || !softDeleted) {
     throw new Error("Failed to soft delete asset from database. Cloudinary deletion cancelled.");
   }
 
@@ -257,6 +334,16 @@ export async function deleteMediaAsset(mediaId: string) {
     throw new Error("Failed to destroy asset on Cloudinary. Deletion rolled back.");
   }
 
+  await createAuditLog({
+    actorProfileId: profile.id,
+    action: "CMS_MEDIA_DELETED",
+    entityType: "media_assets",
+    entityId: mediaId,
+    oldValue: asset,
+    newValue: { deleted_at: new Date().toISOString() },
+  });
+
+  revalidatePath("/teacher/website");
   return { success: true };
 }
 

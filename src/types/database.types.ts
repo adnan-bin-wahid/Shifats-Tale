@@ -835,6 +835,83 @@ export interface Database {
         }
         Returns: void
       }
+      save_exam_results_draft_atomic: {
+        Args: {
+          p_exam_id: string
+          p_results: Json
+        }
+        Returns: Json
+      }
+      create_enrollment_atomic: {
+        Args: {
+          p_student_id: string
+          p_batch_id: string
+          p_initial_status?: "PENDING" | "ACTIVE" | "DISABLED" | "COMPLETED" | "REJECTED" | "CANCELLED"
+        }
+        Returns: Json
+      }
+      update_enrollment_status_atomic: {
+        Args: {
+          p_enrollment_id: string
+          p_new_status: "PENDING" | "ACTIVE" | "DISABLED" | "COMPLETED" | "REJECTED" | "CANCELLED"
+          p_disable_reason?: string | null
+          p_explicit_confirmation?: boolean
+        }
+        Returns: Json
+      }
+      update_student_profile_self_atomic: {
+        Args: {
+          p_phone: string
+          p_guardian_name: string
+          p_guardian_phone: string
+          p_address: string
+          p_date_of_birth: string | null
+        }
+        Returns: Json
+      }
+      update_teacher_profile_self_atomic: {
+        Args: {
+          p_full_name: string
+          p_phone: string | null
+          p_designation: string
+          p_coaching_center_name: string
+          p_public_contact_info: string
+        }
+        Returns: Json
+      }
+      update_student_registration_atomic: {
+        Args: {
+          p_student_id: string
+          p_new_status: "PENDING" | "APPROVED" | "REJECTED"
+        }
+        Returns: Json
+      }
+      consume_rate_limit: {
+        Args: {
+          p_key: string
+          p_limit: number
+          p_duration_seconds: number
+        }
+        Returns: boolean
+      }
+      update_student_profile_by_teacher_atomic: {
+        Args: {
+          p_student_id: string
+          p_student_code: string
+          p_full_name: string
+          p_phone: string
+          p_account_status: "ACTIVE" | "DISABLED" | "ARCHIVED"
+          p_academic_level: string
+          p_institution: string
+          p_guardian_name: string
+          p_guardian_phone: string
+          p_address: string
+          p_date_of_birth: string | null
+          p_registration_status: "PENDING" | "APPROVED" | "REJECTED"
+          p_teacher_note: string | null
+        }
+        Returns: Json
+      }
     }
     Enums: {
       user_role: "STUDENT" | "TEACHER"

@@ -1,4 +1,5 @@
 import React from "react";
+import { requireTeacher } from "@/lib/auth-guards";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { DashboardCard } from "@/components/dashboard/dashboard-card";
@@ -20,6 +21,7 @@ interface PageProps {
 }
 
 export default async function TeacherBatchPaymentsPage({ params, searchParams }: PageProps) {
+  await requireTeacher();
   const { batchId } = await params;
   const sp = await searchParams;
   const admin = createAdminClient();

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateSignedAccessUrl } from "@/lib/cloudinary";
 import { requireMaterialAccess } from "@/lib/auth-guards";
-import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { RateLimitError, rateLimit } from "@/lib/rate-limit";
 
 export async function GET(
   request: NextRequest,
@@ -15,21 +15,25 @@ export async function GET(
   headers.set("Pragma", "no-cache");
 
   try {
-    // 1. Rate limiting check by IP
-    const ip = await getClientIp();
-    try {
-      await rateLimit(`material-access-${ip}`, 30, 60); // Max 30 file previews/downloads per minute
-    } catch {
-      return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429, headers });
-    }
-
-    // 2. Authoritative authentication and material authorization checks
+    // 1. Authoritative authentication and material authorization checks
     let material;
+    let profileId: string;
     try {
       const auth = await requireMaterialAccess(contentId);
       material = auth.material;
+      profileId = auth.profile.id;
     } catch {
       return NextResponse.json({ error: "Access denied" }, { status: 403, headers });
+    }
+
+    // 2. Rate limit the authenticated principal and the observed client IP.
+    try {
+      await rateLimit(`material-access-${profileId}`, 30, 60);
+    } catch (error) {
+      if (error instanceof RateLimitError) {
+        return NextResponse.json({ error: error.message }, { status: 429, headers });
+      }
+      return NextResponse.json({ error: "Access service temporarily unavailable" }, { status: 503, headers });
     }
 
     const { searchParams } = new URL(request.url);

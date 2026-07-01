@@ -8,12 +8,14 @@ import { supabase } from "@/lib/supabase/client";
 interface AccountDisabledViewProps {
   studentName: string;
   studentCode: string;
+  contactText: string;
   contactPhone: string;
 }
 
 export function AccountDisabledView({
   studentName,
   studentCode,
+  contactText,
   contactPhone,
 }: AccountDisabledViewProps) {
   const router = useRouter();
@@ -44,10 +46,7 @@ export function AccountDisabledView({
           Account Disabled
         </h2>
         <div className="text-sm text-muted font-medium leading-relaxed max-w-sm mx-auto space-y-4">
-          <p>
-            Your account has been disabled. Please contact the Teacher or coaching center
-            administration.
-          </p>
+          <p>{contactText}</p>
 
           {/* Student metadata panel */}
           <div className="bg-bg/40 border border-border/60 rounded-xl p-4 text-left space-y-2">

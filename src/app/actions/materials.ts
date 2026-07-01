@@ -284,6 +284,20 @@ export async function updateMaterialAction(contentId: string, formData: FormData
       return { success: false, message: "Batch material not found." };
     }
 
+    const { data: targetBatch, error: targetBatchError } = await admin
+      .from("batches")
+      .select("id, status")
+      .eq("id", data.batchId)
+      .single();
+
+    if (targetBatchError || !targetBatch) {
+      return { success: false, message: "Target batch not found." };
+    }
+
+    if (["ARCHIVED", "CANCELLED"].includes(targetBatch.status)) {
+      return { success: false, message: "Materials cannot be moved into an archived or cancelled batch." };
+    }
+
     const isFileBased = ["PDF", "DOC", "DOCX", "IMAGE"].includes(data.contentType);
     const file = formData.get("file") as File | null;
 
@@ -368,6 +382,7 @@ export async function updateMaterialAction(contentId: string, formData: FormData
 
     // Compile update fields
     const updatedFields: any = {
+      batch_id: data.batchId,
       title: data.title,
       description: data.description || null,
       content_type: data.contentType,
@@ -472,6 +487,12 @@ export async function updateMaterialAction(contentId: string, formData: FormData
 
     revalidatePath(`/teacher/batches/${updatedMaterial.batch_id}/materials`);
     revalidatePath(`/student/batches/${updatedMaterial.batch_id}/materials`);
+
+    if (oldMaterial.batch_id !== updatedMaterial.batch_id) {
+      revalidatePath(`/teacher/batches/${oldMaterial.batch_id}/materials`);
+      revalidatePath(`/student/batches/${oldMaterial.batch_id}/materials`);
+    }
+
     return { success: true, material: updatedMaterial };
   } catch (err: any) {
     if (uploadedPublicId) {

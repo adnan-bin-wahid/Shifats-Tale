@@ -1,4 +1,5 @@
 import React from "react";
+import { requireTeacher } from "@/lib/auth-guards";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { DashboardCard } from "@/components/dashboard/dashboard-card";
@@ -15,6 +16,7 @@ interface PageProps {
 }
 
 export default async function TeacherStudentPaymentsPage({ params }: PageProps) {
+  await requireTeacher();
   const { studentId } = await params;
   const admin = createAdminClient();
 

@@ -53,7 +53,11 @@ export const studentProfileTeacherEditSchema = z.object({
 export const appSettingsSchema = z.object({
   coachingCenterName: z.string().min(2, "Coaching center name is required"),
   shortName: z.string().min(1, "Short name is required"),
-  studentIdPrefix: z.string().min(1, "Student ID prefix is required"),
+  studentIdPrefix: z
+    .string()
+    .min(1, "Student ID prefix is required")
+    .max(10, "Student ID prefix must be 10 characters or fewer")
+    .regex(/^[A-Za-z0-9]+$/, "Student ID prefix can contain only letters and numbers"),
   publicPhone: validatePhone,
   publicEmail: z.string().email("Invalid public email format"),
   address: z.string().min(5, "Address is required"),

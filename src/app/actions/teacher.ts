@@ -169,6 +169,25 @@ export async function updateBatchAction(batchId: string, rawInput: any) {
       coverImageUrl,
     } = validated.data;
 
+    if (capacity !== null && capacity !== undefined) {
+      const { count: activeEnrollmentCount, error: activeCountError } = await admin
+        .from("enrollments")
+        .select("id", { count: "exact", head: true })
+        .eq("batch_id", batchId)
+        .eq("status", "ACTIVE");
+
+      if (activeCountError) {
+        return { success: false, message: "Failed to verify the active enrollment count." };
+      }
+
+      if ((activeEnrollmentCount || 0) > capacity) {
+        return {
+          success: false,
+          message: `Capacity cannot be lower than the current active enrollment count (${activeEnrollmentCount}).`,
+        };
+      }
+    }
+
     // Check unique batch code if it changed
     if (code !== oldBatch.code) {
       // Check if enrollments exist
@@ -308,30 +327,23 @@ export async function deleteBatchAction(batchId: string) {
     const teacher = await assertActiveTeacher();
     const admin = createAdminClient();
 
-    // Check if dependent data exists
-    const { count: enrollmentsCount } = await admin
-      .from("enrollments")
-      .select("id", { count: "exact", head: true })
-      .eq("batch_id", batchId);
+    // Fail closed if any dependent data exists or a dependency query fails.
+    const dependencyChecks = await Promise.all([
+      admin.from("enrollments").select("id", { count: "exact", head: true }).eq("batch_id", batchId),
+      admin.from("payments").select("id", { count: "exact", head: true }).eq("batch_id", batchId),
+      admin.from("exams").select("id", { count: "exact", head: true }).eq("batch_id", batchId),
+      admin.from("batch_contents").select("id", { count: "exact", head: true }).eq("batch_id", batchId),
+      admin.from("announcements").select("id", { count: "exact", head: true }).eq("batch_id", batchId),
+    ]);
 
-    const { count: paymentsCount } = await admin
-      .from("payments")
-      .select("id", { count: "exact", head: true })
-      .eq("batch_id", batchId);
+    if (dependencyChecks.some((result) => result.error)) {
+      return { success: false, message: "Failed to verify whether the batch has dependent records." };
+    }
 
-    const { count: examsCount } = await admin
-      .from("exams")
-      .select("id", { count: "exact", head: true })
-      .eq("batch_id", batchId);
-
-    if (
-      (enrollmentsCount && enrollmentsCount > 0) ||
-      (paymentsCount && paymentsCount > 0) ||
-      (examsCount && examsCount > 0)
-    ) {
+    if (dependencyChecks.some((result) => (result.count || 0) > 0)) {
       return {
         success: false,
-        message: "Cannot delete a batch containing enrollments, payments, exams, or historical records.",
+        message: "Cannot delete a batch containing enrollments, payments, exams, materials, announcements, or historical records.",
       };
     }
 
@@ -363,63 +375,28 @@ export async function deleteBatchAction(batchId: string) {
   }
 }
 
-async function handleRegistrationApprovalOnFirstActive(
+async function recordRegistrationApprovalSideEffects(
   studentId: string,
-  enrollmentId: string,
+  profileId: string,
   actorProfileId: string
 ) {
-  const admin = createAdminClient();
+  await createAuditLog({
+    actorProfileId,
+    action: "REGISTRATION_APPROVED",
+    entityType: "student_profiles",
+    entityId: studentId,
+    oldValue: { registration_status: "PENDING" },
+    newValue: { registration_status: "APPROVED" },
+  });
 
-  const { data: student, error: fetchError } = await admin
-    .from("student_profiles")
-    .select("registration_status, profile_id")
-    .eq("id", studentId)
-    .single();
-
-  if (fetchError || !student) {
-    console.error("Failed to retrieve student profile inside handleRegistrationApprovalOnFirstActive");
-    return;
-  }
-
-  if (student.registration_status === "PENDING") {
-    const { count } = await admin
-      .from("enrollments")
-      .select("id", { count: "exact", head: true })
-      .eq("student_id", studentId)
-      .eq("status", "ACTIVE");
-
-    if (count && count > 0) {
-      const { data: updatedStudent, error: updateError } = await admin
-        .from("student_profiles")
-        .update({ registration_status: "APPROVED" })
-        .eq("id", studentId)
-        .select()
-        .single();
-
-      if (updateError) {
-        console.error("Failed to update student registration_status to APPROVED:", updateError);
-        return;
-      }
-
-      await createAuditLog({
-        actorProfileId,
-        action: "REGISTRATION_APPROVED",
-        entityType: "student_profiles",
-        entityId: studentId,
-        oldValue: { registration_status: "PENDING" },
-        newValue: { registration_status: "APPROVED" },
-      });
-
-      await createNotificationForProfile({
-        profileId: student.profile_id,
-        type: "REGISTRATION_APPROVED",
-        title: "Registration Approved",
-        message: "Your student registration has been approved. Welcome to Shifat's Tales!",
-        relatedEntityType: "student_profiles",
-        relatedEntityId: studentId,
-      });
-    }
-  }
+  await createNotificationForProfile({
+    profileId,
+    type: "REGISTRATION_APPROVED",
+    title: "Registration Approved",
+    message: "Your student registration has been approved. Welcome to Shifat's Tales!",
+    relatedEntityType: "student_profiles",
+    relatedEntityId: studentId,
+  });
 }
 
 export async function enrollStudentAction(
@@ -430,14 +407,20 @@ export async function enrollStudentAction(
   try {
     const teacher = await assertActiveTeacher();
     const admin = createAdminClient();
+    const supabase = await createClient();
 
-    // Check duplicate
-    const { data: existing } = await admin
+    // Preserve the existing duplicate response while the database unique
+    // constraint remains the final race-safe authority.
+    const { data: existing, error: duplicateCheckError } = await admin
       .from("enrollments")
       .select("*")
       .eq("student_id", studentId)
       .eq("batch_id", batchId)
       .maybeSingle();
+
+    if (duplicateCheckError) {
+      return { success: false, message: duplicateCheckError.message };
+    }
 
     if (existing) {
       return {
@@ -448,25 +431,40 @@ export async function enrollStudentAction(
       };
     }
 
-    const updates: any = {
-      student_id: studentId,
-      batch_id: batchId,
-      status: initialStatus,
+    const { data: rpcData, error: rpcError } = await supabase.rpc("create_enrollment_atomic", {
+      p_student_id: studentId,
+      p_batch_id: batchId,
+      p_initial_status: initialStatus,
+    });
+
+    if (rpcError) {
+      if (rpcError.code === "23505") {
+        const { data: racedExisting } = await admin
+          .from("enrollments")
+          .select("*")
+          .eq("student_id", studentId)
+          .eq("batch_id", batchId)
+          .maybeSingle();
+        return {
+          success: false,
+          code: "DUPLICATE",
+          message: `Student is already enrolled in this batch${racedExisting?.status ? ` with status: ${racedExisting.status}` : "."}`,
+          enrollment: racedExisting || undefined,
+        };
+      }
+      return { success: false, message: rpcError.message };
+    }
+
+    const payload = rpcData as any;
+    const enrollmentRow = payload?.enrollment;
+    if (!enrollmentRow?.id) {
+      return { success: false, message: "Enrollment was created but its committed record could not be resolved." };
+    }
+
+    const newEnrollment = {
+      ...enrollmentRow,
+      batches: { name: enrollmentRow.batch_name },
     };
-
-    if (initialStatus === "ACTIVE") {
-      updates.approved_at = new Date().toISOString();
-    }
-
-    const { data: newEnrollment, error } = await admin
-      .from("enrollments")
-      .insert(updates)
-      .select("*, batches(name)")
-      .single();
-
-    if (error) {
-      return { success: false, message: error.message };
-    }
 
     await createAuditLog({
       actorProfileId: teacher.id,
@@ -476,9 +474,11 @@ export async function enrollStudentAction(
       newValue: newEnrollment,
     });
 
+    if (payload.registration_approved && payload.profile_id) {
+      await recordRegistrationApprovalSideEffects(studentId, payload.profile_id, teacher.id);
+    }
+
     if (initialStatus === "ACTIVE") {
-      await handleRegistrationApprovalOnFirstActive(studentId, newEnrollment.id, teacher.id);
-      
       await createNotification({
         studentProfileId: studentId,
         type: "ENROLLMENT_ACTIVATED",
@@ -501,7 +501,9 @@ export async function enrollStudentAction(
     revalidatePath("/teacher/students");
     revalidatePath(`/teacher/students/${studentId}`);
     revalidatePath(`/teacher/batches/${batchId}`);
-    revalidatePath(`/teacher/enrollments`);
+    revalidatePath("/teacher/enrollments");
+    revalidatePath("/student");
+    revalidatePath(`/student/batches/${batchId}`);
     return { success: true, enrollment: newEnrollment };
   } catch (err: any) {
     return { success: false, message: err.message || "Internal server error" };
@@ -522,8 +524,8 @@ export async function updateEnrollmentStatusAction({
   try {
     const teacher = await assertActiveTeacher();
     const admin = createAdminClient();
+    const supabase = await createClient();
 
-    // Fetch current enrollment
     const { data: enrollment, error: fetchError } = await admin
       .from("enrollments")
       .select("*, batches(name)")
@@ -535,56 +537,35 @@ export async function updateEnrollmentStatusAction({
     }
 
     const oldStatus = enrollment.status;
-
     if (oldStatus === newStatus) {
       return { success: true, enrollment };
     }
 
-    let isValid = false;
-    if (oldStatus === "PENDING") {
-      isValid = newStatus === "ACTIVE" || newStatus === "REJECTED" || newStatus === "CANCELLED";
-    } else if (oldStatus === "ACTIVE") {
-      isValid = newStatus === "DISABLED" || newStatus === "COMPLETED" || newStatus === "CANCELLED";
-    } else if (oldStatus === "DISABLED") {
-      isValid = newStatus === "ACTIVE" || newStatus === "CANCELLED";
-    } else if (oldStatus === "COMPLETED") {
-      isValid = newStatus === "ACTIVE" && explicitConfirmation;
-    } else if (oldStatus === "REJECTED") {
-      isValid = newStatus === "PENDING" && explicitConfirmation;
+    if (newStatus === "DISABLED" && (!disableReason || disableReason.trim() === "")) {
+      return { success: false, message: "A reason is required to disable an enrollment." };
     }
 
-    if (!isValid) {
-      return {
-        success: false,
-        message: `Invalid enrollment transition from ${oldStatus} to ${newStatus} (explicit confirmation: ${explicitConfirmation})`,
-      };
+    const { data: rpcData, error: rpcError } = await supabase.rpc("update_enrollment_status_atomic", {
+      p_enrollment_id: enrollmentId,
+      p_new_status: newStatus,
+      p_disable_reason: disableReason,
+      p_explicit_confirmation: explicitConfirmation,
+    });
+
+    if (rpcError) {
+      return { success: false, message: rpcError.message };
     }
 
-    const updates: any = { status: newStatus };
-    if (newStatus === "ACTIVE") {
-      updates.approved_at = new Date().toISOString();
-      updates.disabled_at = null;
-      updates.disable_reason = null;
-    } else if (newStatus === "DISABLED") {
-      if (!disableReason || disableReason.trim() === "") {
-        return { success: false, message: "A reason is required to disable an enrollment." };
-      }
-      updates.disabled_at = new Date().toISOString();
-      updates.disable_reason = disableReason;
-    } else if (newStatus === "COMPLETED") {
-      updates.completed_at = new Date().toISOString();
+    const payload = rpcData as any;
+    const updatedRow = payload?.enrollment;
+    if (!updatedRow?.id) {
+      return { success: false, message: "Enrollment update committed but its resulting record could not be resolved." };
     }
 
-    const { data: updated, error } = await admin
-      .from("enrollments")
-      .update(updates)
-      .eq("id", enrollmentId)
-      .select()
-      .single();
-
-    if (error) {
-      return { success: false, message: error.message };
-    }
+    const updated = {
+      ...updatedRow,
+      batches: { name: updatedRow.batch_name || enrollment.batches?.name },
+    };
 
     let logAction = "ENROLLMENT_CHANGED";
     if (newStatus === "ACTIVE") {
@@ -633,14 +614,16 @@ export async function updateEnrollmentStatusAction({
       relatedEntityId: enrollmentId,
     });
 
-    if (newStatus === "ACTIVE") {
-      await handleRegistrationApprovalOnFirstActive(enrollment.student_id, enrollmentId, teacher.id);
+    if (payload.registration_approved && payload.profile_id) {
+      await recordRegistrationApprovalSideEffects(enrollment.student_id, payload.profile_id, teacher.id);
     }
 
     revalidatePath("/teacher/students");
     revalidatePath(`/teacher/students/${enrollment.student_id}`);
     revalidatePath(`/teacher/batches/${enrollment.batch_id}`);
-    revalidatePath(`/teacher/enrollments`);
+    revalidatePath("/teacher/enrollments");
+    revalidatePath("/student");
+    revalidatePath(`/student/batches/${enrollment.batch_id}`);
     return { success: true, enrollment: updated };
   } catch (err: any) {
     return { success: false, message: err.message || "Internal server error" };
@@ -662,16 +645,17 @@ export async function updateStudentRegistrationAction(studentId: string, newStat
       return { success: false, message: "Student not found" };
     }
 
-    const { data: updated, error } = await admin
-      .from("student_profiles")
-      .update({ registration_status: newStatus })
-      .eq("id", studentId)
-      .select()
-      .single();
+    const supabase = await createClient();
+    const { data: updatedData, error } = await supabase.rpc("update_student_registration_atomic", {
+      p_student_id: studentId,
+      p_new_status: newStatus,
+    });
 
     if (error) {
       return { success: false, message: error.message };
     }
+
+    const updated = updatedData as Record<string, unknown>;
 
     const action = newStatus === "APPROVED" ? "REGISTRATION_APPROVED" : "REGISTRATION_REJECTED";
 
@@ -697,6 +681,9 @@ export async function updateStudentRegistrationAction(studentId: string, newStat
 
     revalidatePath("/teacher/students");
     revalidatePath(`/teacher/students/${studentId}`);
+    revalidatePath("/student");
+    revalidatePath("/student/profile");
+    revalidatePath("/pending-approval");
     return { success: true, student: updated };
   } catch (err: any) {
     return { success: false, message: err.message || "Internal server error" };
@@ -724,10 +711,21 @@ export async function updateStudentAccountStatusAction({
       .from("profiles")
       .select("*")
       .eq("id", profileId)
+      .eq("role", "STUDENT")
       .single();
 
     if (fetchError || !oldProfile) {
-      return { success: false, message: "User profile not found" };
+      return { success: false, message: "Student profile not found" };
+    }
+
+    const { data: studentProfile, error: studentProfileError } = await admin
+      .from("student_profiles")
+      .select("id")
+      .eq("profile_id", profileId)
+      .single();
+
+    if (studentProfileError || !studentProfile) {
+      return { success: false, message: "Student record not found" };
     }
 
     const { data: updated, error } = await admin
@@ -764,7 +762,9 @@ export async function updateStudentAccountStatusAction({
     });
 
     revalidatePath("/teacher/students");
-    revalidatePath(`/teacher/students/${profileId}`);
+    revalidatePath(`/teacher/students/${studentProfile.id}`);
+    revalidatePath("/student");
+    revalidatePath("/student/profile");
     return { success: true, profile: updated };
   } catch (err: any) {
     return { success: false, message: err.message || "Internal server error" };
