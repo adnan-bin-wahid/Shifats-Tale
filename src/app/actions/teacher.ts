@@ -169,6 +169,25 @@ export async function updateBatchAction(batchId: string, rawInput: any) {
       coverImageUrl,
     } = validated.data;
 
+    if (capacity !== null && capacity !== undefined) {
+      const { count: activeEnrollmentCount, error: activeCountError } = await admin
+        .from("enrollments")
+        .select("id", { count: "exact", head: true })
+        .eq("batch_id", batchId)
+        .eq("status", "ACTIVE");
+
+      if (activeCountError) {
+        return { success: false, message: "Failed to verify the active enrollment count." };
+      }
+
+      if ((activeEnrollmentCount || 0) > capacity) {
+        return {
+          success: false,
+          message: `Capacity cannot be lower than the current active enrollment count (${activeEnrollmentCount}).`,
+        };
+      }
+    }
+
     // Check unique batch code if it changed
     if (code !== oldBatch.code) {
       // Check if enrollments exist
@@ -308,30 +327,23 @@ export async function deleteBatchAction(batchId: string) {
     const teacher = await assertActiveTeacher();
     const admin = createAdminClient();
 
-    // Check if dependent data exists
-    const { count: enrollmentsCount } = await admin
-      .from("enrollments")
-      .select("id", { count: "exact", head: true })
-      .eq("batch_id", batchId);
+    // Fail closed if any dependent data exists or a dependency query fails.
+    const dependencyChecks = await Promise.all([
+      admin.from("enrollments").select("id", { count: "exact", head: true }).eq("batch_id", batchId),
+      admin.from("payments").select("id", { count: "exact", head: true }).eq("batch_id", batchId),
+      admin.from("exams").select("id", { count: "exact", head: true }).eq("batch_id", batchId),
+      admin.from("batch_contents").select("id", { count: "exact", head: true }).eq("batch_id", batchId),
+      admin.from("announcements").select("id", { count: "exact", head: true }).eq("batch_id", batchId),
+    ]);
 
-    const { count: paymentsCount } = await admin
-      .from("payments")
-      .select("id", { count: "exact", head: true })
-      .eq("batch_id", batchId);
+    if (dependencyChecks.some((result) => result.error)) {
+      return { success: false, message: "Failed to verify whether the batch has dependent records." };
+    }
 
-    const { count: examsCount } = await admin
-      .from("exams")
-      .select("id", { count: "exact", head: true })
-      .eq("batch_id", batchId);
-
-    if (
-      (enrollmentsCount && enrollmentsCount > 0) ||
-      (paymentsCount && paymentsCount > 0) ||
-      (examsCount && examsCount > 0)
-    ) {
+    if (dependencyChecks.some((result) => (result.count || 0) > 0)) {
       return {
         success: false,
-        message: "Cannot delete a batch containing enrollments, payments, exams, or historical records.",
+        message: "Cannot delete a batch containing enrollments, payments, exams, materials, announcements, or historical records.",
       };
     }
 
@@ -633,16 +645,17 @@ export async function updateStudentRegistrationAction(studentId: string, newStat
       return { success: false, message: "Student not found" };
     }
 
-    const { data: updated, error } = await admin
-      .from("student_profiles")
-      .update({ registration_status: newStatus })
-      .eq("id", studentId)
-      .select()
-      .single();
+    const supabase = await createClient();
+    const { data: updatedData, error } = await supabase.rpc("update_student_registration_atomic", {
+      p_student_id: studentId,
+      p_new_status: newStatus,
+    });
 
     if (error) {
       return { success: false, message: error.message };
     }
+
+    const updated = updatedData as Record<string, unknown>;
 
     const action = newStatus === "APPROVED" ? "REGISTRATION_APPROVED" : "REGISTRATION_REJECTED";
 
@@ -668,6 +681,9 @@ export async function updateStudentRegistrationAction(studentId: string, newStat
 
     revalidatePath("/teacher/students");
     revalidatePath(`/teacher/students/${studentId}`);
+    revalidatePath("/student");
+    revalidatePath("/student/profile");
+    revalidatePath("/pending-approval");
     return { success: true, student: updated };
   } catch (err: any) {
     return { success: false, message: err.message || "Internal server error" };

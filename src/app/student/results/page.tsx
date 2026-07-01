@@ -6,6 +6,7 @@ import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-heade
 import { DashboardCard } from "@/components/dashboard/dashboard-card";
 import { Calendar, Filter, Award, Percent, Users, AlertTriangle } from "lucide-react";
 import Link from "next/link";
+import { getStudentFacingSettings } from "@/lib/student-facing-settings";
 
 interface PageProps {
   searchParams: Promise<{
@@ -33,6 +34,9 @@ export default async function StudentResultsPage({ searchParams }: PageProps) {
   }
 
   const supabase = await createClient();
+  const displaySettings = await getStudentFacingSettings();
+  const gradesDisplayed = displaySettings.gradesDisplayed;
+  const studentRankVisible = displaySettings.studentRankVisible;
 
   // Query active batch enrollments for the student
   const { data: enrollments } = await supabase
@@ -292,8 +296,8 @@ export default async function StudentResultsPage({ searchParams }: PageProps) {
                   <th className="py-4 px-6">Batch Code</th>
                   <th className="py-4 px-6">Date</th>
                   <th className="py-4 px-6 text-center">Marks Score</th>
-                  <th className="py-4 px-6 text-center">Grade</th>
-                  <th className="py-4 px-6 text-center">Rank</th>
+                  {gradesDisplayed && <th className="py-4 px-6 text-center">Grade</th>}
+                  {studentRankVisible && <th className="py-4 px-6 text-center">Rank</th>}
                   <th className="py-4 px-6 text-right">Actions</th>
                 </tr>
               </thead>
@@ -333,13 +337,17 @@ export default async function StudentResultsPage({ searchParams }: PageProps) {
                         )}
                       </td>
 
-                      <td className="py-4 px-6 text-center font-display font-black text-slate-800 text-sm">
-                        {isAbs ? "F" : r.grade || "-"}
-                      </td>
+                      {gradesDisplayed && (
+                        <td className="py-4 px-6 text-center font-display font-black text-slate-800 text-sm">
+                          {isAbs ? "F" : r.grade || "-"}
+                        </td>
+                      )}
 
-                      <td className="py-4 px-6 text-center font-display font-black text-amber-700 text-sm">
-                        {r.rank !== null ? `#${r.rank}` : "-"}
-                      </td>
+                      {studentRankVisible && (
+                        <td className="py-4 px-6 text-center font-display font-black text-amber-700 text-sm">
+                          {r.rank !== null ? `#${r.rank}` : "-"}
+                        </td>
+                      )}
 
                       <td className="py-4 px-6 text-right">
                         <Link

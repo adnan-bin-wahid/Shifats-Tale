@@ -10,6 +10,7 @@ interface PendingApprovalViewProps {
   studentCode: string;
   registrationStatus: string;
   registrationDate: string;
+  contactText: string;
   contactPhone: string;
   contactEmail: string;
 }
@@ -19,6 +20,7 @@ export function PendingApprovalView({
   studentCode,
   registrationStatus,
   registrationDate,
+  contactText,
   contactPhone,
   contactEmail,
 }: PendingApprovalViewProps) {
@@ -60,10 +62,7 @@ export function PendingApprovalView({
           Admission Pending Approval
         </h2>
         <div className="text-sm text-muted font-medium leading-relaxed max-w-sm mx-auto space-y-4">
-          <p>
-            Your registration has been completed, but your admission has not yet been approved.
-            Complete your offline payment and provide your Student ID to the Teacher.
-          </p>
+          <p>{contactText}</p>
 
           {/* Student metadata panel */}
           <div className="bg-bg/40 border border-border/60 rounded-xl p-4 text-left space-y-2">

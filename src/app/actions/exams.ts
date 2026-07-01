@@ -75,7 +75,11 @@ export async function createExamAction(formData: FormData) {
     const passMarks = formData.get("passMarks") as string;
     const startTime = formData.get("startTime") as string;
     const duration = formData.get("duration") as string;
-    const status = (formData.get("status") as any) || "DRAFT";
+    const status = (formData.get("status") as string) || "DRAFT";
+
+    if (!(["DRAFT", "SCHEDULED"] as const).includes(status as "DRAFT" | "SCHEDULED")) {
+      return { success: false, message: "New examinations can only be created as draft or scheduled." };
+    }
 
     // Validate using Zod schema
     const validated = examSchema.safeParse({
@@ -182,7 +186,7 @@ export async function updateExamAction(examId: string, formData: FormData) {
     const passMarks = formData.get("passMarks") as string;
     const startTime = formData.get("startTime") as string;
     const duration = formData.get("duration") as string;
-    const status = formData.get("status") as any;
+    const status = formData.get("status") as string | null;
 
     const validated = examSchema.safeParse({
       batchId,
@@ -219,6 +223,13 @@ export async function updateExamAction(examId: string, formData: FormData) {
       return {
         success: false,
         message: "This examination has published results. Please unpublish the results before editing details.",
+      };
+    }
+
+    if (status && status !== oldExam.status) {
+      return {
+        success: false,
+        message: "Examination status must be changed through the dedicated scheduling, result, or archive workflow.",
       };
     }
 
@@ -264,7 +275,7 @@ export async function updateExamAction(examId: string, formData: FormData) {
         pass_marks: data.passMarks,
         start_time: data.startTime || null,
         duration: data.duration || null,
-        status: status || oldExam.status,
+        status: oldExam.status,
       })
       .eq("id", examId)
       .select()
@@ -543,6 +554,20 @@ export async function archiveExamAction(examId: string) {
     const teacher = await assertActiveTeacher();
     const admin = createAdminClient();
 
+    const { data: exam, error: fetchError } = await admin
+      .from("exams")
+      .select("*")
+      .eq("id", examId)
+      .single();
+
+    if (fetchError || !exam) {
+      return { success: false, message: "Examination not found." };
+    }
+
+    if (exam.status === "RESULT_PUBLISHED") {
+      return { success: false, message: "Published results must be withdrawn before archiving this examination." };
+    }
+
     const { data: updatedExam, error: dbError } = await admin
       .from("exams")
       .update({ status: "ARCHIVED" })
@@ -560,6 +585,8 @@ export async function archiveExamAction(examId: string) {
       action: "EXAM_ARCHIVED",
       entityType: "exams",
       entityId: examId,
+      oldValue: exam,
+      newValue: updatedExam,
     });
 
     revalidatePath(`/teacher/batches/${updatedExam.batch_id}/exams`);
@@ -583,6 +610,23 @@ export async function deleteExamAction(examId: string) {
 
     if (fetchError || !exam) {
       return { success: false, message: "Examination not found." };
+    }
+
+    if (exam.status !== "DRAFT") {
+      return { success: false, message: "Only draft examinations can be deleted." };
+    }
+
+    const { count: resultCount, error: resultCountError } = await admin
+      .from("exam_results")
+      .select("id", { count: "exact", head: true })
+      .eq("exam_id", examId);
+
+    if (resultCountError) {
+      return { success: false, message: "Failed to verify examination history before deletion." };
+    }
+
+    if ((resultCount || 0) > 0) {
+      return { success: false, message: "Cannot delete an examination after result records exist." };
     }
 
     const { error: dbError } = await admin

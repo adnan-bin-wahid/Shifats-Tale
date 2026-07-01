@@ -2,7 +2,15 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { requireTeacher } from "@/lib/auth-guards";
-import { SitePageSection } from "../types/cms-types";
+import { createAuditLog } from "@/lib/audit";
+import { revalidatePath } from "next/cache";
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function publicPathForSlug(slug: string | null | undefined) {
+  const normalized = (slug || "").trim().replace(/^\/+|\/+$/g, "");
+  return normalized ? `/${normalized}` : "/";
+}
 
 /**
  * Public: Get a specific page section by its key and the page key.
@@ -11,30 +19,38 @@ import { SitePageSection } from "../types/cms-types";
 export async function getPageSection(pageKey: string, sectionKey: string) {
   const supabase = await createClient();
 
+  const { data: page, error: pageError } = await supabase
+    .from("vw_public_site_pages")
+    .select("id")
+    .eq("page_key", pageKey)
+    .maybeSingle();
+
+  if (pageError || !page) {
+    return null;
+  }
+
   const { data: section, error } = await supabase
     .from("vw_public_site_page_sections")
     .select("*")
+    .eq("page_id", page.id)
     .eq("section_key", sectionKey)
     .maybeSingle();
 
-  // Validate the page_key matches implicitly since the view filters active pages, 
-  // but to be perfectly strict we should join or just trust the section_key if it's unique enough.
-  // We'll rely on the view logic.
-  
   if (error || !section) {
     return null;
   }
 
-  // Auto-resolve media URL if mediaId exists in content
   let mediaUrl = null;
-  const content = section.content as Record<string, any>;
-  if (content && content.mediaId) {
+  const content = section.content as Record<string, unknown> | null;
+  const mediaId = typeof content?.mediaId === "string" ? content.mediaId : null;
+
+  if (mediaId && UUID_PATTERN.test(mediaId)) {
     const { data: media } = await supabase
       .from("vw_public_media_assets")
       .select("secure_url")
-      .eq("id", content.mediaId)
+      .eq("id", mediaId)
       .maybeSingle();
-    
+
     if (media) {
       mediaUrl = media.secure_url;
     }
@@ -50,24 +66,31 @@ export async function getPageSection(pageKey: string, sectionKey: string) {
  * Teacher: Update a specific page section's content.
  */
 export async function updatePageSection(
-  pageKey: string, 
-  sectionKey: string, 
+  pageKey: string,
+  sectionKey: string,
   payload: {
     eyebrow?: string;
     title?: string;
     subtitle?: string;
     description?: string;
     status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
-    content: Record<string, any>;
+    content: Record<string, unknown>;
   }
 ) {
   const { profile } = await requireTeacher();
   const supabase = await createClient();
 
-  // First find the page ID
+  if (!(["DRAFT", "PUBLISHED", "ARCHIVED"] as const).includes(payload.status)) {
+    throw new Error("Invalid page section status");
+  }
+
+  if (!pageKey.trim() || !sectionKey.trim() || pageKey.length > 100 || sectionKey.length > 100) {
+    throw new Error("Invalid page or section key");
+  }
+
   const { data: page, error: pageError } = await supabase
     .from("site_pages")
-    .select("id")
+    .select("id, page_key, slug")
     .eq("page_key", pageKey)
     .single();
 
@@ -75,7 +98,43 @@ export async function updatePageSection(
     throw new Error("Page not found");
   }
 
-  const { error } = await supabase
+  const { data: oldSection, error: sectionError } = await supabase
+    .from("site_page_sections")
+    .select("*")
+    .eq("page_id", page.id)
+    .eq("section_key", sectionKey)
+    .single();
+
+  if (sectionError || !oldSection) {
+    throw new Error("Page section not found");
+  }
+
+  const mediaId = typeof payload.content?.mediaId === "string"
+    ? payload.content.mediaId
+    : null;
+
+  if (mediaId) {
+    if (!UUID_PATTERN.test(mediaId)) {
+      throw new Error("Invalid media asset reference");
+    }
+
+    const { data: media, error: mediaError } = await supabase
+      .from("media_assets")
+      .select("id")
+      .eq("id", mediaId)
+      .is("deleted_at", null)
+      .single();
+
+    if (mediaError || !media) {
+      throw new Error("Selected media asset is unavailable");
+    }
+  }
+
+  const publishedAt = payload.status === "PUBLISHED"
+    ? oldSection.published_at || new Date().toISOString()
+    : null;
+
+  const { data: updatedSection, error } = await supabase
     .from("site_page_sections")
     .update({
       eyebrow: payload.eyebrow || null,
@@ -84,15 +143,30 @@ export async function updatePageSection(
       description: payload.description || null,
       status: payload.status,
       content: payload.content,
+      published_at: publishedAt,
       updated_by: profile.id,
     })
-    .eq("page_id", page.id)
-    .eq("section_key", sectionKey);
+    .eq("id", oldSection.id)
+    .select("*")
+    .single();
 
-  if (error) {
+  if (error || !updatedSection) {
     console.error("Failed to update page section:", error);
     throw new Error("Failed to update section content");
   }
 
-  return { success: true };
+  await createAuditLog({
+    actorProfileId: profile.id,
+    action: "CMS_PAGE_SECTION_UPDATED",
+    entityType: "site_page_sections",
+    entityId: updatedSection.id,
+    oldValue: oldSection,
+    newValue: updatedSection,
+  });
+
+  revalidatePath("/teacher/website");
+  revalidatePath("/teacher/website/courses/hero");
+  revalidatePath(publicPathForSlug(page.slug));
+
+  return { success: true, section: updatedSection };
 }

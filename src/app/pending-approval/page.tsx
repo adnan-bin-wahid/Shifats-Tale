@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { resolveAuthenticatedDestination } from "@/lib/supabase/auth";
 import { siteInfo } from "@/data/site";
 import { PendingApprovalView } from "./pending-approval-view";
+import { getStudentFacingSettings } from "@/lib/student-facing-settings";
 
 export default async function PendingApprovalPage() {
   // Authoritative server-side verification checks
@@ -28,6 +29,7 @@ export default async function PendingApprovalPage() {
     redirect("/login?error=invalid_profile");
   }
 
+  const settings = await getStudentFacingSettings();
   const studentName = profile?.full_name || "Student";
   const studentCode = studentProfile?.student_code || "N/A";
   const regStatus = studentProfile?.registration_status || "PENDING";
@@ -41,8 +43,9 @@ export default async function PendingApprovalPage() {
       studentCode={studentCode}
       registrationStatus={regStatus}
       registrationDate={regDate}
-      contactPhone={siteInfo.phone}
-      contactEmail={siteInfo.email}
+      contactText={settings.pendingApprovalContactText}
+      contactPhone={settings.publicPhone || siteInfo.phone}
+      contactEmail={settings.publicEmail || siteInfo.email}
     />
   );
 }

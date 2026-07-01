@@ -437,7 +437,9 @@ export async function updateAppSettingsAction(rawInput: any) {
     });
 
     revalidatePath("/teacher/settings");
+    revalidatePath("/student");
     revalidatePath("/student/profile");
+    revalidatePath("/student/results");
     revalidatePath("/pending-approval");
     revalidatePath("/account-disabled");
     return { success: true };

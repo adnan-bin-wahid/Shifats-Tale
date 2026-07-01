@@ -9,58 +9,47 @@ export class RateLimitError extends Error {
   }
 }
 
+export class RateLimitUnavailableError extends Error {
+  constructor(message = "Rate limiting is temporarily unavailable.") {
+    super(message);
+    this.name = "RateLimitUnavailableError";
+  }
+}
+
 export async function getClientIp(): Promise<string> {
   const reqHeaders = await headers();
   const cfIp = reqHeaders.get("cf-connecting-ip");
   if (cfIp) return cfIp;
+
   const forwardedFor = reqHeaders.get("x-forwarded-for");
   if (forwardedFor) {
     return forwardedFor.split(",")[0].trim();
   }
+
   return "127.0.0.1";
 }
 
+/**
+ * Consumes a rate-limit token atomically in PostgreSQL.
+ *
+ * The database function uses one INSERT .. ON CONFLICT statement, so concurrent
+ * requests cannot bypass the limit through a read-then-write race. Database
+ * failures are fail-closed and surfaced separately from a genuine limit hit.
+ */
 export async function rateLimit(key: string, limit: number, durationSeconds: number) {
   const admin = createAdminClient();
-  const now = new Date();
-  
-  try {
-    // 1. Periodic cleanup of expired entries
-    await admin
-      .from("rate_limits")
-      .delete()
-      .lt("expires_at", now.toISOString());
+  const { data: allowed, error } = await admin.rpc("consume_rate_limit", {
+    p_key: key,
+    p_limit: limit,
+    p_duration_seconds: durationSeconds,
+  });
 
-    // 2. Query target key
-    const { data: record, error: selectError } = await admin
-      .from("rate_limits")
-      .select("*")
-      .eq("key", key)
-      .maybeSingle();
+  if (error) {
+    console.error("Rate limiting execution error:", error.message);
+    throw new RateLimitUnavailableError();
+  }
 
-    if (selectError) {
-      console.error("Rate limiter fetch failure:", selectError);
-      return; // Fail-open on DB connection issues to avoid locking out legitimate users
-    }
-
-    if (!record) {
-      const expiresAt = new Date(now.getTime() + durationSeconds * 1000).toISOString();
-      await admin.from("rate_limits").insert({
-        key,
-        hits: 1,
-        expires_at: expiresAt,
-      });
-    } else {
-      if (record.hits >= limit) {
-        throw new RateLimitError();
-      }
-      await admin
-        .from("rate_limits")
-        .update({ hits: record.hits + 1 })
-        .eq("key", key);
-    }
-  } catch (err) {
-    if (err instanceof RateLimitError) throw err;
-    console.error("Rate limiting execution error:", err);
+  if (!allowed) {
+    throw new RateLimitError();
   }
 }

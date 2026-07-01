@@ -879,6 +879,21 @@ export interface Database {
         }
         Returns: Json
       }
+      update_student_registration_atomic: {
+        Args: {
+          p_student_id: string
+          p_new_status: "PENDING" | "APPROVED" | "REJECTED"
+        }
+        Returns: Json
+      }
+      consume_rate_limit: {
+        Args: {
+          p_key: string
+          p_limit: number
+          p_duration_seconds: number
+        }
+        Returns: boolean
+      }
       update_student_profile_by_teacher_atomic: {
         Args: {
           p_student_id: string

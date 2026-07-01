@@ -43,6 +43,8 @@ export default async function StudentDashboardPage() {
     .eq("id", true)
     .single();
 
+  const gradesDisplayed = settings?.grades_displayed ?? true;
+
   // Current month and year for billing queries
   const currentDate = new Date();
   const currentMonth = currentDate.getMonth() + 1;
@@ -401,7 +403,7 @@ export default async function StudentDashboardPage() {
                       <th className="pb-2">Exam</th>
                       <th className="pb-2">Batch</th>
                       <th className="pb-2 text-center">Score</th>
-                      <th className="pb-2 text-center">Grade</th>
+                      {gradesDisplayed && <th className="pb-2 text-center">Grade</th>}
                       <th className="pb-2 text-right">Action</th>
                     </tr>
                   </thead>
@@ -424,7 +426,11 @@ export default async function StudentDashboardPage() {
                               </span>
                             )}
                           </td>
-                          <td className="py-2.5 text-center font-display font-black text-slate-800">{isAbs ? "F" : r.grade || "-"}</td>
+                          {gradesDisplayed && (
+                            <td className="py-2.5 text-center font-display font-black text-slate-800">
+                              {isAbs ? "F" : r.grade || "-"}
+                            </td>
+                          )}
                           <td className="py-2.5 text-right">
                             <Link href={`/student/batches/${r.exam.batch_id}/exams/${r.exam.id}`} className="px-2 py-1 text-[9px] border border-border rounded hover:bg-slate-50">View Details</Link>
                           </td>
