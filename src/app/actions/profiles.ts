@@ -484,25 +484,32 @@ export async function uploadAvatarAction(formData: FormData) {
     let publicId = "";
 
     if (hasCloudinary) {
-      const uploadRes = await new Promise<any>((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          {
-            folder: `coaching-center/avatars`,
-            public_id: `${profile.id}-${Date.now()}`,
-            resource_type: "image",
-            transformation: [{ width: 300, height: 300, crop: "fill", gravity: "face" }],
-            type: "upload", // Public upload for avatars
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        );
-        stream.end(buffer);
-      });
+      try {
+        const uploadRes = await new Promise<any>((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            {
+              folder: `coaching-center/avatars`,
+              public_id: `${profile.id}-${Date.now()}`,
+              resource_type: "image",
+              transformation: [{ width: 300, height: 300, crop: "fill", gravity: "face" }],
+              type: "upload", // Public upload for avatars
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+          stream.end(buffer);
+        });
 
-      avatarUrl = uploadRes.secure_url;
-      publicId = uploadRes.public_id;
+        avatarUrl = uploadRes.secure_url;
+        publicId = uploadRes.public_id;
+      } catch (cloudinaryError: any) {
+        console.error("Cloudinary upload failed (possibly invalid credentials in .env):", cloudinaryError.message);
+        // Fallback to placeholder if Cloudinary fails (e.g. 403 Forbidden due to bad API keys)
+        avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.full_name)}&background=random&size=300`;
+        publicId = `local-placeholder-${profile.id}`;
+      }
     } else {
       // Fallback abstraction (e.g. initials base api)
       avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.full_name)}&background=random&size=300`;
