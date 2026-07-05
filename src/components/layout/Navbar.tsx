@@ -16,9 +16,11 @@ import {
   Phone,
   Menu,
   X,
+  LayoutDashboard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { siteInfo } from "@/data/site";
+import { supabase } from "@/lib/supabase/client";
 
 interface NavItemConfig {
   label: string;
@@ -62,13 +64,31 @@ const renderNavIcon = (iconName: string, className = "h-4 w-4") => {
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [sessionUser, setSessionUser] = useState<any>(null);
+  const [authResolved, setAuthResolved] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    // Auth state check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSessionUser(session?.user ?? null);
+      setAuthResolved(true);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSessionUser(session?.user ?? null);
+    });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Close the drawer after route changes.
@@ -227,18 +247,34 @@ export default function Navbar() {
                 <Phone className="h-4 w-4 shrink-0 text-primary" />
                 <span className="font-extrabold">Call Sir</span>
               </a>
-              <Link
-                href="/login"
-                className="rounded-xl border-2 border-primary/20 px-3.5 py-1.5 text-sm font-bold text-primary transition-all duration-200 hover:scale-[1.03] hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              >
-                Login
-              </Link>
-              <Link
-                href="/register"
-                className="primary-btn rounded-xl px-4 py-1.5 text-sm font-bold shadow-md transition-all duration-300 hover:scale-[1.03] hover:shadow-accent/25 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              >
-                Register
-              </Link>
+              {authResolved ? (
+                sessionUser ? (
+                  <Link
+                    href="/login"
+                    className="flex items-center gap-2 primary-btn rounded-xl px-4 py-1.5 text-sm font-bold shadow-md transition-all duration-300 hover:scale-[1.03] hover:shadow-accent/25 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    Dashboard
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      className="rounded-xl border-2 border-primary/20 px-3.5 py-1.5 text-sm font-bold text-primary transition-all duration-200 hover:scale-[1.03] hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      href="/register"
+                      className="primary-btn rounded-xl px-4 py-1.5 text-sm font-bold shadow-md transition-all duration-300 hover:scale-[1.03] hover:shadow-accent/25 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    >
+                      Register
+                    </Link>
+                  </>
+                )
+              ) : (
+                <div className="w-[140px] h-9" /> // Placeholder to prevent layout shift
+              )}
             </div>
 
             <button
@@ -378,20 +414,35 @@ export default function Navbar() {
             </div>
 
             <div className="mt-auto grid grid-cols-2 gap-3 pt-5">
-              <Link
-                href="/login"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center justify-center rounded-xl border-2 border-primary/15 bg-white px-4 py-3 font-extrabold text-primary transition hover:border-primary/30 hover:bg-primary/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              >
-                Login
-              </Link>
-              <Link
-                href="/register"
-                onClick={() => setIsOpen(false)}
-                className="primary-btn flex items-center justify-center rounded-xl px-4 py-3 font-extrabold shadow-lg shadow-accent/20 transition hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              >
-                Register
-              </Link>
+              {authResolved ? (
+                sessionUser ? (
+                  <Link
+                    href="/login"
+                    onClick={() => setIsOpen(false)}
+                    className="col-span-2 primary-btn flex items-center justify-center gap-2 rounded-xl px-4 py-3 font-extrabold shadow-lg shadow-accent/20 transition hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  >
+                    <LayoutDashboard className="h-5 w-5" />
+                    Go to Dashboard
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center justify-center rounded-xl border-2 border-primary/15 bg-white px-4 py-3 font-extrabold text-primary transition hover:border-primary/30 hover:bg-primary/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      href="/register"
+                      onClick={() => setIsOpen(false)}
+                      className="primary-btn flex items-center justify-center rounded-xl px-4 py-3 font-extrabold shadow-lg shadow-accent/20 transition hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    >
+                      Register
+                    </Link>
+                  </>
+                )
+              ) : null}
             </div>
           </div>
         </aside>
