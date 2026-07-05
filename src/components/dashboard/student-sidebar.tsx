@@ -13,7 +13,8 @@ import {
   GraduationCap,
   LogOut,
   Loader2,
-  Bell
+  Bell,
+  Home
 } from "lucide-react";
 
 interface SidebarProps {
@@ -158,6 +159,16 @@ export function StudentSidebar({ className, onLinkClick, activeBatches = [] }: S
             </Link>
           );
         })}
+
+        {/* Go to Main Site action */}
+        <Link
+          href="/"
+          onClick={onLinkClick}
+          className="w-full flex items-center gap-3.5 px-4 py-3 text-sm font-bold rounded-xl text-[#DCE5F5] hover:text-white hover:bg-[#102A66] transition-all duration-200 group"
+        >
+          <Home className="h-5 w-5 shrink-0 text-[#9FB0D0] group-hover:text-white transition-transform duration-200 group-hover:scale-105" />
+          <span>Main Site</span>
+        </Link>
 
         {/* Logout action directly inside sidebar */}
         <button

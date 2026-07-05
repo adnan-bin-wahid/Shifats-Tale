@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Menu, LogOut, User, Bell, ChevronDown } from "lucide-react";
+import { Menu, LogOut, User, Bell, ChevronDown, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
@@ -156,6 +156,18 @@ export function DashboardHeader({
             </button>
           </div>
         )}
+        
+        {/* Go to Home Page */}
+        <button
+          onClick={() => router.push("/")}
+          type="button"
+          className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-border/50 text-muted hover:text-primary hover:bg-bg/50 transition-colors"
+          aria-label="Home Page"
+          title="Go to Home Page"
+        >
+          <Home className="h-4 w-4" />
+        </button>
+
         {/* Notification Bell */}
         <button
           onClick={() => router.push(role === "STUDENT" ? "/student/notifications" : "/teacher/notifications")}
