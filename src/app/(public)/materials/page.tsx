@@ -9,8 +9,10 @@ export const metadata: Metadata = {
 
 export default async function MaterialsPage() {
   const heroData = await getPageSection("MATERIALS", "MATERIALS_HERO");
-  // We'll fetch materials here later
+  const categoriesData = await getPageSection("MATERIALS", "MATERIALS_CATEGORIES");
   const materialItems = await getSectionItems("MATERIALS_ITEMS");
 
-  return <MaterialsClient heroData={heroData} materialItems={materialItems} />;
+  const categories = categoriesData?.content?.categories || [];
+
+  return <MaterialsClient heroData={heroData} materialItems={materialItems} categories={categories} />;
 }

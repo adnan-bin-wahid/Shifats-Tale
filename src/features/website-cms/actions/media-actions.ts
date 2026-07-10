@@ -16,6 +16,7 @@ const ALLOWED_FOLDERS: Record<string, string> = {
   PROJECTS: "shifats-tales",
   PUBLICATIONS: "shifats-tales",
   CONTACT: "shifats-tales",
+  MATERIALS: "shifats-tales",
 };
 
 const ALLOWED_IMAGE_FORMATS = new Set(["jpg", "jpeg", "png", "webp", "avif"]);

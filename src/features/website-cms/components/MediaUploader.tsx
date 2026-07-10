@@ -38,7 +38,7 @@ export function MediaUploader({
 
   // Synchronized with Server Limits
   const MAX_SIZE_MB = 10;
-  const ACCEPTED_FORMATS = "image/jpeg, image/png, image/webp, image/avif";
+  const ACCEPTED_FORMATS = "image/jpeg, image/png, image/webp, image/avif, application/pdf";
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -73,7 +73,7 @@ export function MediaUploader({
 
       const cloudinaryData = await new Promise<CloudinaryUploadResponse>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", `https://api.cloudinary.com/v1_1/${sigData.cloudName}/image/upload`);
+        xhr.open("POST", `https://api.cloudinary.com/v1_1/${sigData.cloudName}/auto/upload`);
         
         xhr.upload.onprogress = (event) => {
           if (event.lengthComputable) {
