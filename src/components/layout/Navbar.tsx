@@ -74,6 +74,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [session, setSession] = useState<any>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [expandedMobileMenu, setExpandedMobileMenu] = useState<string | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -431,13 +432,29 @@ export default function Navbar() {
                 if (item.subItems) {
                   return (
                     <div key={item.label} className="space-y-1">
-                      <div className="flex min-h-14 items-center gap-3 rounded-2xl px-4 py-3 text-base font-bold text-primary-dark/90">
+                      <button 
+                        onClick={() => setExpandedMobileMenu(prev => prev === item.label ? null : item.label)}
+                        className="flex w-full min-h-14 items-center gap-3 rounded-2xl px-4 py-3 text-base font-bold text-primary-dark/90 hover:bg-black/5 transition-colors"
+                      >
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-primary/10 bg-white text-primary/75">
                           {renderNavIcon(item.iconName, "h-4.5 w-4.5")}
                         </span>
-                        <span className="flex-1">{item.label}</span>
-                      </div>
-                      <div className="pl-6 space-y-1">
+                        <span className="flex-1 text-left">{item.label}</span>
+                        <ChevronDown 
+                          className={cn(
+                            "h-5 w-5 text-primary/50 transition-transform duration-300", 
+                            expandedMobileMenu === item.label && "rotate-180"
+                          )} 
+                        />
+                      </button>
+                      <div 
+                        className={cn(
+                          "grid transition-all duration-300 ease-in-out",
+                          expandedMobileMenu === item.label ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                        )}
+                      >
+                        <div className="overflow-hidden">
+                          <div className="pl-6 space-y-1">
                         {item.subItems.map((sub) => {
                           const active = isActive(sub as any);
                           const subHref =
@@ -479,6 +496,8 @@ export default function Navbar() {
                             </Link>
                           );
                         })}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   );
