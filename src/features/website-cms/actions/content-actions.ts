@@ -5,6 +5,43 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireTeacher } from "@/lib/auth-guards";
 import { revalidatePath } from "next/cache";
 import { SitePageSection } from "../types/cms-types";
+import { cloudinary } from "@/lib/cloudinary";
+
+/**
+ * Teacher: Upload arbitrary file (e.g. PDF or Doc) to Cloudinary for CMS usage.
+ */
+export async function uploadPublicCmsFile(formData: FormData) {
+  await requireTeacher();
+  
+  const file = formData.get("file") as File | null;
+  if (!file || file.size === 0) {
+    throw new Error("No file provided.");
+  }
+
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  return new Promise<{ secureUrl: string; format: string }>((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: "shifats-tales",
+        resource_type: "auto",
+      },
+      (error, result) => {
+        if (error || !result) {
+          console.error("Cloudinary upload error:", error);
+          reject(new Error(error?.message || "Cloudinary upload failed."));
+        } else {
+          resolve({
+            secureUrl: result.secure_url,
+            format: result.format || "pdf",
+          });
+        }
+      }
+    );
+    uploadStream.end(buffer);
+  });
+}
 
 /**
  * Public: Get a specific page section by its key and the page key.
