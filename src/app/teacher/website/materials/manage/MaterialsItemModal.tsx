@@ -3,8 +3,9 @@
 import React, { useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
-import { upsertSectionItem, uploadPublicCmsFile } from "@/features/website-cms/actions/content-actions";
+import { upsertSectionItem } from "@/features/website-cms/actions/content-actions";
 import { MediaSelector } from "@/features/website-cms/components/MediaSelector";
+import { getPreSignedUploadUrl } from "@/app/actions/r2-upload";
 
 interface MaterialsItemModalProps {
   item: any | null;
@@ -38,23 +39,44 @@ export default function MaterialsItemModal({ item, categories, onClose, onSave }
       toast.error("Please select a valid PDF file.");
       return;
     }
-    if (file.size > 50 * 1024 * 1024) {
-      toast.error("PDF size must be less than 50MB.");
-      return;
-    }
 
     setIsUploadingPdf(true);
-    const toastId = toast.loading("Uploading PDF file to server...");
+    const toastId = toast.loading("Initializing Cloudflare R2 upload...");
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await uploadPublicCmsFile(formData);
-      setFileUrl(res.secureUrl);
+      // 1. Get pre-signed upload URL from Cloudflare R2
+      const urlResult = await getPreSignedUploadUrl(file.name, file.type || "application/pdf");
+      if (!urlResult.success || !urlResult.uploadUrl || !urlResult.r2Key) {
+        throw new Error(urlResult.error || "Failed to initialize Cloudflare R2 upload");
+      }
+
+      toast.loading("Uploading PDF to Cloudflare R2...", { id: toastId });
+
+      // 2. Upload file directly to R2 bucket via PUT request
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("PUT", urlResult.uploadUrl, true);
+        xhr.setRequestHeader("Content-Type", file.type || "application/pdf");
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(true);
+          } else {
+            reject(new Error("R2 upload failed with status " + xhr.status));
+          }
+        };
+
+        xhr.onerror = () => reject(new Error("Network error during Cloudflare R2 upload"));
+        xhr.send(file);
+      });
+
+      // 3. Set the fileUrl pointing to our R2 resource preview endpoint
+      const r2PreviewUrl = `/api/resource?key=${encodeURIComponent(urlResult.r2Key)}`;
+      setFileUrl(r2PreviewUrl);
       setIsFileSelectorOpen(false);
-      toast.success("PDF uploaded successfully!", { id: toastId });
+      toast.success("PDF uploaded to Cloudflare R2 successfully!", { id: toastId });
     } catch (err: any) {
-      console.error("PDF upload failed:", err);
-      toast.error(err?.message || "Failed to upload PDF.", { id: toastId });
+      console.error("Cloudflare R2 PDF upload failed:", err);
+      toast.error(err?.message || "Failed to upload PDF to R2.", { id: toastId });
     } finally {
       setIsUploadingPdf(false);
     }
