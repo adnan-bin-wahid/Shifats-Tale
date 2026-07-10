@@ -16,7 +16,7 @@ const getInitials = (name: string) => {
 
 const TestimonialCard = ({ item }: { item: any }) => (
   <div 
-    className="brand-card rounded-2xl p-6 bg-white border border-border flex flex-col justify-between space-y-4 hover:shadow-lg hover:border-accent/40 transition-all duration-300 w-full text-left select-none h-full"
+    className="brand-card rounded-2xl p-6 bg-white border border-border flex flex-col justify-between space-y-4 hover:shadow-lg hover:border-accent/40 transition-all duration-300 w-full text-left select-none"
   >
     <div className="space-y-3">
       {/* Star Rating */}
@@ -188,7 +188,7 @@ export default function ReviewsClient({ heroData, testimonialsData = [] }: { her
 
           {/* Reviews Grid */}
           {paginatedData.length > 0 ? (
-            <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="columns-1 sm:columns-2 lg:columns-3 gap-6">
               <AnimatePresence mode="popLayout">
                 {paginatedData.map((review) => (
                   <motion.div
@@ -198,12 +198,13 @@ export default function ReviewsClient({ heroData, testimonialsData = [] }: { her
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
                     transition={{ duration: 0.3 }}
+                    className="inline-block w-full mb-6 break-inside-avoid"
                   >
                     <TestimonialCard item={review} />
                   </motion.div>
                 ))}
               </AnimatePresence>
-            </motion.div>
+            </div>
           ) : (
             <div className="text-center py-20 bg-white rounded-3xl border border-[#E7E0D2] border-dashed">
               <p className="text-gray-500 font-bold text-lg">No reviews found for this category.</p>
