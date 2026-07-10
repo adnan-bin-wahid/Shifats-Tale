@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { Eye, Download, ExternalLink, Info, Calendar, FileText, X } from "lucide-react";
+import { Eye, Download, ExternalLink, Info, Calendar, FileText, X, ArrowRight, Maximize2 } from "lucide-react";
 
 interface Material {
   id: string;
@@ -52,81 +52,101 @@ export function StudentMaterialList({ materials, batchId }: { materials: Materia
           return (
             <div
               key={material.id}
-              className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition-all duration-200"
+              className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] overflow-hidden group hover:shadow-[0_20px_35px_-5px_rgba(0,0,0,0.12)] hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between"
             >
-              <div className="p-5 space-y-3.5">
-                <div className="flex justify-between items-start">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
-                    {material.content_type}
-                  </span>
-                  {material.file_size && (
-                    <span className="text-[10px] text-slate-500 font-semibold">
-                      {formatBytes(material.file_size)}
-                    </span>
-                  )}
+              {/* Thumbnail Header Area */}
+              <div 
+                className="relative w-full aspect-[16/10] bg-[#F8FAFC] overflow-hidden border-b border-gray-100/60 cursor-pointer"
+                onClick={() => {
+                  if (isPreviewable) setSelectedMaterial(material);
+                  else if (isExternal && material.external_url) window.open(material.external_url, "_blank");
+                }}
+              >
+                <div className="w-full h-full bg-gradient-to-br from-[#0B1736] via-[#112350] to-[#0A1329] flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+                  <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]" />
+                  <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center mb-3 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                    {isFile && <FileText className="w-7 h-7 text-red-400" />}
+                    {isExternal && <ExternalLink className="w-7 h-7 text-green-400" />}
+                    {isText && <Info className="w-7 h-7 text-yellow-400" />}
+                  </div>
+                  <span className="text-white font-bold text-sm tracking-wide px-4 line-clamp-2 drop-shadow-md">{material.title}</span>
+                  <span className="text-[11px] text-[#F59E0B] font-extrabold mt-1 uppercase tracking-wider">{material.content_type}</span>
                 </div>
 
+                {/* Top Left Badge */}
+                <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full shadow-sm border border-gray-100 flex items-center gap-1.5 z-10">
+                  {isFile && <FileText className="w-3.5 h-3.5 text-red-500 shrink-0" />}
+                  {isExternal && <ExternalLink className="w-3.5 h-3.5 text-green-500 shrink-0" />}
+                  {isText && <Info className="w-3.5 h-3.5 text-yellow-500 shrink-0" />}
+                  <span className="text-xs font-bold text-gray-800 tracking-wide uppercase">{material.content_type}</span>
+                </div>
+
+                {/* Top Right Size / Badge */}
+                <div className="absolute top-3 right-3 bg-gray-900/80 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-semibold shadow-sm z-10">
+                  {material.file_size ? formatBytes(material.file_size) : isText ? "Note" : "External"}
+                </div>
+
+                {/* Hover Actions Overlay */}
+                <div className="absolute inset-0 bg-[#08132E]/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px] z-20">
+                  <div className="px-5 py-2.5 rounded-full bg-gray-900/90 text-white font-bold text-sm flex items-center gap-2 shadow-xl group-hover:scale-105 transition-transform">
+                    <Eye className="w-4 h-4 text-[#F59E0B]" />
+                    <span>{isPreviewable ? "Preview Material" : isExternal ? "Open Link" : "Read Note"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Content Block */}
+              <div className="p-5 flex-1 flex flex-col justify-between bg-white">
                 <div>
-                  <h3 className="text-sm font-extrabold text-slate-900 line-clamp-1">
+                  <span className="text-[11px] font-extrabold text-[#F59E0B] uppercase tracking-wider mb-1.5 block font-mono">
+                    {material.content_type}
+                  </span>
+                  <h3 
+                    onClick={() => {
+                      if (isPreviewable) setSelectedMaterial(material);
+                      else if (isExternal && material.external_url) window.open(material.external_url, "_blank");
+                    }}
+                    className="font-bold text-[#1E293B] text-lg leading-snug group-hover:text-primary transition-colors line-clamp-2 mb-2 cursor-pointer"
+                  >
                     {material.title}
                   </h3>
                   {material.description && (
-                    <p className="text-[11px] text-slate-500 font-semibold mt-1.5 leading-relaxed line-clamp-2">
+                    <p className="text-xs text-gray-500 font-medium leading-relaxed line-clamp-2 mb-4">
                       {material.description}
                     </p>
                   )}
                 </div>
 
-                <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-semibold">
-                  <Calendar className="h-3.5 w-3.5" />
-                  <span>
-                    Published: {new Date(material.published_at || material.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-
-              <div className="px-5 py-4 border-t border-slate-50 bg-slate-50/50 flex gap-2 justify-end">
-                {isPreviewable && (
-                  <button
-                    onClick={() => setSelectedMaterial(material)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-200/80 hover:bg-slate-200 text-slate-800 rounded-xl transition-all font-bold text-[10px]"
-                  >
-                    <Eye className="h-3.5 w-3.5" />
-                    Preview
-                  </button>
-                )}
-
-                {isFile && material.allow_download && (
-                  <a
-                    href={`/api/materials/${material.id}/access?mode=download`}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white hover:bg-primary-dark rounded-xl transition-all font-bold text-[10px]"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    Download
-                  </a>
-                )}
-
-                {isExternal && material.external_url && (
-                  <a
-                    href={material.external_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent text-primary hover:bg-accent/80 rounded-xl transition-all font-bold text-[10px]"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    Open Resource
-                  </a>
-                )}
-
-                {isText && (
-                  <div className="w-full bg-slate-100 p-2.5 rounded-xl border border-slate-200 text-[10px] font-semibold text-slate-600 flex items-start gap-1.5">
-                    <Info className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-extrabold text-slate-700 block mb-0.5">Read Note</span>
-                      <p className="leading-relaxed whitespace-pre-wrap">{material.description}</p>
-                    </div>
+                {/* Footer Row */}
+                <div className="pt-3.5 mt-2 border-t border-gray-100 flex items-center justify-between text-xs font-semibold text-gray-600">
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                    <span className="text-gray-500">{new Date(material.published_at || material.created_at).toLocaleDateString()}</span>
                   </div>
-                )}
+
+                  <div className="flex items-center gap-3">
+                    {isFile && material.allow_download && (
+                      <a
+                        href={`/api/materials/${material.id}/access?mode=download`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-primary hover:text-accent font-bold flex items-center gap-1 transition-colors"
+                        title="Download file"
+                      >
+                        <Download className="w-4 h-4" />
+                      </a>
+                    )}
+                    <button 
+                      onClick={() => {
+                        if (isPreviewable) setSelectedMaterial(material);
+                        else if (isExternal && material.external_url) window.open(material.external_url, "_blank");
+                      }}
+                      className="text-[#08132E] group-hover:text-[#F59E0B] font-bold flex items-center gap-1 transition-colors"
+                    >
+                      <span>{isPreviewable ? "View material" : "Open resource"}</span>
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           );

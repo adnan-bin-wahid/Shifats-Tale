@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, FileText, Image as ImageIcon, Link as LinkIcon, Download, Eye, ExternalLink } from "lucide-react";
+import { X, FileText, Image as ImageIcon, Link as LinkIcon, Download, Eye, ExternalLink, ArrowRight, Maximize2 } from "lucide-react";
 import InnerPageHero from "@/components/layout/InnerPageHero";
 
 export default function MaterialsClient({ 
@@ -101,57 +101,103 @@ export default function MaterialsClient({
                       transition={{ duration: 0.3 }}
                       className="inline-block w-full mb-6 break-inside-avoid"
                     >
-                      <div className="bg-white rounded-3xl border border-[#E7E0D2] shadow-sm overflow-hidden group hover:shadow-xl hover:border-accent/40 transition-all duration-500 hover:-translate-y-1">
+                      <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] overflow-hidden group hover:shadow-[0_20px_35px_-5px_rgba(0,0,0,0.12)] hover:-translate-y-1.5 transition-all duration-300 flex flex-col">
                         
-                        {/* Cover Image / Thumbnail */}
-                        <div className="relative w-full aspect-[4/3] bg-bg-soft overflow-hidden">
-                          <Image src={imgUrl} alt={item.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
+                        {/* Cover Image / Thumbnail Area */}
+                        <div 
+                          className="relative w-full aspect-[16/10] bg-[#F8FAFC] overflow-hidden border-b border-gray-100/60 cursor-pointer"
+                          onClick={() => {
+                            if (fileType === "IMAGE") setSelectedImage(item);
+                            else if (fileType === "PDF") setSelectedPdf(item);
+                            else if (fileUrl) window.open(fileUrl, "_blank");
+                          }}
+                        >
+                          {item.mediaUrl ? (
+                            <Image src={item.mediaUrl} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out" />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-[#0B1736] via-[#112350] to-[#0A1329] flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+                              <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]" />
+                              <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center mb-3 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                                {fileType === "PDF" && <FileText className="w-7 h-7 text-red-400" />}
+                                {fileType === "IMAGE" && <ImageIcon className="w-7 h-7 text-blue-400" />}
+                                {fileType === "LINK" && <LinkIcon className="w-7 h-7 text-green-400" />}
+                              </div>
+                              <span className="text-white font-bold text-sm tracking-wide px-4 line-clamp-2 drop-shadow-md">{item.title}</span>
+                              <span className="text-[11px] text-[#F59E0B] font-extrabold mt-1 uppercase tracking-wider">{item.subtitle}</span>
+                            </div>
+                          )}
                           
-                          {/* Type Badge */}
-                          <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-xl shadow-md flex items-center gap-2">
-                            {fileType === "PDF" && <FileText className="w-4 h-4 text-red-500" />}
-                            {fileType === "IMAGE" && <ImageIcon className="w-4 h-4 text-blue-500" />}
-                            {fileType === "LINK" && <LinkIcon className="w-4 h-4 text-green-500" />}
-                            <span className="text-[10px] font-black tracking-wider text-primary">{fileType}</span>
+                          {/* Top Left Badge */}
+                          <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full shadow-sm border border-gray-100 flex items-center gap-1.5 z-10">
+                            {fileType === "PDF" && <FileText className="w-3.5 h-3.5 text-red-500 shrink-0" />}
+                            {fileType === "IMAGE" && <ImageIcon className="w-3.5 h-3.5 text-blue-500 shrink-0" />}
+                            {fileType === "LINK" && <LinkIcon className="w-3.5 h-3.5 text-green-500 shrink-0" />}
+                            <span className="text-xs font-bold text-gray-800 tracking-wide uppercase">{fileType}</span>
                           </div>
 
-                          {/* Hover Actions Overlay */}
-                          <div className="absolute inset-0 bg-[#08132E]/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 backdrop-blur-[2px]">
-                            {fileType === "IMAGE" && (
-                              <button 
-                                onClick={() => setSelectedImage(item)}
-                                className="w-12 h-12 rounded-full bg-accent text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
-                              >
-                                <Eye className="w-5 h-5" />
-                              </button>
-                            )}
-                            {fileType === "PDF" && (
-                              <button 
-                                onClick={() => setSelectedPdf(item)}
-                                className="px-6 py-2.5 rounded-full bg-accent text-white font-bold flex items-center gap-2 hover:scale-105 transition-transform shadow-lg"
-                              >
-                                <Eye className="w-4 h-4" /> View PDF
-                              </button>
-                            )}
-                            {fileType === "LINK" && (
-                              <a 
-                                href={fileUrl} target="_blank" rel="noopener noreferrer"
-                                className="px-6 py-2.5 rounded-full bg-accent text-white font-bold flex items-center gap-2 hover:scale-105 transition-transform shadow-lg"
-                              >
-                                <ExternalLink className="w-4 h-4" /> Open Link
-                              </a>
-                            )}
+                          {/* Top Right Badge / Icon */}
+                          {fileType === "IMAGE" ? (
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); setSelectedImage(item); }}
+                              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-gray-900/80 hover:bg-gray-900 backdrop-blur-md text-white flex items-center justify-center shadow-sm z-10 transition-colors"
+                            >
+                              <Maximize2 className="w-3.5 h-3.5" />
+                            </button>
+                          ) : (
+                            <div className="absolute top-3 right-3 bg-gray-900/80 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-semibold shadow-sm z-10">
+                              {meta.pages ? `${meta.pages} pages` : fileType === "PDF" ? "PDF Doc" : "External"}
+                            </div>
+                          )}
+
+                          {/* Hover Overlay Button */}
+                          <div className="absolute inset-0 bg-[#08132E]/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px] z-20">
+                            <div className="px-5 py-2.5 rounded-full bg-gray-900/90 text-white font-bold text-sm flex items-center gap-2 shadow-xl group-hover:scale-105 transition-transform">
+                              <Eye className="w-4 h-4 text-[#F59E0B]" />
+                              <span>{fileType === "IMAGE" ? "Preview Image" : fileType === "PDF" ? "Preview PDF" : "Open Link"}</span>
+                            </div>
                           </div>
                         </div>
 
-                        {/* Content */}
-                        <div className="p-5">
-                          <span className="text-xs font-black text-accent uppercase tracking-wider mb-2 block">
-                            {item.subtitle}
-                          </span>
-                          <h3 className="font-extrabold text-[#08132E] text-lg leading-tight line-clamp-2">
-                            {item.title}
-                          </h3>
+                        {/* Content Area */}
+                        <div className="p-5 flex-1 flex flex-col justify-between bg-white">
+                          <div>
+                            <span className="text-[11px] font-extrabold text-[#F59E0B] uppercase tracking-wider mb-1.5 block font-mono">
+                              {item.subtitle || "GENERAL"}
+                            </span>
+                            <h3 
+                              onClick={() => {
+                                if (fileType === "IMAGE") setSelectedImage(item);
+                                else if (fileType === "PDF") setSelectedPdf(item);
+                                else if (fileUrl) window.open(fileUrl, "_blank");
+                              }}
+                              className="font-bold text-[#1E293B] text-lg leading-snug group-hover:text-primary transition-colors line-clamp-2 mb-4 cursor-pointer"
+                            >
+                              {item.title}
+                            </h3>
+                          </div>
+
+                          {/* Footer Row */}
+                          <div className="pt-3.5 mt-2 border-t border-gray-100 flex items-center justify-between text-xs font-semibold text-gray-600">
+                            <div className="flex items-center gap-1.5">
+                              {fileType === "PDF" && <FileText className="w-4 h-4 text-red-500 shrink-0" />}
+                              {fileType === "IMAGE" && <ImageIcon className="w-4 h-4 text-blue-500 shrink-0" />}
+                              {fileType === "LINK" && <LinkIcon className="w-4 h-4 text-green-500 shrink-0" />}
+                              <span className="font-bold text-gray-700">{fileType === "IMAGE" ? "Image" : fileType === "PDF" ? "PDF" : "Link"}</span>
+                              <span className="text-gray-300 font-bold">•</span>
+                            </div>
+                            
+                            <button 
+                              onClick={() => {
+                                if (fileType === "IMAGE") setSelectedImage(item);
+                                else if (fileType === "PDF") setSelectedPdf(item);
+                                else if (fileUrl) window.open(fileUrl, "_blank");
+                              }}
+                              className="text-[#08132E] group-hover:text-[#F59E0B] font-bold flex items-center gap-1 transition-colors"
+                            >
+                              <span>{fileType === "IMAGE" ? "View image" : fileType === "PDF" ? "View material" : "Open link"}</span>
+                              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </motion.div>
