@@ -10,9 +10,10 @@ import Link from "next/link";
 
 interface TestimonialsSectionProps {
   initialTestimonials?: any[];
+  headerData?: any;
 }
 
-export default function TestimonialsSection({ initialTestimonials }: TestimonialsSectionProps) {
+export default function TestimonialsSection({ initialTestimonials, headerData }: TestimonialsSectionProps) {
   const shouldReduceMotion = useReducedMotion();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -180,7 +181,7 @@ export default function TestimonialsSection({ initialTestimonials }: Testimonial
             viewport={{ once: true }}
             className="text-xs font-bold text-accent tracking-widest uppercase"
           >
-            Testimonials
+            {headerData?.eyebrow || "Testimonials"}
           </motion.h2>
           <motion.p
             variants={headerVariants}
@@ -189,7 +190,7 @@ export default function TestimonialsSection({ initialTestimonials }: Testimonial
             viewport={{ once: true }}
             className="text-3xl sm:text-4xl font-extrabold text-primary tracking-tight"
           >
-            What Parents & Students Say
+            {headerData?.title || "What Parents & Students Say"}
           </motion.p>
           <motion.p
             variants={headerVariants}
@@ -198,7 +199,7 @@ export default function TestimonialsSection({ initialTestimonials }: Testimonial
             viewport={{ once: true }}
             className="text-text text-sm sm:text-base"
           >
-            Honest feedback from students who achieved Board A+ and cracked engineering university admissions under Shifat Sir's guidance.
+            {headerData?.description || "Honest feedback from students who achieved Board A+ and cracked engineering university admissions under Shifat Sir's guidance."}
           </motion.p>
         </div>
 

@@ -34,7 +34,8 @@ export default function HomeClient({
   headerData,
   displayStudents,
   successHeaderData,
-  testimonialsData
+  testimonialsData,
+  testimonialsHeaderData
 }: { 
   heroData?: any,
   displayCourses?: any[], 
@@ -48,7 +49,8 @@ export default function HomeClient({
   youtubeData?: any,
   galleryData?: any,
   displayAlbums?: any[],
-  testimonialsData?: any[]
+  testimonialsData?: any[],
+  testimonialsHeaderData?: any
 }) {
   const siteInfo = useSiteSettings();
   const heroContent = heroData?.content || {};
@@ -133,7 +135,7 @@ export default function HomeClient({
       <TopOfTheMonthSection topStudentsData={topStudentsData} />
       <ResultsSection studentItems={displayStudents} headerData={successHeaderData} />
       <YouTubeClassesSection youtubeData={youtubeData} />
-      <TestimonialsSection initialTestimonials={testimonialsData} />
+      <TestimonialsSection initialTestimonials={testimonialsData} headerData={testimonialsHeaderData} />
 
       {/* Dynamic Captured Moments Section */}
       <GallerySection headerData={galleryData} albums={displayAlbums} />

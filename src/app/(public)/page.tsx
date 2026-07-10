@@ -57,6 +57,15 @@ export default async function HomePage() {
 
   // Fetch approved testimonials dynamically
   const testimonialsData = await getPublicTestimonials();
+  const homeTestimonialsSection = await getPageSection("HOME", "HOME_TESTIMONIALS");
+  
+  const selectedTestimonialIds: string[] = homeTestimonialsSection?.content?.selectedTestimonialIds || [];
+  
+  const featuredTestimonials = selectedTestimonialIds
+    .map(id => testimonialsData.find(t => t.id === id))
+    .filter(Boolean);
+    
+  const displayTestimonials = featuredTestimonials.length > 0 ? featuredTestimonials : testimonialsData.slice(0, 5);
 
   return <HomeClient 
     heroData={homeHeroSection}
@@ -71,6 +80,7 @@ export default async function HomePage() {
     headerData={homeCoursesSection} 
     displayStudents={displayStudents}
     successHeaderData={homeSuccessSection}
-    testimonialsData={testimonialsData}
+    testimonialsData={displayTestimonials}
+    testimonialsHeaderData={homeTestimonialsSection}
   />;
 }
