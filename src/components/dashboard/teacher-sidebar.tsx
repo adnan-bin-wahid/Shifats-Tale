@@ -23,7 +23,8 @@ import {
   Globe,
   Image as ImageIcon,
   MessageSquare,
-  ChevronDown
+  ChevronDown,
+  Star
 } from "lucide-react";
 
 interface SidebarProps {
@@ -107,6 +108,14 @@ export const websiteAdminNavItems: NavItem[] = [
     subItems: [
       { label: "Hero Section", href: "/teacher/website/results/hero" },
       { label: "Student Cards", href: "/teacher/website/results/students" },
+    ]
+  },
+  { 
+    label: "Reviews Page", 
+    icon: Star,
+    subItems: [
+      { label: "Hero Section", href: "/teacher/website/reviews/hero" },
+      { label: "Manage Reviews", href: "/teacher/website/home/testimonials" },
     ]
   },
   { 
