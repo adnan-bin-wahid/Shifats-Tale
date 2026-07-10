@@ -38,7 +38,8 @@ const navItems: NavItemConfig[] = [
     iconName: "BookOpen", 
     subItems: [
       { label: "Courses", href: "/courses", iconName: "BookOpen" },
-      { label: "Results", href: "/results", iconName: "TrendingUp" }
+      { label: "Results", href: "/results", iconName: "TrendingUp" },
+      { label: "All Reviews", href: "/reviews", iconName: "Star" }
     ]
   },
   { label: "Gallery", href: "/gallery", iconName: "Image" },
