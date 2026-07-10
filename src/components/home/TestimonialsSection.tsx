@@ -31,26 +31,7 @@ export default function TestimonialsSection({ initialTestimonials, headerData }:
     ? initialTestimonials
     : fallbackTestimonials;
 
-  // Distribute testimonials into responsive columns dynamically
-  const distribute = (items: any[], numCols: number) => {
-    const cols: any[][] = Array.from({ length: numCols }, () => []);
-    if (items.length === 0) return cols;
-    // Ensure all columns get at least one item by looping
-    const totalToDistribute = Math.max(items.length, numCols);
-    for (let i = 0; i < totalToDistribute; i++) {
-      cols[i % numCols].push(items[i % items.length]);
-    }
-    return cols;
-  };
-
-  const desktopCols = distribute(currentTestimonials, 3);
-  const col1 = desktopCols[0] || [];
-  const col2 = desktopCols[1] || [];
-  const col3 = desktopCols[2] || [];
-
-  const tabletCols = distribute(currentTestimonials, 2);
-  const tab1 = tabletCols[0] || [];
-  const tab2 = tabletCols[1] || [];
+  // Distribute testimonials into responsive columns dynamically (REMOVED: using tailwind columns instead)
 
   const getInitials = (name: string) => {
     return name
@@ -139,31 +120,7 @@ export default function TestimonialsSection({ initialTestimonials, headerData }:
     </div>
   );
 
-  const MarqueeColumn = ({ items, speed }: { items: any[]; speed: string }) => {
-    const [isPaused, setIsPaused] = useState(false);
-    return (
-      <div className="relative h-[620px] overflow-hidden rounded-2xl">
-        <div 
-          style={{ 
-            "--marquee-duration": speed,
-            animationPlayState: isPaused ? "paused" : "running"
-          } as React.CSSProperties}
-          className="flex flex-col gap-5 animate-marquee-vertical py-2"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-          onTouchStart={() => setIsPaused(true)}
-          onTouchEnd={() => setIsPaused(false)}
-        >
-          {items.map((item, index) => (
-            <TestimonialCard key={`col-orig-${item.id}-${index}`} item={item} />
-          ))}
-          {items.map((item, index) => (
-            <TestimonialCard key={`col-dup-${item.id}-${index}`} item={item} />
-          ))}
-        </div>
-      </div>
-    );
-  };
+  // MarqueeColumn has been replaced with CSS columns for a cleaner Gallery-style layout.
 
   return (
     <section id="testimonials" className="brand-section-wrapper bg-bg-soft relative overflow-hidden">
@@ -203,38 +160,21 @@ export default function TestimonialsSection({ initialTestimonials, headerData }:
           </motion.p>
         </div>
 
-        {/* 3-Column Infinite Vertical Marquee Container */}
-        <div className="relative max-w-6xl mx-auto w-full overflow-hidden px-2 py-4">
-          {/* Top & Bottom Fade Overlays */}
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#FFFCF2] via-[#FFFCF2]/80 to-transparent z-10" />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#FFFCF2] via-[#FFFCF2]/80 to-transparent z-10" />
-
-          {/* Responsive columns grid */}
-          <div className="relative z-0">
-            {/* Desktop: 3 Columns */}
-            {currentTestimonials.length > 0 && (
-              <div className="hidden lg:grid grid-cols-3 gap-6">
-                <MarqueeColumn items={col1} speed="24s" />
-                <MarqueeColumn items={col2} speed="30s" />
-                <MarqueeColumn items={col3} speed="27s" />
-              </div>
-            )}
-
-            {/* Tablet: 2 Columns */}
-            {currentTestimonials.length > 0 && (
-              <div className="hidden md:grid lg:hidden grid-cols-2 gap-6">
-                <MarqueeColumn items={tab1} speed="26s" />
-                <MarqueeColumn items={tab2} speed="32s" />
-              </div>
-            )}
-
-            {/* Mobile: 1 Column */}
-            {currentTestimonials.length > 0 && (
-              <div className="grid grid-cols-1 gap-6 md:hidden">
-                <MarqueeColumn items={currentTestimonials} speed="40s" />
-              </div>
-            )}
-          </div>
+        {/* Masonry Grid (Gallery Style) */}
+        <div className="relative max-w-6xl mx-auto w-full px-4 mt-8">
+          {currentTestimonials.length > 0 ? (
+            <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+              {currentTestimonials.map((item, index) => (
+                <div key={item.id} className="break-inside-avoid">
+                  <TestimonialCard item={item} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-muted italic">
+              No testimonials available at the moment.
+            </div>
+          )}
         </div>
 
         {/* Buttons */}
