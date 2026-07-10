@@ -65,7 +65,7 @@ export default async function HomePage() {
     .map(id => testimonialsData.find(t => t.id === id))
     .filter(Boolean);
     
-  const displayTestimonials = featuredTestimonials.length > 0 ? featuredTestimonials : testimonialsData.slice(0, 5);
+  const displayTestimonials = featuredTestimonials.length > 0 ? featuredTestimonials : testimonialsData.slice(0, 9);
 
   return <HomeClient 
     heroData={homeHeroSection}

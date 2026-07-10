@@ -118,28 +118,7 @@ export default function TestimonialsSection({ initialTestimonials, headerData }:
         </div>
       </div>
     </div>
-  );
-
-  // Distribute testimonials into responsive columns dynamically
-  const distribute = (items: any[], numCols: number) => {
-    const cols: any[][] = Array.from({ length: numCols }, () => []);
-    if (items.length === 0) return cols;
-    items.forEach((item, i) => {
-      cols[i % numCols].push(item);
-    });
-    return cols;
-  };
-
-  const desktopCols = distribute(currentTestimonials, 3);
-  const tabletCols = distribute(currentTestimonials, 2);
-
-  const renderColumn = (colItems: any[]) => (
-    <div className="flex flex-col gap-6">
-      {colItems.map((item) => (
-        <TestimonialCard key={item.id} item={item} />
-      ))}
-    </div>
-  );
+  // Removed JS chunking logic
 
   return (
     <section id="testimonials" className="brand-section-wrapper bg-bg-soft relative overflow-hidden">
@@ -182,30 +161,13 @@ export default function TestimonialsSection({ initialTestimonials, headerData }:
         {/* Masonry Grid (Gallery Style) */}
         <div className="relative max-w-6xl mx-auto w-full px-4 mt-8">
           {currentTestimonials.length > 0 ? (
-            <>
-              {/* Desktop View (3 Columns) */}
-              <div className="hidden lg:grid grid-cols-3 gap-6">
-                {desktopCols.map((col, idx) => (
-                  <React.Fragment key={`desktop-col-${idx}`}>
-                    {renderColumn(col)}
-                  </React.Fragment>
-                ))}
-              </div>
-              
-              {/* Tablet View (2 Columns) */}
-              <div className="hidden md:grid lg:hidden grid-cols-2 gap-6">
-                {tabletCols.map((col, idx) => (
-                  <React.Fragment key={`tablet-col-${idx}`}>
-                    {renderColumn(col)}
-                  </React.Fragment>
-                ))}
-              </div>
-
-              {/* Mobile View (1 Column) */}
-              <div className="grid md:hidden grid-cols-1 gap-6">
-                {renderColumn(currentTestimonials)}
-              </div>
-            </>
+            <div className="columns-1 md:columns-2 lg:columns-3 gap-6">
+              {currentTestimonials.map((item) => (
+                <div key={item.id} className="inline-block w-full mb-6 break-inside-avoid">
+                  <TestimonialCard item={item} />
+                </div>
+              ))}
+            </div>
           ) : (
             <div className="text-center py-12 text-muted italic">
               No testimonials available at the moment.
