@@ -20,7 +20,8 @@ import {
   Eye,
   BarChart2,
   TrendingUp,
-  Award
+  Award,
+  Calendar
 } from "lucide-react";
 import Link from "next/link";
 import { calculateGrade, calculatePassFailStatus } from "@/lib/exams/grading";
@@ -45,11 +46,18 @@ interface ResultRecord {
 interface Props {
   examId: string;
   exam: {
+    id: string;
     name: string;
     total_marks: number;
     pass_marks: number;
     status: string;
     batch_id: string;
+    exam_type: string;
+    exam_date: string;
+    start_time: string | null;
+    duration: number | null;
+    description: string | null;
+    batches?: { name: string; code: string } | null;
   };
   students: Student[];
   initialResults: ResultRecord[];
@@ -358,6 +366,47 @@ export function ResultsManager({ examId, exam, students, initialResults }: Props
 
       {mode === "VIEW" && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          {/* Exam Configuration */}
+          <div className="bg-white p-5 rounded-xl border border-border shadow-sm">
+            <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Calendar size={18} className="text-primary" /> Exam Configuration
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-xs font-semibold pt-2 text-primary">
+              <div>
+                <span className="text-[10px] text-muted uppercase font-bold block">Subject Batch</span>
+                <span className="font-extrabold mt-0.5 block">{exam.batches?.name}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-muted uppercase font-bold block">Exam Type</span>
+                <span className="font-extrabold mt-0.5 block">{exam.exam_type?.replace("_", " ")}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-muted uppercase font-bold block">Total Marks</span>
+                <span className="font-extrabold mt-0.5 block text-slate-800">{Number(exam.total_marks)}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-muted uppercase font-bold block">Pass Marks</span>
+                <span className="font-extrabold mt-0.5 block text-rose-700">{Number(exam.pass_marks)}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-muted uppercase font-bold block">Exam Date</span>
+                <span className="font-extrabold mt-0.5 block">{exam.exam_date}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-muted uppercase font-bold block">Start & Duration</span>
+                <span className="font-extrabold mt-0.5 block">
+                  {exam.start_time || "N/A"} &bull; {exam.duration ? `${exam.duration} mins` : "N/A"}
+                </span>
+              </div>
+            </div>
+            {exam.description && (
+              <div className="border-t border-border/20 pt-3 mt-3 text-xs text-muted leading-relaxed font-medium">
+                <span className="text-[10px] text-muted uppercase font-bold block mb-1">Syllabus / Notes</span>
+                {exam.description}
+              </div>
+            )}
+          </div>
+
           {/* Summary Metrics */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {[
