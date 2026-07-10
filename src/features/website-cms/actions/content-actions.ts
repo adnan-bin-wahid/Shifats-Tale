@@ -233,14 +233,49 @@ export async function upsertSectionItem(
   const supabase = await createClient();
 
   // 1. Get the section ID
-  const { data: section, error: sectionError } = await supabase
+  let { data: section } = await supabase
     .from("site_page_sections")
     .select("id")
     .eq("section_key", sectionKey)
-    .single();
+    .maybeSingle();
 
-  if (sectionError || !section) {
-    throw new Error("Section not found");
+  if (!section) {
+    // Determine parent page key based on sectionKey or default
+    const pageKey = sectionKey.startsWith("MATERIALS") ? "MATERIALS" : sectionKey.split("_")[0];
+    
+    let { data: page } = await supabase
+      .from("site_pages")
+      .select("id")
+      .eq("page_key", pageKey)
+      .maybeSingle();
+
+    if (!page) {
+      const { data: newPage, error: pageErr } = await supabase
+        .from("site_pages")
+        .insert({ page_key: pageKey, name: pageKey, slug: pageKey.toLowerCase(), status: "PUBLISHED" } as any)
+        .select("id")
+        .single();
+      if (pageErr) throw new Error("Failed to auto-create page: " + pageErr.message);
+      page = newPage;
+    }
+
+    const { data: newSection, error: secErr } = await supabase
+      .from("site_page_sections")
+      .insert({
+        page_id: page.id,
+        section_key: sectionKey,
+        component_key: sectionKey,
+        status: "PUBLISHED",
+        content: {},
+        updated_by: profile.id,
+      })
+      .select("id")
+      .single();
+
+    if (secErr || !newSection) {
+      throw new Error("Failed to auto-create section: " + (secErr?.message || "Unknown error"));
+    }
+    section = newSection;
   }
 
   const itemData = {
