@@ -238,7 +238,7 @@ export default function TestimonialsSection({ initialTestimonials, headerData }:
         </div>
 
         {/* Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-4 mt-10">
+        <div className="relative z-20 flex flex-wrap items-center justify-center gap-4 mt-10">
           <Link
             href="/reviews"
             className="inline-flex items-center space-x-2 text-sm px-8 py-3.5 border-2 border-primary text-primary hover:bg-primary hover:text-white shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer font-bold rounded-xl"
