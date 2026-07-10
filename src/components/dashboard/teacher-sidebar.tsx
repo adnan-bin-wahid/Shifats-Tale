@@ -111,6 +111,13 @@ export const websiteAdminNavItems: NavItem[] = [
     ]
   },
   { 
+    label: "Materials Page", 
+    icon: FileText,
+    subItems: [
+      { label: "Hero Section", href: "/teacher/website/materials/hero" },
+    ]
+  },
+  { 
     label: "Reviews Page", 
     icon: Star,
     subItems: [

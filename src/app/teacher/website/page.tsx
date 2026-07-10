@@ -25,6 +25,7 @@ export default function WebsiteAdminOverview() {
         {[
           { title: "Courses Hero", description: "Edit main title, subtitle, and primary call-to-actions for the Courses page.", href: "/teacher/website/courses/hero" },
           { title: "Results Hero", description: "Edit main title, subtitle, and banner for the Results page.", href: "/teacher/website/results/hero" },
+          { title: "Materials Hero", description: "Edit main title, subtitle, and banner for the Materials page.", href: "/teacher/website/materials/hero" },
           { title: "Reviews Hero", description: "Edit main title, subtitle, and banner for the All Reviews page.", href: "/teacher/website/reviews/hero" },
           { title: "Gallery Hero", description: "Edit main title, subtitle, and banner for the Gallery page.", href: "/teacher/website/gallery/hero" },
           { title: "Contact Hero", description: "Edit main title, subtitle, and banner for the Contact page.", href: "/teacher/website/contact/hero" },
