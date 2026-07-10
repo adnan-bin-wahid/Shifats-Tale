@@ -16,6 +16,7 @@ import {
   Phone,
   Menu,
   X,
+  ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSiteSettings } from "@/lib/providers/SiteSettingsProvider";
@@ -23,16 +24,23 @@ import { supabase } from "@/lib/supabase/client";
 
 interface NavItemConfig {
   label: string;
-  href: string;
+  href?: string;
   iconName: string;
   match?: "exact" | "prefix";
+  subItems?: { label: string; href: string; iconName: string }[];
 }
 
 const navItems: NavItemConfig[] = [
   { label: "Home", href: "/", iconName: "Home", match: "exact" },
   { label: "About", href: "/about", iconName: "User" },
-  { label: "Courses", href: "/courses", iconName: "BookOpen" },
-  { label: "Results", href: "/results", iconName: "TrendingUp" },
+  { 
+    label: "Academic", 
+    iconName: "BookOpen", 
+    subItems: [
+      { label: "Courses", href: "/courses", iconName: "BookOpen" },
+      { label: "Results", href: "/results", iconName: "TrendingUp" }
+    ]
+  },
   { label: "Gallery", href: "/gallery", iconName: "Image" },
   { label: "Contact Me", href: "/contact", iconName: "Mail" },
 ];
@@ -170,6 +178,10 @@ export default function Navbar() {
   };
 
   const isActive = (item: NavItemConfig) => {
+    if (item.subItems) {
+      return item.subItems.some(sub => pathname === sub.href || pathname.startsWith(`${sub.href}/`));
+    }
+    if (!item.href) return false;
     if (item.href === "/") return pathname === "/";
     return pathname === item.href || pathname.startsWith(`${item.href}/`);
   };
@@ -214,41 +226,78 @@ export default function Navbar() {
 
                 return (
                   <React.Fragment key={item.label}>
-                    <Link
-                      href={targetHref}
-                      onClick={(event) => handleLinkClick(event, item.href)}
-                      aria-current={active ? "page" : undefined}
-                      className={cn(
-                        "group relative flex flex-col items-center justify-center rounded-xl px-3 py-1.5 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-                        active
-                          ? "scale-[1.02] border border-accent/40 bg-accent/15 font-extrabold text-primary shadow-xs after:absolute after:-bottom-1 after:left-1/2 after:h-0.5 after:w-5 after:-translate-x-1/2 after:rounded-full after:bg-accent"
-                          : "text-primary-dark/80 hover:scale-[1.02] hover:bg-bg/80 hover:text-primary active:scale-[0.98]"
-                      )}
-                    >
-                      <div
-                        className={cn(
-                          "transition-transform duration-200 group-hover:scale-110",
-                          active
-                            ? "text-primary"
-                            : "text-primary/70 group-hover:text-primary"
-                        )}
-                      >
-                        {renderNavIcon(
-                          item.iconName,
-                          "h-4 w-4 sm:h-4.5 sm:w-4.5"
-                        )}
+                    {item.subItems ? (
+                      <div className="group relative flex flex-col items-center justify-center rounded-xl px-3 py-1.5 transition-all duration-200 cursor-pointer">
+                        <div
+                          className={cn(
+                            "transition-transform duration-200 group-hover:scale-110",
+                            active ? "text-primary" : "text-primary/70 group-hover:text-primary"
+                          )}
+                        >
+                          {renderNavIcon(item.iconName, "h-4 w-4 sm:h-4.5 sm:w-4.5")}
+                        </div>
+                        <span
+                          className={cn(
+                            "mt-1 whitespace-nowrap text-[11px] leading-tight flex items-center gap-0.5",
+                            active
+                              ? "font-extrabold text-primary"
+                              : "font-bold text-primary-dark/80 group-hover:text-primary"
+                          )}
+                        >
+                          {item.label} <ChevronDown className="h-3 w-3" />
+                        </span>
+                        
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                          <div className="bg-white rounded-xl shadow-lg border border-border/40 p-2 min-w-40 flex flex-col gap-1">
+                            {item.subItems.map((sub) => (
+                              <Link
+                                key={sub.label}
+                                href={sub.href}
+                                className="flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-lg hover:bg-accent/10 text-primary-dark/80 hover:text-primary transition-colors"
+                              >
+                                {renderNavIcon(sub.iconName, "h-4 w-4")} {sub.label}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
                       </div>
-                      <span
+                    ) : (
+                      <Link
+                        href={targetHref}
+                        onClick={(event) => handleLinkClick(event, item.href!)}
+                        aria-current={active ? "page" : undefined}
                         className={cn(
-                          "mt-1 whitespace-nowrap text-[11px] leading-tight",
+                          "group relative flex flex-col items-center justify-center rounded-xl px-3 py-1.5 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
                           active
-                            ? "font-extrabold text-primary"
-                            : "font-bold text-primary-dark/80 group-hover:text-primary"
+                            ? "scale-[1.02] border border-accent/40 bg-accent/15 font-extrabold text-primary shadow-xs after:absolute after:-bottom-1 after:left-1/2 after:h-0.5 after:w-5 after:-translate-x-1/2 after:rounded-full after:bg-accent"
+                            : "text-primary-dark/80 hover:scale-[1.02] hover:bg-bg/80 hover:text-primary active:scale-[0.98]"
                         )}
                       >
-                        {item.label}
-                      </span>
-                    </Link>
+                        <div
+                          className={cn(
+                            "transition-transform duration-200 group-hover:scale-110",
+                            active
+                              ? "text-primary"
+                              : "text-primary/70 group-hover:text-primary"
+                          )}
+                        >
+                          {renderNavIcon(
+                            item.iconName,
+                            "h-4 w-4 sm:h-4.5 sm:w-4.5"
+                          )}
+                        </div>
+                        <span
+                          className={cn(
+                            "mt-1 whitespace-nowrap text-[11px] leading-tight",
+                            active
+                              ? "font-extrabold text-primary"
+                              : "font-bold text-primary-dark/80 group-hover:text-primary"
+                          )}
+                        >
+                          {item.label}
+                        </span>
+                      </Link>
+                    )}
 
                     {!isLast && (
                       <span className="mx-0.5 hidden h-1.5 w-1.5 shrink-0 rounded-full bg-accent/40 pointer-events-none xl:inline-block" />
@@ -379,11 +428,70 @@ export default function Navbar() {
                     ? `/${item.href}`
                     : item.href;
 
+                if (item.subItems) {
+                  return (
+                    <div key={item.label} className="space-y-1">
+                      <div className="flex min-h-14 items-center gap-3 rounded-2xl px-4 py-3 text-base font-bold text-primary-dark/90">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-primary/10 bg-white text-primary/75">
+                          {renderNavIcon(item.iconName, "h-4.5 w-4.5")}
+                        </span>
+                        <span className="flex-1">{item.label}</span>
+                      </div>
+                      <div className="pl-6 space-y-1">
+                        {item.subItems.map((sub) => {
+                          const active = isActive(sub as any);
+                          const subHref =
+                            sub.href.startsWith("#") && pathname !== "/"
+                              ? \`/\${sub.href}\`
+                              : sub.href;
+                          return (
+                            <Link
+                              key={sub.label}
+                              href={subHref}
+                              onClick={(event) => {
+                                handleLinkClick(event, sub.href);
+                                setIsOpen(false);
+                              }}
+                              className={cn(
+                                "group flex min-h-12 items-center gap-3 rounded-2xl border px-4 py-2 text-sm font-bold transition-all duration-200",
+                                active
+                                  ? "border-accent/45 bg-accent/10 text-primary shadow-sm"
+                                  : "border-transparent text-primary-dark/90 hover:border-border/70 hover:bg-white hover:text-primary hover:shadow-sm"
+                              )}
+                            >
+                              <span
+                                className={cn(
+                                  "flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border transition-colors",
+                                  active
+                                    ? "border-accent/40 bg-accent text-primary"
+                                    : "border-primary/10 bg-white text-primary/75 group-hover:border-accent/30 group-hover:text-primary"
+                                )}
+                              >
+                                {renderNavIcon(sub.iconName, "h-3.5 w-3.5")}
+                              </span>
+                              <span className="flex-1">{sub.label}</span>
+                              <span
+                                className={cn(
+                                  "h-1.5 w-1.5 rounded-full",
+                                  active ? "bg-accent" : "bg-border"
+                                )}
+                              />
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
                   <Link
                     key={item.label}
                     href={targetHref}
-                    onClick={(event) => handleLinkClick(event, item.href)}
+                    onClick={(event) => {
+                      handleLinkClick(event, item.href!);
+                      setIsOpen(false);
+                    }}
                     aria-current={active ? "page" : undefined}
                     className={cn(
                       "group flex min-h-14 items-center gap-3 rounded-2xl border px-4 py-3 text-base font-bold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
