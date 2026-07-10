@@ -6,6 +6,7 @@ import { Star, X, Loader2 } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import toast from "react-hot-toast";
 import { submitReview } from "@/features/website-cms/actions/testimonials-actions";
+import Link from "next/link";
 
 interface TestimonialsSectionProps {
   initialTestimonials?: any[];
@@ -235,8 +236,14 @@ export default function TestimonialsSection({ initialTestimonials }: Testimonial
           </div>
         </div>
 
-        {/* Submit Review Button */}
-        <div className="flex justify-center mt-10">
+        {/* Buttons */}
+        <div className="flex flex-wrap items-center justify-center gap-4 mt-10">
+          <Link
+            href="/reviews"
+            className="inline-flex items-center space-x-2 text-sm px-8 py-3.5 border-2 border-primary text-primary hover:bg-primary hover:text-white shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer font-bold rounded-xl"
+          >
+            See All Reviews
+          </Link>
           <button
             onClick={() => setIsModalOpen(true)}
             className="primary-btn inline-flex items-center space-x-2 text-sm px-8 py-3.5 shadow-md hover:scale-[1.02] active:scale-95 transition-all duration-200 cursor-pointer font-bold rounded-xl"
