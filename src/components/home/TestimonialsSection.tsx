@@ -118,6 +118,8 @@ export default function TestimonialsSection({ initialTestimonials, headerData }:
         </div>
       </div>
     </div>
+  );
+
   // Removed JS chunking logic
 
   return (
