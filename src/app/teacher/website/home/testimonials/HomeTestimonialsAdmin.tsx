@@ -23,11 +23,11 @@ export default function HomeTestimonialsAdmin({
   const [description, setDescription] = useState(initialSectionData?.description || "Honest feedback from students who achieved Board A+ and cracked engineering university admissions under Shifat Sir's guidance.");
   
   useEffect(() => {
-    setSelectedIds(initialSelectedIds);
+    setSelectedIds(initialSectionData?.content?.selectedTestimonialIds || []);
     setEyebrow(initialSectionData?.eyebrow || "TESTIMONIALS");
     setTitle(initialSectionData?.title || "What Parents & Students Say");
     setDescription(initialSectionData?.description || "Honest feedback from students who achieved Board A+ and cracked engineering university admissions under Shifat Sir's guidance.");
-  }, [initialSelectedIds, initialSectionData]);
+  }, [initialSectionData]);
   
   const [isSaving, setIsSaving] = useState(false);
 
