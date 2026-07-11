@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, FileText, Image as ImageIcon, Link as LinkIcon, Download, Eye, ExternalLink, ArrowRight, Maximize2 } from "lucide-react";
 import InnerPageHero from "@/components/layout/InnerPageHero";
+import PublicPdfViewer from "@/components/materials/PublicPdfViewer";
 
 export default function MaterialsClient({ 
   heroData, 
@@ -302,47 +303,14 @@ export default function MaterialsClient({
               </div>
             </div>
             
-            {/* Mobile / Fallback Action Banner */}
-            <div className="bg-amber-50 border-b border-amber-200/80 px-4 py-2.5 text-xs text-amber-900 font-semibold flex flex-col sm:flex-row items-center justify-between gap-2 shrink-0">
-              <span className="text-center sm:text-left flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-                If your phone browser blocks PDF preview inside the box, open it directly or download below:
-              </span>
-              <div className="flex items-center gap-2 shrink-0">
-                <a
-                  href={`https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(selectedPdf.metadata?.fileUrl || "")}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1 bg-white hover:bg-amber-100 text-amber-900 rounded-lg font-bold border border-amber-300 text-[11px] transition-colors shadow-2xs"
-                >
-                  Google Viewer ↗
-                </a>
-                <a
-                  href={selectedPdf.metadata?.fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1 bg-[#08132E] hover:bg-[#08132E]/90 text-white rounded-lg font-bold text-[11px] transition-colors shadow-2xs flex items-center gap-1"
-                >
-                  Open Direct ↗
-                </a>
-                <a
-                  href={selectedPdf.metadata?.fileUrl ? (selectedPdf.metadata.fileUrl.includes("?") ? `${selectedPdf.metadata.fileUrl}&download=true` : `${selectedPdf.metadata.fileUrl}?download=true`) : "#"}
-                  download
-                  className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-[11px] transition-colors shadow-2xs flex items-center gap-1"
-                >
-                  Download ⬇
-                </a>
-              </div>
-            </div>
-
-            {/* PDF Body Container */}
+            {/* PDF Body Container - Clean view with zero repeated top bar */}
             <div className="flex-1 bg-gray-100 overflow-hidden relative flex flex-col">
-              <iframe
-                src={selectedPdf.metadata?.fileUrl}
-                className="w-full h-full border-none flex-1"
-                title={selectedPdf.title}
-                allow="fullscreen"
-              />
+              {selectedPdf.metadata?.fileUrl ? (
+                <PublicPdfViewer
+                  fileUrl={selectedPdf.metadata.fileUrl}
+                  title={selectedPdf.title}
+                />
+              ) : null}
             </div>
           </motion.div>
         )}

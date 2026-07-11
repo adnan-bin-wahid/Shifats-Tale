@@ -10,26 +10,23 @@ const SecurePdfCanvas = dynamic(() => import("./SecurePdfCanvas"), {
   loading: () => (
     <div className="flex flex-col items-center justify-center p-12 text-gray-500 space-y-3 m-auto">
       <Loader2 className="w-8 h-8 text-[#08132E] animate-spin" />
-      <span className="text-sm font-bold text-[#08132E]">Initializing secure viewer...</span>
+      <span className="text-sm font-bold text-[#08132E]">Initializing PDF canvas preview...</span>
     </div>
   ),
 });
 
-interface SecurePdfViewerProps {
-  contentId: string;
+interface PublicPdfViewerProps {
+  fileUrl: string;
   title: string;
-  allowDownload?: boolean;
 }
 
-export default function SecurePdfViewer({
-  contentId,
+export default function PublicPdfViewer({
+  fileUrl,
   title,
-  allowDownload = false,
-}: SecurePdfViewerProps) {
+}: PublicPdfViewerProps) {
   const [hasError, setHasError] = useState(false);
 
-  const previewUrl = `/api/materials/${contentId}/access?mode=preview`;
-  const downloadUrl = `/api/materials/${contentId}/access?mode=download`;
+  const downloadUrl = fileUrl.includes("?") ? `${fileUrl}&download=true` : `${fileUrl}?download=true`;
 
   return (
     <div className="w-full h-full flex flex-col bg-gray-100 relative overflow-hidden">
@@ -51,7 +48,7 @@ export default function SecurePdfViewer({
             </div>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full pt-2">
               <a
-                href={previewUrl}
+                href={fileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto px-5 py-3 bg-[#08132E] hover:bg-[#08132E]/90 text-white rounded-xl font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2"
@@ -59,21 +56,19 @@ export default function SecurePdfViewer({
                 <ExternalLink className="w-4 h-4 text-accent" />
                 <span>Open Direct ↗</span>
               </a>
-              {allowDownload && (
-                <a
-                  href={downloadUrl}
-                  download
-                  className="w-full sm:w-auto px-5 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Download File ⬇</span>
-                </a>
-              )}
+              <a
+                href={downloadUrl}
+                download
+                className="w-full sm:w-auto px-5 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download File ⬇</span>
+              </a>
             </div>
           </div>
         ) : (
           <div className="w-full h-full flex flex-col flex-1">
-            <SecurePdfCanvas previewUrl={previewUrl} onError={() => setHasError(true)} />
+            <SecurePdfCanvas previewUrl={fileUrl} onError={() => setHasError(true)} />
           </div>
         )}
       </div>
