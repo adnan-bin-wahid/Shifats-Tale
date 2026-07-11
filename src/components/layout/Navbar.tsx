@@ -16,7 +16,8 @@ import {
   Phone,
   Menu,
   X,
-  ChevronDown
+  ChevronDown,
+  Calendar
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSiteSettings } from "@/lib/providers/SiteSettingsProvider";
@@ -37,6 +38,7 @@ const navItems: NavItemConfig[] = [
     label: "Academic", 
     iconName: "BookOpen", 
     subItems: [
+      { label: "Academic Calendar", href: "/academic-calendar", iconName: "Calendar" },
       { label: "Courses", href: "/courses", iconName: "BookOpen" },
       { label: "Materials", href: "/materials", iconName: "BookOpen" },
       { label: "Results", href: "/results", iconName: "TrendingUp" },
@@ -55,6 +57,8 @@ const renderNavIcon = (iconName: string, className = "h-4 w-4") => {
       return <User className={className} />;
     case "BookOpen":
       return <BookOpen className={className} />;
+    case "Calendar":
+      return <Calendar className={className} />;
     case "TrendingUp":
       return <TrendingUp className={className} />;
     case "PlayCircle":
