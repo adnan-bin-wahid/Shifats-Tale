@@ -284,11 +284,9 @@ export default function MaterialsClient({
                   <span className="hidden md:inline">Open in Tab</span>
                 </a>
                 <a 
-                  href={selectedPdf.metadata?.fileUrl}
+                  href={selectedPdf.metadata?.fileUrl ? (selectedPdf.metadata.fileUrl.includes("?") ? `${selectedPdf.metadata.fileUrl}&download=true` : `${selectedPdf.metadata.fileUrl}?download=true`) : "#"}
                   download
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-accent text-[#08132E] hover:bg-amber-400 rounded-xl text-xs sm:text-sm font-black transition-colors shadow-sm"
+                  className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-accent text-[#08132E] hover:bg-amber-400 rounded-xl text-xs sm:text-sm font-black transition-colors shadow-sm cursor-pointer"
                   title="Download PDF File"
                 >
                   <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -326,6 +324,13 @@ export default function MaterialsClient({
                   className="px-3 py-1 bg-[#08132E] hover:bg-[#08132E]/90 text-white rounded-lg font-bold text-[11px] transition-colors shadow-2xs flex items-center gap-1"
                 >
                   Open Direct ↗
+                </a>
+                <a
+                  href={selectedPdf.metadata?.fileUrl ? (selectedPdf.metadata.fileUrl.includes("?") ? `${selectedPdf.metadata.fileUrl}&download=true` : `${selectedPdf.metadata.fileUrl}?download=true`) : "#"}
+                  download
+                  className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-[11px] transition-colors shadow-2xs flex items-center gap-1"
+                >
+                  Download ⬇
                 </a>
               </div>
             </div>
