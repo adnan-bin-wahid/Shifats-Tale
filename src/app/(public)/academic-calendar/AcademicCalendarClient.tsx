@@ -7,14 +7,16 @@ import { Maximize2, X, Download } from "lucide-react";
 import InnerPageHero from "@/components/layout/InnerPageHero";
 
 export default function AcademicCalendarClient({ 
-  heroData
+  heroData,
+  cardData
 }: { 
   heroData?: any;
+  cardData?: any;
 }) {
   const [isZoomed, setIsZoomed] = useState(false);
 
-  // Use CMS uploaded image or fallback to a full high-res academic schedule flyer
-  const calendarImageSrc = heroData?.fileUrl || heroData?.mediaUrl || "/images/flyer_hsc26_hsc27.jpg";
+  // Use CMS uploaded card image first, fallback to hero media, then default schedule flyer
+  const calendarImageSrc = cardData?.mediaUrl || cardData?.fileUrl || heroData?.fileUrl || heroData?.mediaUrl || "/images/flyer_hsc26_hsc27.jpg";
 
   return (
     <div className="min-h-screen bg-[#FFF9F2] pt-24 pb-24 relative overflow-hidden">

@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import { generateCloudinarySignature, finalizeMediaUpload } from "../actions/media-actions";
 
-type AllowedFolder = "BRANDING" | "HERO" | "COURSES" | "RESULTS" | "MONTHLY_STARS" | "TESTIMONIALS" | "GALLERY" | "ABOUT" | "PROJECTS" | "PUBLICATIONS";
+type AllowedFolder = "BRANDING" | "HERO" | "COURSES" | "RESULTS" | "MONTHLY_STARS" | "TESTIMONIALS" | "GALLERY" | "ABOUT" | "PROJECTS" | "PUBLICATIONS" | "CONTACT" | "MATERIALS" | "ACADEMIC_CALENDAR";
 
 interface CloudinaryUploadResponse {
   public_id: string;
