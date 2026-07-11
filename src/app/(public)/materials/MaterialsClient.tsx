@@ -262,41 +262,81 @@ export default function MaterialsClient({
             className="fixed inset-0 z-[100] bg-white flex flex-col overflow-hidden"
           >
             {/* PDF Header Bar */}
-            <div className="h-16 bg-[#08132E] text-white px-6 flex items-center justify-between shrink-0 shadow-lg relative z-10">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-accent" />
+            <div className="h-16 bg-[#08132E] text-white px-4 sm:px-6 flex items-center justify-between shrink-0 shadow-lg relative z-10">
+              <div className="flex items-center gap-3 sm:gap-4 overflow-hidden mr-2">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
                 </div>
-                <div>
-                  <h3 className="font-bold text-lg leading-tight truncate max-w-[200px] sm:max-w-md">{selectedPdf.title}</h3>
-                  <p className="text-accent text-xs font-semibold">{selectedPdf.subtitle}</p>
+                <div className="truncate">
+                  <h3 className="font-bold text-sm sm:text-lg leading-tight truncate">{selectedPdf.title}</h3>
+                  <p className="text-accent text-[11px] sm:text-xs font-semibold truncate">{selectedPdf.subtitle}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                <a 
+                  href={selectedPdf.metadata?.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs sm:text-sm font-bold transition-colors"
+                  title="Open PDF directly in new tab"
+                >
+                  <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent" />
+                  <span className="hidden md:inline">Open in Tab</span>
+                </a>
                 <a 
                   href={selectedPdf.metadata?.fileUrl}
                   download
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-bold transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-accent text-[#08132E] hover:bg-amber-400 rounded-xl text-xs sm:text-sm font-black transition-colors shadow-sm"
+                  title="Download PDF File"
                 >
-                  <Download className="w-4 h-4" /> Download PDF
+                  <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Download</span>
                 </a>
                 <button 
                   onClick={() => setSelectedPdf(null)}
-                  className="w-10 h-10 rounded-xl bg-white/10 hover:bg-red-500/80 text-white flex items-center justify-center transition-colors"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 hover:bg-red-500/80 text-white flex items-center justify-center transition-colors shrink-0"
+                  aria-label="Close Viewer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
             
+            {/* Mobile / Fallback Action Banner */}
+            <div className="bg-amber-50 border-b border-amber-200/80 px-4 py-2.5 text-xs text-amber-900 font-semibold flex flex-col sm:flex-row items-center justify-between gap-2 shrink-0">
+              <span className="text-center sm:text-left flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                If your phone browser blocks PDF preview inside the box, open it directly or download below:
+              </span>
+              <div className="flex items-center gap-2 shrink-0">
+                <a
+                  href={`https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(selectedPdf.metadata?.fileUrl || "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1 bg-white hover:bg-amber-100 text-amber-900 rounded-lg font-bold border border-amber-300 text-[11px] transition-colors shadow-2xs"
+                >
+                  Google Viewer ↗
+                </a>
+                <a
+                  href={selectedPdf.metadata?.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1 bg-[#08132E] hover:bg-[#08132E]/90 text-white rounded-lg font-bold text-[11px] transition-colors shadow-2xs flex items-center gap-1"
+                >
+                  Open Direct ↗
+                </a>
+              </div>
+            </div>
+
             {/* PDF Body Container */}
-            <div className="flex-1 bg-gray-100 overflow-hidden relative">
+            <div className="flex-1 bg-gray-100 overflow-hidden relative flex flex-col">
               <iframe
                 src={selectedPdf.metadata?.fileUrl}
-                className="w-full h-full border-none"
+                className="w-full h-full border-none flex-1"
                 title={selectedPdf.title}
+                allow="fullscreen"
               />
             </div>
           </motion.div>
