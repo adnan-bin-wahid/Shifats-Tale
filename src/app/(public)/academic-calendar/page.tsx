@@ -8,7 +8,10 @@ export const metadata: Metadata = {
 };
 
 export default async function AcademicCalendarPage() {
-  const heroData = await getPageSection("ACADEMIC_CALENDAR", "CALENDAR_HERO");
+  const [heroData, cardData] = await Promise.all([
+    getPageSection("ACADEMIC_CALENDAR", "CALENDAR_HERO"),
+    getPageSection("ACADEMIC_CALENDAR", "CALENDAR_CARD"),
+  ]);
 
-  return <AcademicCalendarClient heroData={heroData} />;
+  return <AcademicCalendarClient heroData={heroData} cardData={cardData} />;
 }
