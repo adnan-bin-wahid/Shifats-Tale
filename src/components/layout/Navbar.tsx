@@ -39,6 +39,7 @@ const navItems: NavItemConfig[] = [
     iconName: "BookOpen", 
     subItems: [
       { label: "Academic Calendar", href: "/academic-calendar", iconName: "Calendar" },
+      { label: "Class Routine", href: "/class-routine", iconName: "Calendar" },
       { label: "Courses", href: "/courses", iconName: "BookOpen" },
       { label: "Materials", href: "/materials", iconName: "BookOpen" },
       { label: "Results", href: "/results", iconName: "TrendingUp" },

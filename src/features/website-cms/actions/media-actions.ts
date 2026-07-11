@@ -18,6 +18,7 @@ const ALLOWED_FOLDERS: Record<string, string> = {
   CONTACT: "shifats-tales",
   MATERIALS: "shifats-tales",
   ACADEMIC_CALENDAR: "shifats-tales",
+  CLASS_ROUTINE: "shifats-tales",
 };
 
 const ALLOWED_IMAGE_FORMATS = new Set(["jpg", "jpeg", "png", "webp", "avif"]);
