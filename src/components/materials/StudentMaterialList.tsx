@@ -168,38 +168,78 @@ export function StudentMaterialList({ materials, batchId }: { materials: Materia
                 exit={{ scale: 0.95, opacity: 0 }}
                 className="bg-white rounded-3xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden shadow-2xl border border-white/20 relative"
               >
-                <div className="flex items-center justify-between p-4 border-b border-[#E7E0D2] bg-gray-50/50">
-                  <div className="flex items-center space-x-3 truncate">
-                    <FileText className="w-5 h-5 text-accent shrink-0" />
-                    <h3 className="font-bold text-primary truncate text-sm sm:text-base">
+                <div className="flex items-center justify-between p-3 sm:p-4 border-b border-[#E7E0D2] bg-gray-50/50 shrink-0">
+                  <div className="flex items-center space-x-3 truncate mr-2">
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-accent shrink-0" />
+                    <h3 className="font-bold text-primary truncate text-xs sm:text-base">
                       {selectedMaterial.title}
                     </h3>
                   </div>
                   <div className="flex items-center space-x-2 shrink-0">
+                    <a
+                      href={`/api/materials/${selectedMaterial.id}/access?mode=preview`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-2.5 py-1.5 sm:px-3 sm:py-2 bg-gray-100 hover:bg-gray-200 text-primary text-xs font-bold rounded-lg flex items-center space-x-1"
+                      title="Open directly in new tab"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span className="hidden md:inline">Open in Tab</span>
+                    </a>
                     {selectedMaterial.allow_download && (
                       <a
                         href={`/api/materials/${selectedMaterial.id}/access?mode=download`}
                         download
-                        className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary/90 flex items-center space-x-1.5"
+                        className="px-3 py-1.5 sm:px-4 sm:py-2 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary/90 flex items-center space-x-1.5 shadow-sm"
+                        title="Download file"
                       >
-                        <Download className="w-4 h-4" />
+                        <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         <span className="hidden sm:inline">Download</span>
                       </a>
                     )}
                     <button
                       onClick={() => setSelectedMaterial(null)}
-                      className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-1.5 sm:p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      aria-label="Close Viewer"
                     >
                       <X className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
 
-                <div className="flex-1 bg-gray-100 relative">
+                {/* Mobile / Fallback Action Banner */}
+                <div className="bg-amber-50 border-b border-amber-200/80 px-4 py-2 text-[11px] sm:text-xs text-amber-900 font-semibold flex flex-col sm:flex-row items-center justify-between gap-2 shrink-0">
+                  <span className="text-center sm:text-left flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                    If your phone browser blocks PDF preview inside this box, open or download below:
+                  </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <a
+                      href={`/api/materials/${selectedMaterial.id}/access?mode=preview`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1 bg-[#08132E] hover:bg-[#08132E]/90 text-white rounded-lg font-bold text-[11px] transition-colors shadow-2xs flex items-center gap-1"
+                    >
+                      Open Direct ↗
+                    </a>
+                    {selectedMaterial.allow_download && (
+                      <a
+                        href={`/api/materials/${selectedMaterial.id}/access?mode=download`}
+                        download
+                        className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-[11px] transition-colors shadow-2xs flex items-center gap-1"
+                      >
+                        Download ⬇
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex-1 bg-gray-100 relative flex flex-col overflow-hidden">
                   <iframe
                     src={`/api/materials/${selectedMaterial.id}/access?mode=preview`}
-                    className="w-full h-full border-none"
+                    className="w-full h-full border-none flex-1"
                     title={selectedMaterial.title}
+                    allow="fullscreen"
                   />
                 </div>
               </motion.div>
