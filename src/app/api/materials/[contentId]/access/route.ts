@@ -62,8 +62,33 @@ export async function GET(
       return NextResponse.json({ error: "Material does not contain a file asset" }, { status: 400, headers });
     }
 
-    // Redirect user to the signed URL safely
-    return NextResponse.redirect(signedUrl, { headers });
+    // 5. Fetch file bytes from signed URL and stream through our server (hides raw storage URL & sets strict secure headers)
+    const fileRes = await fetch(signedUrl);
+    if (!fileRes.ok) {
+      return NextResponse.json({ error: "Failed to retrieve material from storage" }, { status: fileRes.status, headers });
+    }
+
+    const safeBaseName = (material.title || "material").replace(/[^a-zA-Z0-9 _-]/g, "_").trim().replace(/ +/g, "_");
+    const isPdf = material.content_type === "application/pdf" || signedUrl.toLowerCase().includes(".pdf");
+    const ext = isPdf ? ".pdf" : material.content_type === "image/png" ? ".png" : material.content_type === "image/jpeg" ? ".jpg" : ".pdf";
+    const filename = safeBaseName.endsWith(ext) ? safeBaseName : `${safeBaseName}${ext}`;
+
+    const resHeaders = new Headers();
+    resHeaders.set("Cache-Control", "private, no-store");
+    resHeaders.set("Pragma", "no-cache");
+
+    if (mode === "download") {
+      resHeaders.set("Content-Type", fileRes.headers.get("Content-Type") || (isPdf ? "application/pdf" : "application/octet-stream"));
+      resHeaders.set("Content-Disposition", `attachment; filename="${filename}"`);
+    } else {
+      resHeaders.set("Content-Type", isPdf ? "application/pdf" : fileRes.headers.get("Content-Type") || "application/pdf");
+      resHeaders.set("Content-Disposition", `inline; filename="${filename}"`);
+    }
+
+    return new NextResponse(fileRes.body as any, {
+      status: 200,
+      headers: resHeaders,
+    });
   } catch (err: any) {
     console.error("Error in access route:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500, headers });
