@@ -24,6 +24,7 @@ export default function WebsiteAdminOverview() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[
           { title: "Academic Calendar", description: "Manage hero banner and full schedule flyer card image.", href: "/teacher/website/academic-calendar" },
+          { title: "Class Routine", description: "Manage hero banner and full class routine flyer card image.", href: "/teacher/website/class-routine" },
           { title: "Courses Hero", description: "Edit main title, subtitle, and primary call-to-actions for the Courses page.", href: "/teacher/website/courses/hero" },
           { title: "Results Hero", description: "Edit main title, subtitle, and banner for the Results page.", href: "/teacher/website/results/hero" },
           { title: "Materials Hero", description: "Edit main title, subtitle, and banner for the Materials page.", href: "/teacher/website/materials/hero" },

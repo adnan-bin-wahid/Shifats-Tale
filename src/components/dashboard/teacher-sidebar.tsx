@@ -48,6 +48,7 @@ export const teacherNavItems: NavItem[] = [
   { label: "Payment Ledger", href: "/teacher/payments", icon: CreditCard },
   { label: "Study Materials", href: "/teacher/materials", icon: FileText },
   { label: "Academic Calendar", href: "/teacher/website/academic-calendar", icon: Calendar },
+  { label: "Class Routine", href: "/teacher/website/class-routine", icon: Calendar },
   { label: "Exams & Grading", href: "/teacher/exams", icon: GraduationCap },
   { label: "Notifications", href: "/teacher/notifications", icon: Bell },
   { label: "My Profile", href: "/teacher/profile", icon: User },
@@ -128,6 +129,15 @@ export const websiteAdminNavItems: NavItem[] = [
       { label: "Overview", href: "/teacher/website/academic-calendar" },
       { label: "Hero Banner", href: "/teacher/website/academic-calendar/hero" },
       { label: "Schedule Flyer (Card)", href: "/teacher/website/academic-calendar/card" },
+    ]
+  },
+  { 
+    label: "Class Routine", 
+    icon: Calendar,
+    subItems: [
+      { label: "Overview", href: "/teacher/website/class-routine" },
+      { label: "Hero Banner", href: "/teacher/website/class-routine/hero" },
+      { label: "Routine Flyer (Card)", href: "/teacher/website/class-routine/card" },
     ]
   },
   { 
