@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { TeacherSidebar } from "./teacher-sidebar";
 import { DashboardHeader } from "./dashboard-header";
 import { MobileDashboardNav } from "./mobile-dashboard-nav";
@@ -16,8 +17,19 @@ export function TeacherShell({
   userName,
   userEmail,
 }: TeacherShellProps) {
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [adminMode, setAdminMode] = useState<"coaching" | "website">("coaching");
+  const [adminMode, setAdminMode] = useState<"coaching" | "website">(() => 
+    pathname?.startsWith("/teacher/website") ? "website" : "coaching"
+  );
+
+  useEffect(() => {
+    if (pathname?.startsWith("/teacher/website") && adminMode !== "website") {
+      setAdminMode("website");
+    } else if (pathname && !pathname.startsWith("/teacher/website") && pathname.startsWith("/teacher") && adminMode === "website") {
+      setAdminMode("coaching");
+    }
+  }, [pathname, adminMode]);
 
   return (
     <div className="authenticated-shell flex h-screen w-screen bg-bg-soft text-text overflow-hidden">
