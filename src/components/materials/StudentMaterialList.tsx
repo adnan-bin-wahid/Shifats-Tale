@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Eye, Download, ExternalLink, Info, Calendar, FileText, X, ArrowRight, Maximize2 } from "lucide-react";
+import SecurePdfViewer from "./SecurePdfViewer";
 
 interface Material {
   id: string;
@@ -207,40 +208,22 @@ export function StudentMaterialList({ materials, batchId }: { materials: Materia
                   </div>
                 </div>
 
-                {/* Mobile / Fallback Action Banner */}
-                <div className="bg-amber-50 border-b border-amber-200/80 px-4 py-2 text-[11px] sm:text-xs text-amber-900 font-semibold flex flex-col sm:flex-row items-center justify-between gap-2 shrink-0">
-                  <span className="text-center sm:text-left flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-                    If your phone browser blocks PDF preview inside this box, open or download below:
-                  </span>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <a
-                      href={`/api/materials/${selectedMaterial.id}/access?mode=preview`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1 bg-[#08132E] hover:bg-[#08132E]/90 text-white rounded-lg font-bold text-[11px] transition-colors shadow-2xs flex items-center gap-1"
-                    >
-                      Open Direct ↗
-                    </a>
-                    {selectedMaterial.allow_download && (
-                      <a
-                        href={`/api/materials/${selectedMaterial.id}/access?mode=download`}
-                        download
-                        className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-[11px] transition-colors shadow-2xs flex items-center gap-1"
-                      >
-                        Download ⬇
-                      </a>
-                    )}
-                  </div>
-                </div>
-
                 <div className="flex-1 bg-gray-100 relative flex flex-col overflow-hidden">
-                  <iframe
-                    src={`/api/materials/${selectedMaterial.id}/access?mode=preview`}
-                    className="w-full h-full border-none flex-1"
-                    title={selectedMaterial.title}
-                    allow="fullscreen"
-                  />
+                  {selectedMaterial.content_type === "application/pdf" || selectedMaterial.title.toLowerCase().endsWith(".pdf") || !selectedMaterial.content_type?.includes("image/") ? (
+                    <SecurePdfViewer
+                      contentId={selectedMaterial.id}
+                      title={selectedMaterial.title}
+                      allowDownload={selectedMaterial.allow_download}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center p-4 overflow-auto bg-gray-900/90">
+                      <img
+                        src={`/api/materials/${selectedMaterial.id}/access?mode=preview`}
+                        alt={selectedMaterial.title}
+                        className="max-w-full max-h-full object-contain rounded-lg shadow-xl"
+                      />
+                    </div>
+                  )}
                 </div>
               </motion.div>
             </motion.div>
