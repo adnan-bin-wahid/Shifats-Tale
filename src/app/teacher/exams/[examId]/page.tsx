@@ -87,6 +87,7 @@ export default async function ExamDetailsPage({ params }: PageProps) {
         exam={exam as any} 
         students={studentsList} 
         initialResults={initialResults} 
+        initialMode="VIEW"
       />
     </div>
   );
