@@ -164,14 +164,25 @@ export function NewBatchForm() {
 
         <div>
           <label className="block text-[10px] uppercase font-extrabold tracking-wider text-muted mb-2">
-            Academic Year <span className="text-red-500">*</span>
+            Academic Year / Level <span className="text-red-500">*</span>
           </label>
-          <input
-            type="number"
+          <select
             {...register("academicLevel")}
-            placeholder="e.g. 2026"
             className="w-full px-4 py-2.5 rounded-xl border border-border/60 bg-bg/25 text-xs font-bold focus:border-primary focus:outline-none"
-          />
+          >
+            <option value="2026">2026</option>
+            <option value="2025">2025</option>
+            <option value="2027">2027</option>
+            <option value="2028">2028</option>
+            <option value="HSC 2026">HSC 2026</option>
+            <option value="HSC 2027">HSC 2027</option>
+            <option value="SSC 2026">SSC 2026</option>
+            <option value="SSC 2027">SSC 2027</option>
+            <option value="Class 10">Class 10</option>
+            <option value="Class 9">Class 9</option>
+            <option value="Class 8">Class 8</option>
+            <option value="University Admission">University Admission</option>
+          </select>
           {errors.academicLevel && (
             <p className="mt-1.5 text-rose-600 text-[10px] font-bold">{errors.academicLevel.message}</p>
           )}
