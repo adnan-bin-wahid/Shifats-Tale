@@ -9,6 +9,34 @@ import { updateBatchAction } from "@/app/actions/teacher";
 import { Loader2, ArrowLeft, Save, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 
+function to12HourFormat(time24: string): string {
+  if (!time24) return "";
+  const [hoursStr, minutesStr] = time24.split(":");
+  let hours = parseInt(hoursStr, 10);
+  const minutes = minutesStr || "00";
+  if (isNaN(hours)) return time24;
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  const hoursFormatted = hours < 10 ? `0${hours}` : hours;
+  return `${hoursFormatted}:${minutes} ${ampm}`;
+}
+
+function to24HourFormat(timeStr: string): string {
+  if (!timeStr) return "";
+  timeStr = timeStr.trim();
+  if (/^\d{2}:\d{2}$/.test(timeStr)) return timeStr;
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return "";
+  let hours = parseInt(match[1], 10);
+  const minutes = match[2];
+  const ampm = match[3].toUpperCase();
+  if (ampm === "PM" && hours < 12) hours += 12;
+  if (ampm === "AM" && hours === 12) hours = 0;
+  const hoursFormatted = hours < 10 ? `0${hours}` : hours;
+  return `${hoursFormatted}:${minutes}`;
+}
+
 interface EditBatchFormProps {
   batch: any;
   hasEnrollments: boolean;
@@ -20,12 +48,21 @@ export function EditBatchForm({ batch, hasEnrollments }: EditBatchFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const schedule = batch.schedule || {};
+  const initialTimeStr = schedule.time || "";
+  const timeParts = initialTimeStr.split("-").map((s: string) => s.trim());
+  const initialStartTime = timeParts[0] ? to24HourFormat(timeParts[0]) : "";
+  const initialEndTime = timeParts[1] ? to24HourFormat(timeParts[1]) : "";
+
+  const [startTimeInput, setStartTimeInput] = useState(initialStartTime);
+  const [endTimeInput, setEndTimeInput] = useState(initialEndTime);
 
   const isRestricted = batch.status === "COMPLETED" || batch.status === "ARCHIVED";
 
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(batchSchema),
@@ -47,6 +84,32 @@ export function EditBatchForm({ batch, hasEnrollments }: EditBatchFormProps) {
       coverImageUrl: batch.cover_image_url || "",
     },
   });
+
+  const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setStartTimeInput(val);
+    if (val && endTimeInput) {
+      setValue("scheduleTime", `${to12HourFormat(val)} - ${to12HourFormat(endTimeInput)}`, { shouldValidate: true, shouldDirty: true });
+    } else if (val) {
+      setValue("scheduleTime", to12HourFormat(val), { shouldValidate: true, shouldDirty: true });
+    } else {
+      setValue("scheduleTime", "", { shouldValidate: true, shouldDirty: true });
+    }
+  };
+
+  const handleEndTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setEndTimeInput(val);
+    if (startTimeInput && val) {
+      setValue("scheduleTime", `${to12HourFormat(startTimeInput)} - ${to12HourFormat(val)}`, { shouldValidate: true, shouldDirty: true });
+    } else if (val) {
+      setValue("scheduleTime", to12HourFormat(val), { shouldValidate: true, shouldDirty: true });
+    } else if (startTimeInput) {
+      setValue("scheduleTime", to12HourFormat(startTimeInput), { shouldValidate: true, shouldDirty: true });
+    } else {
+      setValue("scheduleTime", "", { shouldValidate: true, shouldDirty: true });
+    }
+  };
 
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
@@ -147,14 +210,26 @@ export function EditBatchForm({ batch, hasEnrollments }: EditBatchFormProps) {
 
         <div>
           <label className="block text-[10px] uppercase font-extrabold tracking-wider text-muted mb-2">
-            Academic Year <span className="text-red-500">*</span>
+            Academic Year / Level <span className="text-red-500">*</span>
           </label>
-          <input
-            type="number"
+          <select
             disabled={isRestricted}
             {...register("academicLevel")}
             className="w-full px-4 py-2.5 rounded-xl border border-border/60 bg-bg/25 text-xs font-bold focus:border-primary focus:outline-none disabled:opacity-50"
-          />
+          >
+            <option value="2026">2026</option>
+            <option value="2025">2025</option>
+            <option value="2027">2027</option>
+            <option value="2028">2028</option>
+            <option value="HSC 2026">HSC 2026</option>
+            <option value="HSC 2027">HSC 2027</option>
+            <option value="SSC 2026">SSC 2026</option>
+            <option value="SSC 2027">SSC 2027</option>
+            <option value="Class 10">Class 10</option>
+            <option value="Class 9">Class 9</option>
+            <option value="Class 8">Class 8</option>
+            <option value="University Admission">University Admission</option>
+          </select>
           {errors.academicLevel && (
             <p className="mt-1.5 text-rose-600 text-[10px] font-bold">{errors.academicLevel.message}</p>
           )}
@@ -254,28 +329,85 @@ export function EditBatchForm({ batch, hasEnrollments }: EditBatchFormProps) {
           </select>
         </div>
 
-        <div>
-          <label className="block text-[10px] uppercase font-extrabold tracking-wider text-muted mb-2">
-            Class Schedule Days
+        {/* Interactive Multi-Select Pills for Class Schedule Days */}
+        <div className="col-span-1 md:col-span-2 p-4 bg-slate-50/80 border border-slate-200/80 rounded-2xl space-y-3">
+          <label className="block text-[10px] uppercase font-extrabold tracking-wider text-primary">
+            Class Schedule Days <span className="text-muted font-normal">(Click all days when class will be conducted)</span>
           </label>
-          <input
-            type="text"
-            disabled={isRestricted}
-            {...register("scheduleDays")}
-            className="w-full px-4 py-2.5 rounded-xl border border-border/60 bg-bg/25 text-xs font-bold focus:border-primary focus:outline-none disabled:opacity-50"
-          />
+          <div className="flex flex-wrap gap-2">
+            {["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"].map((day) => {
+              const currentDays = (watch("scheduleDays") || "").split(",").map((s: string) => s.trim()).filter(Boolean);
+              const isSelected = currentDays.includes(day);
+              return (
+                <button
+                  key={day}
+                  type="button"
+                  disabled={isRestricted}
+                  onClick={() => {
+                    if (isRestricted) return;
+                    const ALL_DAYS = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
+                    const updated = isSelected
+                      ? currentDays.filter((d: string) => d !== day)
+                      : ALL_DAYS.filter((d: string) => currentDays.includes(d) || d === day);
+                    setValue("scheduleDays", updated.join(", "), { shouldValidate: true, shouldDirty: true });
+                  }}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all border shadow-2xs flex items-center gap-1.5 ${
+                    isSelected
+                      ? "bg-primary text-white border-primary shadow-primary/20 scale-105 ring-2 ring-primary/20"
+                      : "bg-white hover:bg-slate-100 text-slate-700 border-slate-200/80"
+                  } ${isRestricted ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${isSelected ? "bg-emerald-400" : "bg-slate-300"}`} />
+                  {day}
+                </button>
+              );
+            })}
+          </div>
+          <input type="hidden" {...register("scheduleDays")} />
+          {watch("scheduleDays") ? (
+            <p className="text-[10px] font-bold text-emerald-800 bg-emerald-100/70 px-2.5 py-1 rounded-lg border border-emerald-300/60 inline-block">
+              Selected Days: <span className="text-primary">{watch("scheduleDays")}</span>
+            </p>
+          ) : (
+            <p className="text-[10px] text-muted">Click the day pills above to select schedule days.</p>
+          )}
         </div>
 
-        <div>
-          <label className="block text-[10px] uppercase font-extrabold tracking-wider text-muted mb-2">
-            Class Schedule Time
+        {/* Interactive Start & End Time Pickers for Class Schedule Time */}
+        <div className="col-span-1 md:col-span-2 p-4 bg-slate-50/80 border border-slate-200/80 rounded-2xl space-y-3">
+          <label className="block text-[10px] uppercase font-extrabold tracking-wider text-primary">
+            Class Schedule Time <span className="text-muted font-normal">(Pick Start &amp; End Time directly)</span>
           </label>
-          <input
-            type="text"
-            disabled={isRestricted}
-            {...register("scheduleTime")}
-            className="w-full px-4 py-2.5 rounded-xl border border-border/60 bg-bg/25 text-xs font-bold focus:border-primary focus:outline-none disabled:opacity-50"
-          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <div className="text-[11px] text-muted-foreground font-bold mb-1.5">Start Time</div>
+              <input
+                type="time"
+                disabled={isRestricted}
+                value={startTimeInput}
+                onChange={handleStartTimeChange}
+                className="w-full px-4 py-2.5 rounded-xl border border-border/80 bg-white text-xs font-bold text-primary focus:border-primary focus:outline-none shadow-2xs disabled:opacity-50 cursor-pointer"
+              />
+            </div>
+            <div>
+              <div className="text-[11px] text-muted-foreground font-bold mb-1.5">End Time</div>
+              <input
+                type="time"
+                disabled={isRestricted}
+                value={endTimeInput}
+                onChange={handleEndTimeChange}
+                className="w-full px-4 py-2.5 rounded-xl border border-border/80 bg-white text-xs font-bold text-primary focus:border-primary focus:outline-none shadow-2xs disabled:opacity-50 cursor-pointer"
+              />
+            </div>
+          </div>
+          <input type="hidden" {...register("scheduleTime")} />
+          {watch("scheduleTime") ? (
+            <p className="text-[10px] font-bold text-emerald-800 bg-emerald-100/70 px-2.5 py-1 rounded-lg border border-emerald-300/60 inline-block">
+              Formatted Schedule Time: <span className="text-primary">{watch("scheduleTime")}</span>
+            </p>
+          ) : (
+            <p className="text-[10px] text-muted">Select both start and end times above using the time picker.</p>
+          )}
         </div>
       </div>
 
