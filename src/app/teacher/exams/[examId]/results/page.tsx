@@ -116,6 +116,7 @@ export default async function ExamResultsEntryPage({ params }: PageProps) {
         exam={exam as any}
         students={studentsList}
         initialResults={initialResultsList}
+        initialMode="EDIT"
       />
     </div>
   );

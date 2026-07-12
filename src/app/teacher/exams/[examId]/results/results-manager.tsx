@@ -63,14 +63,15 @@ interface Props {
   };
   students: Student[];
   initialResults: ResultRecord[];
+  initialMode?: "VIEW" | "EDIT";
 }
 
-export function ResultsManager({ examId, exam, students, initialResults }: Props) {
+export function ResultsManager({ examId, exam, students, initialResults, initialMode }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [mode, setMode] = useState<"VIEW" | "EDIT">(exam.status === "RESULT_PUBLISHED" ? "VIEW" : "EDIT");
+  const [mode, setMode] = useState<"VIEW" | "EDIT">(initialMode || (exam.status === "RESULT_PUBLISHED" ? "VIEW" : "EDIT"));
 
   // In-memory state of results
   const [results, setResults] = useState<Record<string, ResultRecord>>({});

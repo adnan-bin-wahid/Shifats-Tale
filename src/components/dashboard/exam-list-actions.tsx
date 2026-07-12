@@ -93,23 +93,14 @@ export function ExamListActions({ examId, examName, status }: ExamListActionsPro
     <div className="relative flex items-center justify-end gap-1.5">
       {isPending && <Loader2 className="h-4 w-4 animate-spin text-accent mr-1" />}
 
-      {/* 1. View Statistics & Overview Dashboard (Eye Icon) */}
-      <Link
-        href={`/teacher/exams/${examId}`}
-        className="p-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-primary rounded-lg transition-all border border-slate-200/60 shadow-xs"
-        title="View Exam Statistics & Overview Dashboard"
-      >
-        <Eye className="h-4 w-4" />
-      </Link>
-
-      {/* 2. Edit Details Icon */}
+      {/* 1. Edit Details Icon */}
       {!isArchived && (
         <>
           {!isPublished ? (
             <Link
               href={`/teacher/exams/${examId}/edit`}
               className="p-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-primary rounded-lg transition-all border border-slate-200/60 shadow-xs"
-              title="Edit Exam Details"
+              title="Edit Exam Configuration Details"
             >
               <Edit className="h-4 w-4" />
             </Link>
@@ -122,11 +113,11 @@ export function ExamListActions({ examId, examName, status }: ExamListActionsPro
             </span>
           )}
 
-          {/* 3. Grading Sheet & Marks Entry (FileSpreadsheet Icon - distinct from Eye) */}
+          {/* 2. Unified Manage Results & Analytics Hub (FileSpreadsheet Icon) */}
           <Link
             href={`/teacher/exams/${examId}/results`}
             className="p-1.5 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-lg transition-all border border-primary/20 shadow-xs"
-            title="Grading Sheet & Marks Entry (Publish / Review Results)"
+            title="Manage Marks Entry, Grading & Analytics Dashboard"
           >
             <FileSpreadsheet className="h-4 w-4" />
           </Link>
