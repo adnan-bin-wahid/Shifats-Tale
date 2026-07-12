@@ -878,19 +878,19 @@ export default async function StudentDashboardPage() {
           {hasValidInsight && (
             <div className="bg-gradient-to-br from-slate-900 via-[#0A192F] to-indigo-950 p-6 sm:p-7 rounded-3xl text-white shadow-lg space-y-5 relative overflow-hidden border border-slate-800">
               <div className="flex justify-between items-center border-b border-white/10 pb-3">
-                <h3 className="text-sm font-black font-display flex items-center gap-2 text-white">
+                <h3 className="text-sm font-black font-display flex items-center gap-2 !text-white" style={{ color: '#FFFFFF' }}>
                   <Sparkles className="h-4.5 w-4.5 text-amber-400" />
                   <span>Student Insight</span>
                 </h3>
-                <span className="text-xs font-extrabold text-white/70 bg-white/10 px-3 py-1 rounded-full">
+                <span className="text-xs font-extrabold text-white/70 bg-white/10 px-3 py-1 rounded-full" style={{ color: '#E2E8F0' }}>
                   This Month
                 </span>
               </div>
 
               <div>
-                <span className="text-xs uppercase tracking-wider text-white/60 font-black block">Average Score</span>
+                <span className="text-xs uppercase tracking-wider text-white/60 font-black block" style={{ color: '#CBD5E1' }}>Average Score</span>
                 <div className="flex items-baseline gap-3 mt-1">
-                  <span className="text-4xl font-black font-display tracking-tight text-white">{avgPercentage}%</span>
+                  <span className="text-4xl font-black font-display tracking-tight !text-white" style={{ color: '#FFFFFF' }}>{avgPercentage}%</span>
                   {monthlyGrowth !== 0 && (
                     <span className={`text-xs font-black px-2 py-0.5 rounded-full flex items-center gap-0.5 ${
                       monthlyGrowth > 0 ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "bg-rose-500/20 text-rose-300 border border-rose-500/30"
