@@ -29,6 +29,7 @@ export const examSchema = z.object({
     z.number().positive("Duration must be positive").optional().nullable()
   ),
   resultPublicationNote: z.string().optional().nullable(),
+  status: z.string().optional().nullable(),
 }).refine((data) => data.passMarks <= data.totalMarks, {
   message: "Pass marks cannot exceed total marks",
   path: ["passMarks"],

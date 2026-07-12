@@ -88,6 +88,7 @@ export async function createExamAction(formData: FormData) {
       passMarks,
       startTime,
       duration,
+      status,
     });
 
     if (!validated.success) {
@@ -194,6 +195,7 @@ export async function updateExamAction(examId: string, formData: FormData) {
       passMarks,
       startTime,
       duration,
+      status,
     });
 
     if (!validated.success) {
@@ -292,8 +294,23 @@ export async function updateExamAction(examId: string, formData: FormData) {
       newValue: updatedExam,
     });
 
-    // Notify students if exam date changes materially
-    if (oldExam.exam_date !== updatedExam.exam_date && updatedExam.status === "SCHEDULED") {
+    // Notify students if status changed from DRAFT to SCHEDULED
+    if (oldExam.status === "DRAFT" && updatedExam.status === "SCHEDULED") {
+      await notifyBatchStudents(
+        updatedExam.batch_id,
+        "New Examination Scheduled",
+        `Exam "${updatedExam.name}" has been scheduled for ${updatedExam.exam_date}.`,
+        "exam",
+        updatedExam.id
+      );
+
+      await createAuditLog({
+        actorProfileId: teacher.id,
+        action: "EXAM_SCHEDULED",
+        entityType: "exams",
+        entityId: updatedExam.id,
+      });
+    } else if (oldExam.exam_date !== updatedExam.exam_date && updatedExam.status === "SCHEDULED") {
       await notifyBatchStudents(
         updatedExam.batch_id,
         "Examination Date Changed",
@@ -310,11 +327,72 @@ export async function updateExamAction(examId: string, formData: FormData) {
       });
     }
 
+    revalidatePath(`/teacher/exams`);
     revalidatePath(`/teacher/batches/${updatedExam.batch_id}/exams`);
     revalidatePath(`/student/batches/${updatedExam.batch_id}/exams`);
+    revalidatePath(`/student`);
     return { success: true, exam: updatedExam };
   } catch (err: any) {
     return { success: false, message: err.message || "Internal server error" };
+  }
+}
+
+export async function updateExamStatusAction(examId: string, newStatus: string) {
+  try {
+    const teacher = await assertActiveTeacher();
+    const admin = createAdminClient();
+
+    const { data: oldExam, error: fetchError } = await admin
+      .from("exams")
+      .select("*")
+      .eq("id", examId)
+      .single();
+
+    if (fetchError || !oldExam) {
+      return { success: false, message: "Examination not found." };
+    }
+
+    if (oldExam.status === "RESULT_PUBLISHED" && newStatus !== "ARCHIVED") {
+      return { success: false, message: "Cannot change status of a published result exam without withdrawing first." };
+    }
+
+    const { data: updatedExam, error: updateError } = await admin
+      .from("exams")
+      .update({ status: newStatus })
+      .eq("id", examId)
+      .select()
+      .single();
+
+    if (updateError || !updatedExam) {
+      return { success: false, message: updateError?.message || "Failed to update exam status." };
+    }
+
+    await createAuditLog({
+      actorProfileId: teacher.id,
+      action: "EXAM_STATUS_UPDATED",
+      entityType: "exams",
+      entityId: examId,
+      oldValue: { status: oldExam.status },
+      newValue: { status: newStatus },
+    });
+
+    if (oldExam.status !== "SCHEDULED" && newStatus === "SCHEDULED") {
+      await notifyBatchStudents(
+        updatedExam.batch_id,
+        "New Examination Scheduled",
+        `Exam "${updatedExam.name}" has been scheduled for ${updatedExam.exam_date}. Check your portal!`,
+        "exam",
+        updatedExam.id
+      );
+    }
+
+    revalidatePath(`/teacher/exams`);
+    revalidatePath(`/teacher/batches/${updatedExam.batch_id}/exams`);
+    revalidatePath(`/student/batches/${updatedExam.batch_id}/exams`);
+    revalidatePath(`/student`);
+    return { success: true, exam: updatedExam };
+  } catch (err: any) {
+    return { success: false, message: err.message || "An unexpected error occurred." };
   }
 }
 

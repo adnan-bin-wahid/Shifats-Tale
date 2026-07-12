@@ -56,6 +56,7 @@ export function EditExamForm({ exam, batches, hasResults }: EditExamFormProps) {
       passMarks: Number(exam.pass_marks),
       startTime: exam.start_time || "",
       duration: exam.duration || undefined,
+      status: exam.status || "SCHEDULED",
     },
   });
 
@@ -87,7 +88,7 @@ export function EditExamForm({ exam, batches, hasResults }: EditExamFormProps) {
       if (data.duration) {
         formData.append("duration", String(data.duration));
       }
-      formData.append("status", exam.status); // Preserve current status
+      formData.append("status", data.status || exam.status);
 
       const res = await updateExamAction(exam.id, formData);
       if (!res.success) {
@@ -260,6 +261,23 @@ export function EditExamForm({ exam, batches, hasResults }: EditExamFormProps) {
             <p className="mt-1.5 text-rose-600 text-[10px] font-bold">{errors.duration.message as string}</p>
           )}
         </div>
+      </div>
+
+      {/* Examination Status */}
+      <div className="p-4 bg-primary/5 border border-primary/15 rounded-xl space-y-2">
+        <label className="block text-[10px] uppercase font-extrabold tracking-wider text-primary">
+          Examination Status <span className="text-red-500">*</span>
+        </label>
+        <select
+          {...register("status")}
+          className="w-full px-4 py-2.5 rounded-xl border border-primary/30 bg-white text-xs font-bold text-primary focus:border-primary focus:outline-none"
+        >
+          <option value="SCHEDULED">SCHEDULED - Publish immediately on student portal (Enrolled students notified)</option>
+          <option value="DRAFT">DRAFT - Save secretly as hidden draft (Students will not see it until scheduled)</option>
+        </select>
+        <p className="text-[10px] text-muted font-normal">
+          Select <strong className="text-primary font-bold">SCHEDULED</strong> to make this exam live on the batch dashboard under &quot;Upcoming Exams &amp; Tests&quot;.
+        </p>
       </div>
 
       {/* Description textarea */}
