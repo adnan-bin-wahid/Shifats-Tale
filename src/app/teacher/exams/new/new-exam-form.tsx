@@ -41,6 +41,7 @@ export function NewExamForm({ batches }: NewExamFormProps) {
       passMarks: 33,
       startTime: "",
       duration: undefined,
+      status: "SCHEDULED",
     },
   });
 
@@ -60,7 +61,7 @@ export function NewExamForm({ batches }: NewExamFormProps) {
       if (data.duration) {
         formData.append("duration", String(data.duration));
       }
-      formData.append("status", "DRAFT"); // Default status is DRAFT
+      formData.append("status", data.status || "SCHEDULED");
 
       const res = await createExamAction(formData);
       if (!res.success) {
@@ -229,6 +230,23 @@ export function NewExamForm({ batches }: NewExamFormProps) {
             <p className="mt-1.5 text-rose-600 text-[10px] font-bold">{errors.duration.message as string}</p>
           )}
         </div>
+      </div>
+
+      {/* Examination Status */}
+      <div className="p-4 bg-primary/5 border border-primary/15 rounded-xl space-y-2">
+        <label className="block text-[10px] uppercase font-extrabold tracking-wider text-primary">
+          Examination Status <span className="text-red-500">*</span>
+        </label>
+        <select
+          {...register("status")}
+          className="w-full px-4 py-2.5 rounded-xl border border-primary/30 bg-white text-xs font-bold text-primary focus:border-primary focus:outline-none"
+        >
+          <option value="SCHEDULED">SCHEDULED - Publish immediately on student portal (Enrolled students notified)</option>
+          <option value="DRAFT">DRAFT - Save secretly as hidden draft (Students will not see it until scheduled)</option>
+        </select>
+        <p className="text-[10px] text-muted font-normal">
+          Select <strong className="text-primary font-bold">SCHEDULED</strong> to make this exam live immediately on the batch dashboard under &quot;Upcoming Exams &amp; Tests&quot;.
+        </p>
       </div>
 
       {/* Description textarea */}
