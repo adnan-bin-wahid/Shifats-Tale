@@ -631,6 +631,49 @@ export async function archiveExamAction(examId: string) {
     });
 
     revalidatePath(`/teacher/batches/${updatedExam.batch_id}/exams`);
+    revalidatePath("/teacher/exams");
+    return { success: true, exam: updatedExam };
+  } catch (err: any) {
+    return { success: false, message: err.message || "Internal server error" };
+  }
+}
+
+export async function unarchiveExamAction(examId: string) {
+  try {
+    const teacher = await assertActiveTeacher();
+    const admin = createAdminClient();
+
+    // Check if results were entered to restore to DRAFT or RESULT_DRAFT appropriately
+    const { data: results, error: resError } = await admin
+      .from("exam_results")
+      .select("id")
+      .eq("exam_id", examId);
+
+    const hasResults = results && results.length > 0;
+    const restoredStatus = hasResults ? "RESULT_DRAFT" : "DRAFT";
+
+    const { data: updatedExam, error: dbError } = await admin
+      .from("exams")
+      .update({ status: restoredStatus })
+      .eq("id", examId)
+      .select()
+      .single();
+
+    if (dbError) {
+      return { success: false, message: `Failed to unarchive examination: ${dbError.message}` };
+    }
+
+    // Audit log
+    await createAuditLog({
+      actorProfileId: teacher.id,
+      action: "EXAM_UNARCHIVED",
+      entityType: "exams",
+      entityId: examId,
+    });
+
+    revalidatePath(`/teacher/batches/${updatedExam.batch_id}/exams`);
+    revalidatePath("/teacher/exams");
+    revalidatePath(`/teacher/exams/${examId}`);
     return { success: true, exam: updatedExam };
   } catch (err: any) {
     return { success: false, message: err.message || "Internal server error" };
