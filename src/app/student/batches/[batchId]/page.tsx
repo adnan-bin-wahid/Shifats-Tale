@@ -377,22 +377,22 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
           <div className="bg-gradient-to-r from-[#0A192F] via-slate-900 to-indigo-950 p-6 sm:p-7 rounded-3xl text-white shadow-md relative overflow-hidden border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div className="space-y-2.5 z-10">
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center gap-1">
-                  <Calendar className="w-3 h-3 text-blue-400" /> Next Class Routine
+                <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/30 text-blue-200 border border-blue-400/40 flex items-center gap-1.5 shadow-2xs">
+                  <Calendar className="w-3.5 h-3.5 text-blue-300" /> Next Class Routine
                 </span>
                 {nextClassDisplay?.isToday && (
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-500 text-slate-950 animate-bounce">
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 animate-bounce shadow-2xs">
                     Today!
                   </span>
                 )}
               </div>
 
               <div>
-                <h3 className="text-xl sm:text-2xl font-black font-display text-white tracking-tight">
+                <h3 className="text-xl sm:text-2xl font-black font-display !text-white tracking-tight leading-snug drop-shadow-xs" style={{ color: '#FFFFFF' }}>
                   {nextClassDisplay ? `${nextClassDisplay.dayText} • ${nextClassDisplay.timeText}` : "Class Schedule Not Set"}
                 </h3>
-                <p className="text-xs text-slate-300 font-semibold mt-1">
-                  Schedule Days: <span className="text-white font-black">{schedule.days || "N/A"}</span> &bull; Subject: <span className="text-amber-400 font-black">{batch.subject || "General"}</span>
+                <p className="text-xs !text-slate-200 font-semibold mt-1.5 leading-relaxed" style={{ color: '#E2E8F0' }}>
+                  Schedule Days: <span className="!text-white font-black underline decoration-blue-400 decoration-2" style={{ color: '#FFFFFF' }}>{schedule.days || "N/A"}</span> &bull; Subject: <span className="!text-amber-300 font-black" style={{ color: '#FCD34D' }}>{batch.subject || "General"}</span>
                 </p>
               </div>
             </div>
@@ -400,7 +400,8 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
             <div className="z-10 shrink-0">
               <Link
                 href="/class-routine"
-                className="px-6 py-3 bg-white hover:bg-slate-100 text-[#0A192F] rounded-2xl font-black text-xs transition-all flex items-center justify-center gap-2 shadow-sm shrink-0"
+                className="px-6 py-3.5 bg-white hover:bg-slate-100 !text-[#0A192F] rounded-2xl font-black text-xs sm:text-sm transition-all flex items-center justify-center gap-2 shadow-md shrink-0 hover:scale-105"
+                style={{ color: '#0A192F' }}
               >
                 <span>View Full Routine</span>
                 <ArrowUpRight className="w-4 h-4" />
