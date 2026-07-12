@@ -3,9 +3,9 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { StatusBadge } from "@/components/dashboard/status-badge";
-import { Plus, Search, Filter, GraduationCap, Calendar, Eye, Edit, ListTodo, Archive, Trash2, CheckCircle, XCircle } from "lucide-react";
-import { archiveExamAction, deleteExamAction } from "@/app/actions/exams";
+import { Plus, Search, Filter, GraduationCap, Calendar, CheckCircle, XCircle } from "lucide-react";
 import { DebouncedSearchInput } from "@/components/ui/debounced-search-input";
+import { ExamListActions } from "@/components/dashboard/exam-list-actions";
 
 interface PageProps {
   searchParams: Promise<{
@@ -305,70 +305,7 @@ export default async function TeacherExamsPage({ searchParams }: PageProps) {
 
                       {/* Actions */}
                       <td className="py-4 px-6 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1">
-                          <Link
-                            href={`/teacher/exams/${exam.id}`}
-                            className="p-1.5 hover:bg-slate-100 text-muted hover:text-primary rounded-lg transition-all"
-                            title="View Statistics"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Link>
-
-                          {!isArchived && (
-                            <>
-                              {exam.status !== "RESULT_PUBLISHED" ? (
-                                <Link
-                                  href={`/teacher/exams/${exam.id}/edit`}
-                                  className="p-1.5 hover:bg-slate-100 text-muted hover:text-primary rounded-lg transition-all"
-                                  title="Edit Details"
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Link>
-                              ) : (
-                                <span className="p-1.5 opacity-30 cursor-not-allowed text-muted" title="Unpublish results to edit details">
-                                  <Edit className="h-4 w-4" />
-                                </span>
-                              )}
-
-                              <Link
-                                href={`/teacher/exams/${exam.id}/results`}
-                                className="p-1.5 hover:bg-slate-100 text-muted hover:text-primary rounded-lg transition-all"
-                                title="Enter/Review Results"
-                              >
-                                <ListTodo className="h-4 w-4 text-primary" />
-                              </Link>
-                            </>
-                          )}
-
-                          {/* Quick Actions (Archive/Delete) */}
-                          <div className="inline-flex gap-0.5 ml-2 border-l border-slate-200 pl-2">
-                            {!isArchived ? (
-                              <form action={archiveExamAction.bind(null, exam.id) as any}>
-                                <button
-                                  type="submit"
-                                  className="p-1.5 hover:bg-amber-50 text-muted hover:text-amber-700 rounded-lg transition-all"
-                                  title="Archive Examination"
-                                >
-                                  <Archive className="h-4 w-4" />
-                                </button>
-                              </form>
-                            ) : (
-                              <span className="text-[10px] text-muted italic font-bold">Archived</span>
-                            )}
-
-                            {exam.status === "DRAFT" && (
-                              <form action={deleteExamAction.bind(null, exam.id) as any}>
-                                <button
-                                  type="submit"
-                                  className="p-1.5 hover:bg-rose-50 text-muted hover:text-rose-700 rounded-lg transition-all"
-                                  title="Delete Examination"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
-                              </form>
-                            )}
-                          </div>
-                        </div>
+                        <ExamListActions examId={exam.id} examName={exam.name} status={exam.status} />
                       </td>
                     </tr>
                   );

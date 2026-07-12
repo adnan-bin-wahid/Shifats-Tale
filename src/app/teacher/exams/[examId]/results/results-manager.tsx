@@ -21,9 +21,11 @@ import {
   BarChart2,
   TrendingUp,
   Award,
-  Calendar
+  Calendar,
+  Send
 } from "lucide-react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { calculateGrade, calculatePassFailStatus } from "@/lib/exams/grading";
 import { MarksDistributionChart, StudentScoresChart, StatusDonutChart } from "./charts";
 
@@ -80,6 +82,8 @@ export function ResultsManager({ examId, exam, students, initialResults }: Props
 
   // Confirmation modals
   const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false);
+  const [showPublishConfirm, setShowPublishConfirm] = useState(false);
+  const [publishNote, setPublishNote] = useState("");
 
   useEffect(() => {
     const initialMap: Record<string, ResultRecord> = {};
@@ -252,17 +256,63 @@ export function ResultsManager({ examId, exam, students, initialResults }: Props
     startTransition(async () => {
       setErrorMsg(null);
       const res = await saveDraftResultsAction(examId, Object.values(results));
-      if (!res.success) setErrorMsg(res.message || "Failed to save.");
-      else { setSuccessMsg("Results drafted successfully."); setIsDirty(false); setTimeout(() => setSuccessMsg(null), 3000); }
+      if (!res.success) {
+        toast.error(res.message || "Failed to save drafted results.");
+        setErrorMsg(res.message || "Failed to save.");
+      } else {
+        toast.success("Results drafted successfully!");
+        setSuccessMsg("Results drafted successfully.");
+        setIsDirty(false);
+        setTimeout(() => setSuccessMsg(null), 3000);
+      }
+    });
+  };
+
+  const handlePublish = () => {
+    startTransition(async () => {
+      setErrorMsg(null);
+      // First save current draft before publishing to make sure latest changes are persisted
+      if (isDirty) {
+        const saveRes = await saveDraftResultsAction(examId, Object.values(results));
+        if (!saveRes.success) {
+          toast.error(saveRes.message || "Failed to save marks before publishing.");
+          setErrorMsg(saveRes.message || "Failed to save marks before publishing.");
+          return;
+        }
+        setIsDirty(false);
+      }
+
+      const res = await publishResultsAction(examId, publishNote || "Published from grading dashboard");
+      if (!res.success) {
+        toast.error(res.message || "Failed to publish results.");
+        setErrorMsg(res.message || "Failed to publish results.");
+      } else {
+        toast.success("Examination results published successfully!");
+        setMode("VIEW");
+        setShowPublishConfirm(false);
+        setPublishNote("");
+        setSuccessMsg("Results published! Students can now view their grades.");
+        setTimeout(() => setSuccessMsg(null), 3000);
+        router.refresh();
+      }
     });
   };
 
   const handleUnpublish = () => {
     startTransition(async () => {
       setErrorMsg(null);
-      const res = await unpublishResultsAction(examId, "Admin requested unpublish");
-      if (!res.success) setErrorMsg(res.message || "Failed to unpublish.");
-      else { setMode("EDIT"); setShowUnpublishConfirm(false); setSuccessMsg("Results unpublished. You can now edit."); setTimeout(() => setSuccessMsg(null), 3000); router.refresh(); }
+      const res = await unpublishResultsAction(examId, "Admin requested unpublish from grading sheet");
+      if (!res.success) {
+        toast.error(res.message || "Failed to withdraw results.");
+        setErrorMsg(res.message || "Failed to unpublish.");
+      } else {
+        toast.success("Results withdrawn and unpublished successfully.");
+        setMode("EDIT");
+        setShowUnpublishConfirm(false);
+        setSuccessMsg("Results unpublished. You can now edit.");
+        setTimeout(() => setSuccessMsg(null), 3000);
+        router.refresh();
+      }
     });
   };
 
@@ -357,9 +407,13 @@ export function ResultsManager({ examId, exam, students, initialResults }: Props
           <Link href={`/teacher/exams/${examId}/results/print`} target="_blank" className="btn-secondary text-sm px-4 py-2 flex items-center gap-2">
             <Printer size={16} /> Print PDF
           </Link>
-          {exam.status === "RESULT_PUBLISHED" && (
+          {exam.status === "RESULT_PUBLISHED" ? (
             <button onClick={() => setShowUnpublishConfirm(true)} className="px-4 py-2 bg-red-50 text-red-600 rounded-lg border border-red-200 hover:bg-red-100 text-sm font-medium transition-colors">
               Withdraw Results
+            </button>
+          ) : (
+            <button onClick={() => setShowPublishConfirm(true)} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-xs flex items-center gap-1.5 transition-colors">
+              <Send size={15} /> Publish Results
             </button>
           )}
         </div>
@@ -370,14 +424,52 @@ export function ResultsManager({ examId, exam, students, initialResults }: Props
           <div className="flex items-start gap-3">
             <AlertTriangle className="text-red-500 shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-bold">Are you sure you want to unpublish?</h4>
-              <p className="text-sm opacity-90">This will hide results from students but keep your grading records saved. You can edit and republish later.</p>
+              <h4 className="font-bold">Confirm Withdrawal (Double Confirmation)</h4>
+              <p className="text-sm opacity-90">Are you sure you want to unpublish? This will hide results from students but keep your grading records saved. You can edit and republish later.</p>
             </div>
           </div>
           <div className="flex justify-end gap-2">
             <button onClick={() => setShowUnpublishConfirm(false)} className="btn-secondary px-4 py-2 text-sm bg-white">Cancel</button>
             <button onClick={handleUnpublish} disabled={isPending} className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50">
               {isPending ? "Withdrawing..." : "Confirm Withdraw"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showPublishConfirm && (
+        <div className="p-5 bg-emerald-50/80 border-2 border-emerald-300 rounded-2xl text-emerald-950 space-y-4 shadow-md animate-in zoom-in-95 duration-200">
+          <div className="flex items-start gap-3">
+            <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-xl shrink-0 mt-0.5">
+              <Send className="h-5 w-5" />
+            </div>
+            <div className="space-y-1 w-full">
+              <h4 className="font-extrabold text-base text-primary">Confirm Publish Results (Double Confirmation)</h4>
+              <p className="text-xs text-muted leading-relaxed font-semibold">
+                You are about to publish the examination results for <strong className="text-primary">{exam.name}</strong>. Once published, all enrolled students will immediately be able to view their marks, rankings, and feedback on their portal.
+              </p>
+              <div className="pt-2">
+                <label htmlFor="publish-note" className="block text-xs font-bold text-primary mb-1">
+                  Optional Publication Notice / Announcement Note for Students:
+                </label>
+                <input
+                  id="publish-note"
+                  type="text"
+                  value={publishNote}
+                  onChange={(e) => setPublishNote(e.target.value)}
+                  placeholder="e.g. Congratulations to all students for completing the exam!"
+                  className="w-full px-3 py-2 text-xs border border-emerald-300 rounded-xl bg-white text-primary focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
+                />
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2 border-t border-emerald-200">
+            <button onClick={() => setShowPublishConfirm(false)} disabled={isPending} className="btn-secondary px-4 py-2 text-xs font-bold bg-white">
+              Cancel
+            </button>
+            <button onClick={handlePublish} disabled={isPending} className="inline-flex items-center gap-1.5 bg-emerald-600 text-white px-5 py-2 rounded-xl text-xs font-extrabold hover:bg-emerald-700 disabled:opacity-50 shadow-sm transition-all">
+              {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+              <span>Confirm & Publish</span>
             </button>
           </div>
         </div>
@@ -607,12 +699,40 @@ export function ResultsManager({ examId, exam, students, initialResults }: Props
         </div>
         
         {mode === "EDIT" && exam.status !== "RESULT_PUBLISHED" && (
-          <div className="p-4 border-t border-border bg-gray-50 flex justify-end gap-3 items-center sticky bottom-0">
-            {isDirty && <span className="text-xs text-amber-600 font-medium flex items-center gap-1"><AlertTriangle size={14}/> Unsaved changes</span>}
-            <button onClick={handleSaveDraft} disabled={isPending || !isDirty} className="btn-primary px-6 py-2 flex items-center gap-2 shadow-md">
-              {isPending ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-              Save Changes
-            </button>
+          <div className="p-4 border-t border-border bg-gray-50 flex flex-wrap justify-between items-center gap-3 sticky bottom-0 rounded-b-xl shadow-lg z-20">
+            <div className="flex items-center gap-2">
+              {isDirty ? (
+                <span className="text-xs text-amber-600 font-extrabold flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 rounded-lg border border-amber-200">
+                  <AlertTriangle size={15} className="text-amber-600 animate-pulse" />
+                  Unsaved draft marks
+                </span>
+              ) : (
+                <span className="text-xs text-emerald-700 font-bold flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 rounded-lg border border-emerald-200">
+                  <Check size={15} className="text-emerald-600" />
+                  All marks saved
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={handleSaveDraft}
+                disabled={isPending || !isDirty}
+                className="btn-secondary px-5 py-2 flex items-center gap-2 font-bold text-xs bg-white hover:bg-slate-100 disabled:opacity-50 border border-slate-300 shadow-xs"
+              >
+                {isPending ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
+                <span>Save Draft Marks</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowPublishConfirm(true)}
+                disabled={isPending}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-md transition-all"
+              >
+                <Send size={15} />
+                <span>Publish Results to Students</span>
+              </button>
+            </div>
           </div>
         )}
       </div>

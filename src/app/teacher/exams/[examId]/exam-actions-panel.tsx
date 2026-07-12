@@ -2,7 +2,7 @@
 
 import React, { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { publishResultsAction, unpublishResultsAction, archiveExamAction } from "@/app/actions/exams";
+import { publishResultsAction, unpublishResultsAction, archiveExamAction, unarchiveExamAction } from "@/app/actions/exams";
 import { 
   Check, 
   X, 
@@ -13,6 +13,7 @@ import {
   Undo2, 
   Loader2 
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface Props {
   examId: string;
@@ -54,8 +55,8 @@ export function ExamActionsPanel({
     setErrorMsg(null);
     setSuccessMsg(null);
 
-    // Basic client checks
     if (enteredCount === 0) {
+      toast.error("Cannot publish results because no marks have been saved yet.");
       setErrorMsg("Cannot publish results because no marks have been saved yet. Please record marks first.");
       return;
     }
@@ -74,14 +75,17 @@ export function ExamActionsPanel({
       try {
         const res = await publishResultsAction(examId, publishNote);
         if (res.success) {
+          toast.success("Results have been published successfully!");
           setSuccessMsg("Results have been published successfully!");
           setShowPublishForm(false);
           setPublishNote("");
           router.refresh();
         } else {
+          toast.error(res.message || "Failed to publish results.");
           setErrorMsg(res.message || "Failed to publish results.");
         }
       } catch (err: any) {
+        toast.error(err.message || "An unexpected error occurred.");
         setErrorMsg(err.message || "An unexpected error occurred.");
       }
     });
@@ -93,6 +97,7 @@ export function ExamActionsPanel({
     setSuccessMsg(null);
 
     if (!unpublishReason.trim()) {
+      toast.error("A withdrawal reason is required to unpublish results.");
       setErrorMsg("A withdrawal reason is required to unpublish results.");
       return;
     }
@@ -101,14 +106,17 @@ export function ExamActionsPanel({
       try {
         const res = await unpublishResultsAction(examId, unpublishReason);
         if (res.success) {
+          toast.success("Results have been withdrawn successfully.");
           setSuccessMsg("Results have been withdrawn and unpublished successfully.");
           setShowUnpublishForm(false);
           setUnpublishReason("");
           router.refresh();
         } else {
+          toast.error(res.message || "Failed to unpublish results.");
           setErrorMsg(res.message || "Failed to unpublish results.");
         }
       } catch (err: any) {
+        toast.error(err.message || "An unexpected error occurred.");
         setErrorMsg(err.message || "An unexpected error occurred.");
       }
     });
@@ -127,12 +135,42 @@ export function ExamActionsPanel({
       try {
         const res = await archiveExamAction(examId);
         if (res.success) {
+          toast.success("Examination archived successfully.");
           setSuccessMsg("Examination archived successfully.");
           router.refresh();
         } else {
+          toast.error(res.message || "Failed to archive examination.");
           setErrorMsg(res.message || "Failed to archive examination.");
         }
       } catch (err: any) {
+        toast.error(err.message || "An unexpected error occurred.");
+        setErrorMsg(err.message || "An unexpected error occurred.");
+      }
+    });
+  };
+
+  // Restore (Unarchive) handler
+  const handleRestore = () => {
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    if (!window.confirm("Are you sure you want to restore (unarchive) this examination back to active status?")) {
+      return;
+    }
+
+    startTransition(async () => {
+      try {
+        const res = await unarchiveExamAction(examId);
+        if (res.success) {
+          toast.success("Examination restored successfully from archive.");
+          setSuccessMsg("Examination restored successfully.");
+          router.refresh();
+        } else {
+          toast.error(res.message || "Failed to restore examination.");
+          setErrorMsg(res.message || "Failed to restore examination.");
+        }
+      } catch (err: any) {
+        toast.error(err.message || "An unexpected error occurred.");
         setErrorMsg(err.message || "An unexpected error occurred.");
       }
     });
@@ -140,12 +178,23 @@ export function ExamActionsPanel({
 
   if (isArchived) {
     return (
-      <div className="bg-slate-50 border border-border/40 p-5 rounded-2xl text-center space-y-2">
-        <span className="text-muted text-[10px] uppercase block">Examination Status</span>
-        <span className="font-extrabold text-sm text-slate-500 block uppercase font-display">ARCHIVED</span>
-        <p className="text-[10px] text-muted leading-relaxed font-semibold">
-          This examination is archived and marked as read-only.
-        </p>
+      <div className="bg-slate-50 border border-border/40 p-5 rounded-2xl text-center space-y-3">
+        <div>
+          <span className="text-muted text-[10px] uppercase block">Examination Status</span>
+          <span className="font-extrabold text-sm text-slate-500 block uppercase font-display">ARCHIVED</span>
+          <p className="text-[10px] text-muted leading-relaxed font-semibold mt-1">
+            This examination is archived and marked as read-only.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleRestore}
+          disabled={isPending}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm disabled:opacity-50"
+        >
+          {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Undo2 className="w-3.5 h-3.5" />}
+          <span>Restore Examination</span>
+        </button>
       </div>
     );
   }
