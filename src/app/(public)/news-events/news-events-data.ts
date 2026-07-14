@@ -1,7 +1,7 @@
 export interface NewsEventItem {
   id: string;
   title: string;
-  category: "EVENT" | "NOTICE" | "NEWS";
+  category: string;
   date: string;
   month: string;
   time?: string;

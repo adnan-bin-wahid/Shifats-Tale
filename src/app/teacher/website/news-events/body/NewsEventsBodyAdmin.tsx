@@ -11,7 +11,7 @@ import { MediaSelector } from "@/features/website-cms/components/MediaSelector";
 export interface CardItem {
   id: string;
   title: string;
-  category: "EVENT" | "NOTICE" | "NEWS";
+  category: string;
   date: string;
   month: string;
   time: string;
@@ -24,7 +24,13 @@ export interface CardItem {
   isNew?: boolean;
 }
 
-export default function NewsEventsBodyAdmin({ initialItems }: { initialItems: any[] }) {
+export default function NewsEventsBodyAdmin({
+  initialItems,
+  categories = ["EVENT", "NOTICE", "NEWS"],
+}: {
+  initialItems: any[];
+  categories?: string[];
+}) {
   const router = useRouter();
 
   // Format incoming database items into editable CardItem objects
@@ -62,10 +68,11 @@ export default function NewsEventsBodyAdmin({ initialItems }: { initialItems: an
   }, [initialItems]);
 
   const handleAddCard = () => {
+    const defaultCat = categories.length > 0 ? categories[0] : "NOTICE";
     const newCard: CardItem = {
       id: `temp-${Date.now()}`,
       title: "New Announcement / Event Title",
-      category: "NOTICE",
+      category: defaultCat,
       date: "01",
       month: "SEP",
       time: "4:00 PM - 6:00 PM",
@@ -274,12 +281,15 @@ export default function NewsEventsBodyAdmin({ initialItems }: { initialItems: an
                       </label>
                       <select
                         value={card.category}
-                        onChange={(e) => updateCardField(idx, "category", e.target.value as any)}
+                        onChange={(e) => updateCardField(idx, "category", e.target.value)}
                         className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm font-bold text-primary bg-white focus:ring-2 focus:ring-accent outline-none"
                       >
-                        <option value="EVENT">EVENT (Workshop / Seminar)</option>
-                        <option value="NOTICE">NOTICE (Routine / Exam)</option>
-                        <option value="NEWS">NEWS (Results / Spotlight)</option>
+                        <option value="">Select Category</option>
+                        {categories.map((cat, cIdx) => (
+                          <option key={cIdx} value={cat}>
+                            {cat}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>
