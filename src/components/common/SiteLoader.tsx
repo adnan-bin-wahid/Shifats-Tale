@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useSiteSettings } from "@/lib/providers/SiteSettingsProvider";
-import { GraduationCap, Sparkles, BookOpen } from "lucide-react";
 
 interface SiteLoaderProps {
   isDismissing?: boolean;
@@ -12,85 +11,106 @@ interface SiteLoaderProps {
 export function SiteLoader({ isDismissing = false, message }: SiteLoaderProps) {
   const settings = useSiteSettings();
 
-  const title = settings?.coachingCenterName || "Shifat's Tale";
-  const tagline = settings?.tagline || settings?.shortDescription || "Excellence in Physics & Higher Mathematics";
-  const logoUrl = settings?.logoUrl;
+  const title = settings?.coachingCenterName || "Shifat's Tales";
+  const tagline =
+    settings?.tagline ||
+    settings?.heroDescription ||
+    "Physics & Higher Mathematics Admission Care";
+  const logoUrl = settings?.logoUrl || "/images/logo_transparent.png";
 
   return (
     <div
       role="status"
       aria-live="polite"
       aria-label={`Loading ${title}`}
-      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-[#0A1638] via-[#010E62] to-[#0B1B4D] transition-opacity duration-700 ease-in-out ${
-        isDismissing ? "opacity-0 pointer-events-none" : "opacity-100"
+      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-[#FFFCF2] via-[#FFF8E6] to-[#FDF4DF] dark:from-[#08122B] dark:via-[#010E62] dark:to-[#0A193D] transition-all duration-700 ease-out ${
+        isDismissing ? "opacity-0 scale-105 pointer-events-none" : "opacity-100 scale-100"
       }`}
     >
-      {/* Background Ambient Glowing Orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-80 h-80 sm:w-96 sm:h-96 bg-amber-400/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 sm:w-[30rem] sm:h-[30rem] bg-cyan-400/10 rounded-full blur-3xl animate-pulse delay-700" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[35rem] h-[35rem] bg-blue-500/5 rounded-full blur-3xl" />
+      {/* Background Floating Physics & Mathematics Geometric Symbols */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
+        {/* Soft Ambient Golden & Navy Orbs */}
+        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[28rem] h-[28rem] bg-[#FBB503]/15 rounded-full blur-3xl animate-pulse-glow" />
+        <div className="absolute bottom-1/3 right-1/4 translate-x-1/2 translate-y-1/2 w-[32rem] h-[32rem] bg-[#010E62]/10 dark:bg-cyan-400/10 rounded-full blur-3xl animate-pulse-glow [animation-delay:-1.5s]" />
+        <div className="absolute top-2/3 left-1/3 w-[24rem] h-[24rem] bg-amber-500/10 rounded-full blur-3xl" />
+
+        {/* Floating Mathematical & Physics Formulas */}
+        <span className="absolute top-[15%] left-[10%] text-xl sm:text-3xl font-bold font-mono text-[#010E62]/20 dark:text-[#FBB503]/25 animate-float-symbol">
+          {"∫ f(x)dx"}
+        </span>
+        <span className="absolute top-[22%] right-[14%] text-2xl sm:text-4xl font-black font-mono text-[#010E62]/20 dark:text-white/20 animate-float-symbol [animation-delay:-1s]">
+          {"E = mc²"}
+        </span>
+        <span className="absolute bottom-[20%] left-[15%] text-2xl sm:text-3xl font-bold font-mono text-[#FBB503]/30 dark:text-[#FBB503]/30 animate-float-symbol [animation-delay:-2s]">
+          {"∇ × E = -∂B/∂t"}
+        </span>
+        <span className="absolute bottom-[25%] right-[12%] text-3xl sm:text-5xl font-black font-mono text-[#010E62]/15 dark:text-cyan-400/20 animate-float-symbol [animation-delay:-2.8s]">
+          {"π ≈ 3.1416"}
+        </span>
+        <span className="absolute top-[45%] left-[6%] text-xl sm:text-2xl font-bold font-mono text-[#010E62]/15 dark:text-amber-300/20 animate-float-symbol [animation-delay:-3.5s]">
+          {"F = G(m₁m₂)/r²"}
+        </span>
+        <span className="absolute top-[40%] right-[7%] text-2xl sm:text-3xl font-bold font-mono text-[#010E62]/18 dark:text-white/15 animate-float-symbol [animation-delay:-0.5s]">
+          {"d/dx (eˣ) = eˣ"}
+        </span>
       </div>
 
-      {/* Center Orbital Ring Seal Showcase */}
-      <div className="relative z-10 flex flex-col items-center px-4 max-w-xl text-center">
-        <div className="relative flex items-center justify-center w-40 h-40 sm:w-48 sm:h-48 mb-8">
-          {/* Outer Rotating Orbit Ring */}
-          <div className="absolute inset-0 rounded-full border-2 border-dashed border-amber-400/30 animate-loader-orbit-outer" />
-          
-          {/* Inner Rotating Orbit Ring */}
-          <div className="absolute inset-2 sm:inset-3 rounded-full border-2 border-transparent border-t-cyan-400 border-l-amber-400/80 animate-loader-orbit-inner" />
-          
-          {/* Third subtle glow ring */}
-          <div className="absolute inset-5 sm:inset-6 rounded-full border border-white/10" />
+      {/* 3D Atomic & Infinity Orbital Rings around Center Stage */}
+      <div className="absolute w-[340px] h-[340px] sm:w-[460px] sm:h-[460px] pointer-events-none flex items-center justify-center">
+        <div className="absolute inset-0 border-[1.5px] border-dashed border-[#FBB503]/40 dark:border-[#FBB503]/50 rounded-full animate-atom-orbit-1" />
+        <div className="absolute inset-4 sm:inset-6 border-[1.5px] border-dotted border-[#010E62]/30 dark:border-cyan-400/40 rounded-full animate-atom-orbit-2" />
+      </div>
 
-          {/* Center Pulsing Crest/Seal */}
-          <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white/95 dark:bg-slate-900 shadow-2xl flex items-center justify-center p-4 ring-4 ring-amber-400/20 animate-loader-seal">
-            {logoUrl ? (
-              <img
-                src={logoUrl}
-                alt={title}
-                className="w-full h-full object-contain filter drop-shadow-md"
-              />
-            ) : (
-              <div className="flex flex-col items-center justify-center text-[#010E62]">
-                <GraduationCap className="w-10 h-10 sm:w-12 sm:h-12 text-amber-500 mb-0.5" />
-                <span className="text-[10px] font-black tracking-tighter uppercase text-[#010E62]/80">Excellence</span>
-              </div>
-            )}
+      {/* Centerpiece Luxury Glass Showcase Card */}
+      <div className="relative z-20 flex flex-col items-center justify-center bg-white/95 dark:bg-[#010E62]/95 backdrop-blur-2xl border border-[#E7E0D2] dark:border-[#FBB503]/30 shadow-[0_30px_80px_-15px_rgba(1,14,98,0.22)] dark:shadow-[0_30px_80px_-15px_rgba(0,0,0,0.6)] rounded-[2.5rem] px-8 py-10 sm:px-14 sm:py-12 max-w-xl w-[92%] text-center transform transition-transform duration-500">
+        
+        {/* Subtle top crown accent */}
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#010E62] via-[#FBB503] to-[#010E62] text-[#FFFCF2] text-[10px] sm:text-xs font-black tracking-[0.25em] uppercase px-4 py-1 rounded-full shadow-md border border-white/20 flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#FBB503] animate-ping" />
+          <span>Academic & Admission Care</span>
+        </div>
+
+        {/* Proper Official Horizontal Logo Showcase */}
+        <div className="relative flex items-center justify-center w-64 sm:w-80 h-20 sm:h-24 mb-4">
+          <img
+            src={logoUrl}
+            alt={title}
+            className="w-full h-full object-contain filter drop-shadow-sm transition-transform duration-500 hover:scale-[1.02]"
+          />
+        </div>
+
+        {/* Shimmering Gold Divider */}
+        <div className="w-40 sm:w-52 h-0.5 bg-gradient-to-r from-transparent via-[#FBB503] to-transparent my-3 opacity-80" />
+
+        {/* Headline & Tagline Typography */}
+        <div className="space-y-1.5 max-w-md mx-auto">
+          <h2 className="text-sm sm:text-base font-extrabold tracking-wide text-[#010E62] dark:text-white font-display leading-snug">
+            {tagline}
+          </h2>
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-300">
+            Empowering SSC, HSC & Engineering Aspirants
+          </p>
+        </div>
+
+        {/* Premium Dual Progress Indicator */}
+        <div className="flex flex-col items-center w-full mt-7">
+          <div className="relative w-64 sm:w-80 h-2.5 bg-[#010E62]/10 dark:bg-white/10 border border-[#010E62]/15 dark:border-white/20 rounded-full overflow-hidden p-0.5 shadow-inner">
+            <div className="h-full rounded-full bg-gradient-to-r from-[#010E62] via-[#FBB503] to-[#010E62] w-full animate-shimmer-gold" />
+          </div>
+
+          <div className="flex items-center justify-between w-64 sm:w-80 mt-2.5 px-1 text-[11px] font-bold tracking-wider text-[#010E62]/80 dark:text-[#FBB503]/90 uppercase font-mono">
+            <span>{message || "Initializing Portal..."}</span>
+            <span className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBB503] animate-ping" />
+              <span>100%</span>
+            </span>
           </div>
         </div>
-
-        {/* Copy & Title Typography */}
-        <div className="space-y-2 sm:space-y-3">
-          <p className="text-xs sm:text-sm font-bold uppercase tracking-[0.28em] text-amber-400 animate-pulse">
-            Welcome to
-          </p>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black font-display tracking-tight text-white drop-shadow-sm leading-tight">
-            {title}
-          </h1>
-          <p className="text-xs sm:text-sm font-medium text-slate-300 max-w-md mx-auto leading-relaxed line-clamp-2">
-            {tagline}
-          </p>
-        </div>
-
-        {/* Animated Bouncing Indicator Dots */}
-        <div className="flex items-center gap-2 mt-8">
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-bounce [animation-delay:-0.3s]" />
-          <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-bounce [animation-delay:-0.15s]" />
-          <span className="w-2.5 h-2.5 rounded-full bg-white animate-bounce" />
-        </div>
-
-        {message && (
-          <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
-            {message}
-          </p>
-        )}
       </div>
 
-      {/* Bottom Shimmer Progress Bar */}
-      <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-slate-900/60 overflow-hidden">
-        <div className="w-full h-full bg-gradient-to-r from-transparent via-amber-400 through-cyan-400 to-transparent animate-loader-shimmer" />
+      {/* Bottom Shimmer Accent Line across Viewport Bottom */}
+      <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-[#010E62]/10 dark:bg-white/10 overflow-hidden">
+        <div className="w-full h-full bg-gradient-to-r from-transparent via-[#FBB503] through-[#010E62] to-transparent animate-shimmer-gold" />
       </div>
     </div>
   );
