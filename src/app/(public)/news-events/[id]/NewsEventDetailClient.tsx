@@ -10,12 +10,9 @@ import {
   Share2,
   CheckCircle2,
   ArrowLeft,
-  Sparkles,
-  PhoneCall,
   MessageCircle,
-  FileText,
+  Sparkles,
   BookmarkCheck,
-  ChevronRight,
   Copy,
   Check,
 } from "lucide-react";
@@ -235,41 +232,6 @@ export default function NewsEventDetailClient({
                 </ul>
               </div>
             </div>
-
-            {/* Bottom Call to Action Banner */}
-            <div className="bg-gradient-to-br from-[#010E62] to-[#0a1b70] text-white rounded-3xl p-8 sm:p-10 shadow-xl border border-accent/30 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-accent/15 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
-
-              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="space-y-2 text-center md:text-left">
-                  <span className="inline-block px-3 py-1 rounded-full bg-accent/20 text-accent text-xs font-black uppercase tracking-wider">
-                    Registration & Admission Desk
-                  </span>
-                  <h3 className="text-2xl font-black font-display text-white">
-                    Want to enroll or confirm your participation?
-                  </h3>
-                  <p className="text-sm text-slate-300 max-w-xl">
-                    Our academic advisors are available every day from 4:00 PM to 9:00 PM at the main coaching counter to assist you with enrollment and model test details.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center justify-center gap-3 shrink-0">
-                  <Link
-                    href="/portal/login"
-                    className="primary-btn px-6 py-3.5 rounded-xl text-sm font-bold shadow-lg flex items-center gap-2"
-                  >
-                    <span>Student Portal Login</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </Link>
-                  <Link
-                    href="/routine"
-                    className="secondary-btn px-6 py-3.5 rounded-xl text-sm font-bold bg-white/10 text-white hover:bg-white/20 border-white/20"
-                  >
-                    Check Class Routine
-                  </Link>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* RIGHT SIDEBAR (4 Cols) */}
@@ -320,16 +282,6 @@ export default function NewsEventDetailClient({
                   </div>
                 </div>
               </div>
-
-              <div className="pt-2">
-                <Link
-                  href="/materials"
-                  className="w-full primary-btn flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm shadow-md"
-                >
-                  <FileText className="w-4 h-4" />
-                  <span>Download Study Materials</span>
-                </Link>
-              </div>
             </div>
 
             {/* Explore More News & Events Widget */}
@@ -374,22 +326,7 @@ export default function NewsEventDetailClient({
                 </div>
               </div>
             )}
-
-            {/* Direct Support Card */}
-            <div className="bg-[#FFF9F2] border border-[#E8DDBF]/80 rounded-3xl p-6 sm:p-8 space-y-4 text-left shadow-sm">
-              <div className="w-10 h-10 rounded-2xl bg-accent flex items-center justify-center text-[#010E62] font-black shadow-sm">
-                <PhoneCall className="w-5 h-5" />
-              </div>
-              <h4 className="text-base font-black text-[#010E62]">Need urgent academic guidance?</h4>
-              <p className="text-xs text-[#4A5568] leading-relaxed font-medium">
-                Our front desk is open every day during batch hours. Come meet Shifat Sir directly or ask your doubts at the counter.
-              </p>
-              <div className="pt-2 text-xs font-bold text-[#010E62]">
-                Timing: 4:00 PM - 9:00 PM (Saturday to Friday)
-              </div>
-            </div>
           </div>
-
         </div>
 
       </main>
