@@ -79,7 +79,7 @@ export default function Footer() {
           <ul className="space-y-3.5">
             {siteInfo.quickLinks?.map((link) => (
               <li key={link.label}>
-                {link.isPortal ? (
+                {link.isPortal || link.href?.startsWith("/") ? (
                   <Link
                     href={link.href}
                     className="text-[15px] text-[#475569] hover:text-[#F4B400] transition-colors duration-200 font-medium"

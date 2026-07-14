@@ -43,10 +43,12 @@ const navItems: NavItemConfig[] = [
       { label: "Courses", href: "/courses", iconName: "BookOpen" },
       { label: "Materials", href: "/materials", iconName: "BookOpen" },
       { label: "Results", href: "/results", iconName: "TrendingUp" },
-      { label: "All Reviews", href: "/reviews", iconName: "Star" }
+      { label: "All Reviews", href: "/reviews", iconName: "Star" },
+      { label: "News & Events", href: "/news-events", iconName: "Calendar" }
     ]
   },
   { label: "Gallery", href: "/gallery", iconName: "Image" },
+  { label: "News & Events", href: "/news-events", iconName: "Calendar" },
   { label: "Contact Me", href: "/contact", iconName: "Mail" },
 ];
 

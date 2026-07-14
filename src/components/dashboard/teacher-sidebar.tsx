@@ -141,6 +141,14 @@ export const websiteAdminNavItems: NavItem[] = [
     ]
   },
   { 
+    label: "News & Events Page", 
+    icon: Calendar,
+    subItems: [
+      { label: "Hero Section", href: "/teacher/website/news-events/hero" },
+      { label: "Manage Items", href: "/teacher/website/news-events/manage" },
+    ]
+  },
+  { 
     label: "Reviews Page", 
     icon: Star,
     subItems: [

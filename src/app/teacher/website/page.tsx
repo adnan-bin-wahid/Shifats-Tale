@@ -25,6 +25,7 @@ export default function WebsiteAdminOverview() {
         {[
           { title: "Academic Calendar", description: "Manage hero banner and full schedule flyer card image.", href: "/teacher/website/academic-calendar" },
           { title: "Class Routine", description: "Manage hero banner and full class routine flyer card image.", href: "/teacher/website/class-routine" },
+          { title: "News & Events", description: "Manage hero banner, announcements, orientation workshops, and spotlight items.", href: "/teacher/website/news-events/manage" },
           { title: "Courses Hero", description: "Edit main title, subtitle, and primary call-to-actions for the Courses page.", href: "/teacher/website/courses/hero" },
           { title: "Results Hero", description: "Edit main title, subtitle, and banner for the Results page.", href: "/teacher/website/results/hero" },
           { title: "Materials Hero", description: "Edit main title, subtitle, and banner for the Materials page.", href: "/teacher/website/materials/hero" },

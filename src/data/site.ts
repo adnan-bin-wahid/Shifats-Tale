@@ -62,6 +62,7 @@ export const siteInfo: SiteInfo = {
     { label: "Home", href: "#home" },
     { label: "Programs", href: "#courses" },
     { label: "Courses", href: "#courses" },
+    { label: "News & Events", href: "/news-events" },
     { label: "Success Results", href: "#results" },
     { label: "Free Video Lectures", href: "#youtube-classes" },
     { label: "Meet Shifat Sir", href: "#teacher" },
