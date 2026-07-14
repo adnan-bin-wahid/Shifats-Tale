@@ -71,7 +71,7 @@ export default function InnerPageHero({
 
             {/* Main Heading Hierarchy */}
             <div className="mb-3">
-              <h1 className="text-3xl sm:text-4xl lg:text-[3.25rem] font-extrabold tracking-tight leading-[1.08] font-display">
+              <h1 className="text-3xl sm:text-4xl lg:text-[3.25rem] font-extrabold tracking-tight leading-[1.08] font-display text-white drop-shadow-sm">
                 {title}
               </h1>
             </div>

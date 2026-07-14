@@ -49,32 +49,22 @@ export default function AlbumDetailsClient({ album }: { album: GalleryAlbum }) {
       <div className="mt-4 sm:mt-12">
         
         {/* Back to Albums button */}
-        <div className="mb-8">
-          <Link href="/gallery" className="inline-flex items-center gap-2 text-[#4A5568] hover:text-[#010E62] transition-colors font-medium text-sm">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Albums
+        {/* Top Navigation & Meta Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+          <Link
+            href="/gallery"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white border border-[#E8DDBF]/80 shadow-xs text-sm font-bold text-[#010E62] hover:text-accent hover:border-accent transition-all group"
+          >
+            <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+            <span>Back to Albums</span>
           </Link>
-        </div>
-        
-        {/* Album Header Info */}
-        <div className="bg-white rounded-3xl p-6 sm:p-10 mb-10 shadow-sm border border-[#E8DDBF]/50 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#FBB503]/10 border border-[#FBB503]/20 text-[#010E62] text-xs font-bold uppercase tracking-wider mb-4">
-              {album.category}
+
+          <div className="flex items-center gap-4 text-sm font-bold text-[#010E62]">
+            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-[#E8DDBF]/60 shadow-2xs">
+              <Calendar className="w-4 h-4 text-accent" />
+              <span>{album.date}</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#010E62] tracking-tight mb-3">
-              {album.title}
-            </h2>
-            <div className="flex items-center gap-2 text-sm text-[#4A5568] font-medium">
-              <Calendar className="w-4 h-4 text-[#FBB503]" />
-              {album.date}
-            </div>
-          </div>
-          <div className="md:text-right md:max-w-md border-t md:border-t-0 md:border-l border-[#E8DDBF]/50 pt-4 md:pt-0 md:pl-6">
-            <p className="text-[#4A5568] leading-relaxed text-[15px]">
-              {album.description}
-            </p>
-            <div className="mt-4 font-bold text-[#010E62] text-sm">
+            <div className="bg-[#010E62] text-accent px-4 py-2 rounded-2xl shadow-2xs">
               {album.images?.length || 0} Photos in this Album
             </div>
           </div>
