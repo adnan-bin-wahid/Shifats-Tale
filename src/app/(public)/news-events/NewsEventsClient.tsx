@@ -324,12 +324,21 @@ export default function NewsEventsClient({
           ))}
         </div>
 
-        {filteredItems.length === 0 && (
+        {/* Empty States */}
+        {allItems.length === 0 ? (
+          <div className="bg-white dark:bg-slate-900 border border-border rounded-3xl p-12 text-center max-w-xl mx-auto space-y-3">
+            <Calendar className="w-12 h-12 text-slate-300 mx-auto" />
+            <h3 className="text-lg font-bold text-[#010E62] dark:text-white">No News or Events Published Yet</h3>
+            <p className="text-sm text-slate-500 max-w-md mx-auto">
+              Our latest announcements, exam routines, scholarship notices, and orientation workshops will appear right here once published from the admin panel.
+            </p>
+          </div>
+        ) : filteredItems.length === 0 ? (
           <div className="bg-white dark:bg-slate-900 border border-border rounded-3xl p-12 text-center max-w-xl mx-auto space-y-3">
             <Search className="w-10 h-10 text-slate-300 mx-auto" />
-            <h3 className="text-lg font-bold text-[#010E62] dark:text-white">No items found</h3>
+            <h3 className="text-lg font-bold text-[#010E62] dark:text-white">No matching items found</h3>
             <p className="text-sm text-slate-500">
-              We couldn't find any news or events matching "{searchQuery}". Try selecting "All Updates" or checking back soon.
+              We couldn&apos;t find any news or events matching &quot;{searchQuery}&quot;. Try selecting &quot;All Updates&quot; or clearing your search.
             </p>
             <button
               onClick={() => {
@@ -341,7 +350,7 @@ export default function NewsEventsClient({
               Reset Filters
             </button>
           </div>
-        )}
+        ) : null}
       </div>
 
     </div>
