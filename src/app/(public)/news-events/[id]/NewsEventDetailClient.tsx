@@ -69,27 +69,37 @@ export default function NewsEventDetailClient({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
+    <div className="min-h-screen bg-[#FFF9F2] pt-24 pb-20 relative overflow-hidden">
+      {/* Subtle Background Graphic */}
+      <div className="absolute top-0 right-0 opacity-10 pointer-events-none w-full h-[400px]">
+        <svg viewBox="0 0 1000 400" preserveAspectRatio="none" className="w-full h-full">
+          <path d="M0,200 C300,100 700,300 1000,200" fill="none" stroke="#FBB503" strokeWidth="2" />
+          <path d="M0,220 C300,120 700,320 1000,220" fill="none" stroke="#FBB503" strokeWidth="1" />
+        </svg>
+      </div>
+
       {/* Theme-Matched Hero Section */}
-      <InnerPageHero
-        title={item.title}
-        eyebrow={item.category || "EXCLUSIVES & UPDATES"}
-        description={item.excerpt}
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "News & Events", href: "/news-events" },
-          { label: item.category || "Detail View" },
-        ]}
-      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <InnerPageHero
+          title={item.title}
+          eyebrow={item.category || "EXCLUSIVES & UPDATES"}
+          description={item.excerpt}
+          breadcrumbs={[
+            { label: "Home", href: "/" },
+            { label: "News & Events", href: "/news-events" },
+            { label: item.category || "Detail View" },
+          ]}
+          imageSrc={item.imageUrl || "/images/gallery-event.png"}
+        />
+      </div>
 
       {/* Main Single Page Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-20">
-        
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-10 relative z-20">
         {/* Back Navigation Button */}
         <div className="mb-8">
           <Link
             href="/news-events"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-border/80 shadow-sm text-sm font-bold text-primary hover:text-accent hover:border-accent transition-all group"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white border border-[#E8DDBF]/80 shadow-xs text-sm font-bold text-[#010E62] hover:text-accent hover:border-accent transition-all group"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
             <span>Back to All News & Events</span>
@@ -97,13 +107,11 @@ export default function NewsEventDetailClient({
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-          
           {/* LEFT MAIN ARTICLE COLUMN (8 Cols) */}
           <div className="lg:col-span-8 space-y-8">
-            
-            {/* Main Cover Image Banner */}
-            <div className="bg-white dark:bg-slate-900 border border-border/60 rounded-3xl overflow-hidden shadow-xl">
-              <div className="relative h-80 sm:h-96 md:h-[450px] w-full bg-slate-900">
+            {/* Main Cover Image Banner (Visual Showcase Only) */}
+            <div className="bg-white border border-[#E8DDBF]/80 rounded-3xl overflow-hidden shadow-md">
+              <div className="relative h-72 sm:h-80 md:h-96 w-full bg-[#08132E]">
                 <Image
                   src={item.imageUrl || "/images/gallery-event.png"}
                   alt={item.title}
@@ -111,7 +119,7 @@ export default function NewsEventDetailClient({
                   className="object-cover"
                   priority
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#08132E]/70 via-transparent to-transparent" />
 
                 {/* Top Overlay Badges */}
                 <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-10">
@@ -124,34 +132,27 @@ export default function NewsEventDetailClient({
                     <span>{item.category || "UPDATE"}</span>
                   </span>
 
-                  <div className="bg-black/60 backdrop-blur-md border border-white/20 text-white px-4 py-1.5 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-lg">
+                  <div className="bg-[#08132E]/80 backdrop-blur-md border border-white/20 text-white px-4 py-1.5 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-lg">
                     <Calendar className="w-4 h-4 text-accent" />
                     <span>
                       {item.date} {item.month}
                     </span>
                   </div>
                 </div>
-
-                {/* Bottom Title inside Image Banner */}
-                <div className="absolute bottom-6 left-6 right-6 z-10 text-white space-y-2">
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-black font-display tracking-tight leading-tight text-white drop-shadow-md">
-                    {item.title}
-                  </h1>
-                </div>
               </div>
 
               {/* Quick Meta Bar & Action Toasters */}
-              <div className="p-6 sm:p-8 bg-slate-50/80 dark:bg-slate-900/80 border-t border-border/60 flex flex-wrap items-center justify-between gap-4">
-                <div className="flex flex-wrap items-center gap-6 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300">
+              <div className="p-6 sm:p-8 bg-[#FFF9F2]/60 border-t border-[#E8DDBF]/60 flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-6 text-xs sm:text-sm font-semibold text-[#4A5568]">
                   {item.time && (
                     <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-[#010E62] dark:text-accent shrink-0" />
+                      <Clock className="w-4 h-4 text-[#010E62] shrink-0" />
                       <span>{item.time}</span>
                     </div>
                   )}
                   {item.location && (
                     <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-[#010E62] dark:text-accent shrink-0" />
+                      <MapPin className="w-4 h-4 text-[#010E62] shrink-0" />
                       <span>{item.location}</span>
                     </div>
                   )}
@@ -159,13 +160,13 @@ export default function NewsEventDetailClient({
 
                 {/* Share Buttons */}
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-400 mr-1 hidden sm:inline">Share:</span>
+                  <span className="text-xs font-bold text-[#4A5568] mr-1 hidden sm:inline">Share:</span>
                   <button
                     onClick={handleCopyLink}
-                    className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-border hover:border-accent text-slate-600 dark:text-slate-300 hover:text-accent transition-colors shadow-xs"
+                    className="p-2.5 rounded-xl bg-white border border-[#E8DDBF] hover:border-accent text-[#4A5568] hover:text-[#010E62] transition-colors shadow-xs"
                     title="Copy Link"
                   >
-                    {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                    {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
                   </button>
                   <button
                     onClick={handleShareWhatsApp}
@@ -186,21 +187,20 @@ export default function NewsEventDetailClient({
             </div>
 
             {/* Editorial Article Content Box */}
-            <div className="bg-white dark:bg-slate-900 border border-border/60 rounded-3xl p-6 sm:p-10 lg:p-12 shadow-md space-y-8">
-              
+            <div className="bg-white border border-[#E8DDBF]/80 rounded-3xl p-6 sm:p-10 lg:p-12 shadow-md space-y-8">
               {/* Highlighted Excerpt Lead */}
-              <div className="p-6 rounded-2xl bg-gradient-to-r from-amber-50/80 via-yellow-50/40 to-transparent dark:from-amber-950/20 dark:via-transparent border-l-4 border-accent space-y-2">
-                <div className="flex items-center gap-2 text-xs font-black text-amber-700 dark:text-accent uppercase tracking-wider">
-                  <BookmarkCheck className="w-4 h-4" />
+              <div className="p-6 rounded-2xl bg-[#FFF9F2] border-l-4 border-accent space-y-2 shadow-xs">
+                <div className="flex items-center gap-2 text-xs font-black text-[#010E62] uppercase tracking-wider">
+                  <BookmarkCheck className="w-4 h-4 text-accent" />
                   <span>Executive Summary / Overview</span>
                 </div>
-                <p className="text-base sm:text-lg font-bold text-[#010E62] dark:text-white leading-relaxed">
+                <p className="text-base sm:text-lg font-bold text-[#010E62] leading-relaxed">
                   {item.excerpt}
                 </p>
               </div>
 
               {/* Full Detailed Paragraphs */}
-              <div className="space-y-6 text-slate-700 dark:text-slate-300 font-medium text-base sm:text-lg leading-relaxed">
+              <div className="space-y-6 text-[#4A5568] font-medium text-base sm:text-lg leading-relaxed">
                 {item.fullContent.map((paragraph, idx) => (
                   <p key={idx} className="flex items-start gap-3">
                     <span className="w-2 h-2 rounded-full bg-accent mt-2.5 shrink-0" />
@@ -210,26 +210,26 @@ export default function NewsEventDetailClient({
               </div>
 
               {/* Key Takeaways Box */}
-              <div className="border border-border/80 rounded-2xl p-6 bg-slate-50 dark:bg-slate-800/50 space-y-4">
-                <h3 className="text-base sm:text-lg font-bold text-primary flex items-center gap-2">
+              <div className="border border-[#E8DDBF]/80 rounded-2xl p-6 bg-[#FFF9F2]/60 space-y-4">
+                <h3 className="text-base sm:text-lg font-bold text-[#010E62] flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-accent shrink-0" />
                   <span>Important Instructions for Students & Parents</span>
                 </h3>
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-semibold">
-                  <li className="flex items-center gap-2 bg-white dark:bg-slate-800 p-3 rounded-xl border border-border/40">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0" />
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs sm:text-sm text-[#4A5568] font-semibold">
+                  <li className="flex items-center gap-2 bg-white p-3 rounded-xl border border-[#E8DDBF]/60 shadow-2xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#010E62] shrink-0" />
                     <span>Bring valid coaching Student ID or Registration Slip</span>
                   </li>
-                  <li className="flex items-center gap-2 bg-white dark:bg-slate-800 p-3 rounded-xl border border-border/40">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0" />
+                  <li className="flex items-center gap-2 bg-white p-3 rounded-xl border border-[#E8DDBF]/60 shadow-2xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#010E62] shrink-0" />
                     <span>Arrive at least 15 minutes prior to scheduled start</span>
                   </li>
-                  <li className="flex items-center gap-2 bg-white dark:bg-slate-800 p-3 rounded-xl border border-border/40">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0" />
+                  <li className="flex items-center gap-2 bg-white p-3 rounded-xl border border-[#E8DDBF]/60 shadow-2xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#010E62] shrink-0" />
                     <span>Solved sheets & marks published in Student Portal</span>
                   </li>
-                  <li className="flex items-center gap-2 bg-white dark:bg-slate-800 p-3 rounded-xl border border-border/40">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0" />
+                  <li className="flex items-center gap-2 bg-white p-3 rounded-xl border border-[#E8DDBF]/60 shadow-2xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#010E62] shrink-0" />
                     <span>For urgent queries, contact reception counter</span>
                   </li>
                 </ul>
@@ -274,50 +274,49 @@ export default function NewsEventDetailClient({
 
           {/* RIGHT SIDEBAR (4 Cols) */}
           <div className="lg:col-span-4 space-y-8 sticky top-28">
-            
             {/* Brief Information Widget */}
-            <div className="bg-white dark:bg-slate-900 border border-border/60 rounded-3xl p-6 sm:p-8 shadow-md space-y-6">
-              <h3 className="text-lg font-black text-primary border-b border-border/60 pb-3 flex items-center justify-between">
+            <div className="bg-white border border-[#E8DDBF]/80 rounded-3xl p-6 sm:p-8 shadow-md space-y-6">
+              <h3 className="text-lg font-black text-[#010E62] border-b border-[#E8DDBF]/60 pb-3 flex items-center justify-between">
                 <span>Quick Information</span>
                 <Sparkles className="w-4 h-4 text-accent" />
               </h3>
 
               <div className="space-y-4 text-sm font-semibold">
-                <div className="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60">
+                <div className="flex items-start gap-3 p-3 rounded-2xl bg-[#FFF9F2] border border-[#E8DDBF]/50">
                   <Calendar className="w-5 h-5 text-accent shrink-0 mt-0.5" />
                   <div>
-                    <span className="text-xs text-slate-400 block uppercase font-bold">Event Date</span>
-                    <span className="text-primary font-bold">
+                    <span className="text-xs text-[#4A5568] block uppercase font-bold">Event Date</span>
+                    <span className="text-[#010E62] font-bold">
                       {item.date} {item.month}, 2026
                     </span>
                   </div>
                 </div>
 
                 {item.time && (
-                  <div className="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60">
-                    <Clock className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-3 p-3 rounded-2xl bg-[#FFF9F2] border border-[#E8DDBF]/50">
+                    <Clock className="w-5 h-5 text-[#010E62] shrink-0 mt-0.5" />
                     <div>
-                      <span className="text-xs text-slate-400 block uppercase font-bold">Time / Schedule</span>
-                      <span className="text-primary font-bold">{item.time}</span>
+                      <span className="text-xs text-[#4A5568] block uppercase font-bold">Time / Schedule</span>
+                      <span className="text-[#010E62] font-bold">{item.time}</span>
                     </div>
                   </div>
                 )}
 
                 {item.location && (
-                  <div className="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60">
-                    <MapPin className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-3 p-3 rounded-2xl bg-[#FFF9F2] border border-[#E8DDBF]/50">
+                    <MapPin className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                     <div>
-                      <span className="text-xs text-slate-400 block uppercase font-bold">Venue / Location</span>
-                      <span className="text-primary font-bold leading-snug">{item.location}</span>
+                      <span className="text-xs text-[#4A5568] block uppercase font-bold">Venue / Location</span>
+                      <span className="text-[#010E62] font-bold leading-snug">{item.location}</span>
                     </div>
                   </div>
                 )}
 
-                <div className="flex items-start gap-3 p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-500/20">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3 rounded-2xl bg-emerald-50 border border-emerald-500/20">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
-                    <span className="text-xs text-emerald-600 dark:text-emerald-400 font-black uppercase block">Status</span>
-                    <span className="text-emerald-800 dark:text-emerald-200 font-bold">Official Verified Announcement</span>
+                    <span className="text-xs text-emerald-700 font-black uppercase block">Status</span>
+                    <span className="text-emerald-900 font-bold">Official Verified Announcement</span>
                   </div>
                 </div>
               </div>
@@ -335,8 +334,8 @@ export default function NewsEventDetailClient({
 
             {/* Explore More News & Events Widget */}
             {relatedItems.length > 0 && (
-              <div className="bg-white dark:bg-slate-900 border border-border/60 rounded-3xl p-6 sm:p-8 shadow-md space-y-6">
-                <h3 className="text-lg font-black text-primary border-b border-border/60 pb-3 flex items-center justify-between">
+              <div className="bg-white border border-[#E8DDBF]/80 rounded-3xl p-6 sm:p-8 shadow-md space-y-6">
+                <h3 className="text-lg font-black text-[#010E62] border-b border-[#E8DDBF]/60 pb-3 flex items-center justify-between">
                   <span>Explore More Updates</span>
                   <Link href="/news-events" className="text-xs font-bold text-accent hover:underline">
                     View All →
@@ -348,7 +347,7 @@ export default function NewsEventDetailClient({
                     <Link
                       key={related.id}
                       href={`/news-events/${related.id}`}
-                      className="group flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all border border-transparent hover:border-border/60"
+                      className="group flex items-center gap-3 p-3 rounded-2xl hover:bg-[#FFF9F2] transition-all border border-transparent hover:border-[#E8DDBF]/60"
                     >
                       <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-slate-200 shrink-0">
                         <Image
@@ -360,13 +359,13 @@ export default function NewsEventDetailClient({
                       </div>
 
                       <div className="flex-1 min-w-0 space-y-1">
-                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-primary">
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-[#FFF9F2] border border-[#E8DDBF]/60 text-[#010E62]">
                           {related.category || "NOTICE"}
                         </span>
-                        <h4 className="text-xs sm:text-sm font-bold text-primary group-hover:text-accent transition-colors line-clamp-2 leading-tight">
+                        <h4 className="text-xs sm:text-sm font-bold text-[#010E62] group-hover:text-accent transition-colors line-clamp-2 leading-tight">
                           {related.title}
                         </h4>
-                        <span className="text-[11px] font-semibold text-slate-400 block">
+                        <span className="text-[11px] font-semibold text-[#4A5568] block">
                           {related.date} {related.month}
                         </span>
                       </div>
@@ -377,19 +376,18 @@ export default function NewsEventDetailClient({
             )}
 
             {/* Direct Support Card */}
-            <div className="bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-transparent border border-accent/40 rounded-3xl p-6 sm:p-8 space-y-4 text-left">
+            <div className="bg-[#FFF9F2] border border-[#E8DDBF]/80 rounded-3xl p-6 sm:p-8 space-y-4 text-left shadow-sm">
               <div className="w-10 h-10 rounded-2xl bg-accent flex items-center justify-center text-[#010E62] font-black shadow-sm">
                 <PhoneCall className="w-5 h-5" />
               </div>
-              <h4 className="text-base font-black text-primary">Need urgent academic guidance?</h4>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+              <h4 className="text-base font-black text-[#010E62]">Need urgent academic guidance?</h4>
+              <p className="text-xs text-[#4A5568] leading-relaxed font-medium">
                 Our front desk is open every day during batch hours. Come meet Shifat Sir directly or ask your doubts at the counter.
               </p>
-              <div className="pt-2 text-xs font-bold text-[#010E62] dark:text-accent">
+              <div className="pt-2 text-xs font-bold text-[#010E62]">
                 Timing: 4:00 PM - 9:00 PM (Saturday to Friday)
               </div>
             </div>
-
           </div>
 
         </div>

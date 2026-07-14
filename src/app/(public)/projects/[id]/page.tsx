@@ -123,7 +123,7 @@ export default async function ProjectDetailsPage({ params }: ProjectDetailsProps
             </div>
 
             {/* Right Column: Sidebar */}
-            <div className="w-full lg:w-[380px] shrink-0 p-6 sm:p-10 flex flex-col gap-10 bg-gray-50/50">
+            <div className="w-full lg:w-[380px] shrink-0 p-6 sm:p-10 flex flex-col gap-10 bg-[#FFF9F2]/60 border-t lg:border-t-0 lg:border-l border-[#E7E0D2]/50">
               
               {/* Technologies */}
               {project.technologies && project.technologies.length > 0 && (
