@@ -2,7 +2,7 @@ import React from "react";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getSectionItems } from "@/features/website-cms/actions/content-actions";
-import { formatAllNewsEventItems, NewsEventItem } from "../NewsEventsClient";
+import { formatAllNewsEventItems, NewsEventItem } from "../news-events-data";
 import NewsEventDetailClient from "./NewsEventDetailClient";
 
 export async function generateMetadata({
