@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import InnerPageHero from "@/components/layout/InnerPageHero";
-import { NewsEventItem } from "../NewsEventsClient";
+import { NewsEventItem } from "../news-events-data";
 
 export default function NewsEventDetailClient({
   item,
