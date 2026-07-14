@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar,
@@ -34,7 +35,7 @@ export interface NewsEventItem {
   isFeatured?: boolean;
 }
 
-const defaultCuratedItems: NewsEventItem[] = [
+export const defaultCuratedItems: NewsEventItem[] = [
   {
     id: "evt-1",
     title: "HSC '26 & '27 Grand Orientation & Scholarship Model Test",
@@ -142,6 +143,35 @@ const defaultCuratedItems: NewsEventItem[] = [
   },
 ];
 
+export function formatAllNewsEventItems(newsEventItems?: any[]): NewsEventItem[] {
+  const cmsFormatted: NewsEventItem[] = (newsEventItems || []).map((item: any) => {
+    const meta = item.metadata || {};
+    return {
+      id: item.id || `cms-${Math.random()}`,
+      title: item.title || "Untitled Announcement",
+      category: item.subtitle || meta.category || item.category || "NOTICE",
+      date: meta.date || item.date || "01",
+      month: meta.month || item.month || "JAN",
+      time: meta.time || item.time || "Office Hours",
+      location: meta.location || item.location || "Shifat's Tales Campus",
+      excerpt: item.body || meta.excerpt || item.excerpt || item.description || "Click to read full details.",
+      fullContent: Array.isArray(meta.fullContent)
+        ? meta.fullContent
+        : typeof meta.fullContent === "string"
+        ? meta.fullContent.split("\n\n")
+        : Array.isArray(item.fullContent)
+        ? item.fullContent
+        : typeof item.fullContent === "string"
+        ? item.fullContent.split("\n\n")
+        : [item.body || meta.excerpt || item.excerpt || item.description || ""],
+      imageUrl: item.mediaUrl || meta.imageUrl || item.imageUrl || "/images/gallery-event.png",
+      isFeatured: meta.isFeatured || item.isFeatured || false,
+    };
+  });
+
+  return [...cmsFormatted, ...defaultCuratedItems];
+}
+
 export default function NewsEventsClient({
   heroData,
   newsEventItems = [],
@@ -153,27 +183,8 @@ export default function NewsEventsClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState<NewsEventItem | null>(null);
 
-  // Combine CMS items with curated items (CMS items take precedence or join)
   const allItems: NewsEventItem[] = useMemo(() => {
-    const cmsFormatted: NewsEventItem[] = (newsEventItems || []).map((item: any) => ({
-      id: item.id || `cms-${Math.random()}`,
-      title: item.title || "Untitled Announcement",
-      category: item.category || "NOTICE",
-      date: item.date || "01",
-      month: item.month || "JAN",
-      time: item.time || "Office Hours",
-      location: item.location || "Shifat's Tales Campus",
-      excerpt: item.excerpt || item.description || "Click to read full details.",
-      fullContent: Array.isArray(item.fullContent)
-        ? item.fullContent
-        : typeof item.fullContent === "string"
-        ? item.fullContent.split("\n\n")
-        : [item.excerpt || item.description || ""],
-      imageUrl: item.imageUrl || item.mediaUrl || "/images/gallery-event.png",
-      isFeatured: item.isFeatured || false,
-    }));
-
-    return [...cmsFormatted, ...defaultCuratedItems];
+    return formatAllNewsEventItems(newsEventItems);
   }, [newsEventItems]);
 
   // Filter items based on activeTab and searchQuery
@@ -288,9 +299,11 @@ export default function NewsEventsClient({
                   )}
                 </div>
 
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-[#010E62] dark:text-white font-display tracking-tight leading-tight group-hover:text-accent transition-colors">
-                  {featuredItem.title}
-                </h2>
+                <Link href={`/news-events/${featuredItem.id}`} className="block">
+                  <h2 className="text-2xl sm:text-3xl font-extrabold text-[#010E62] dark:text-white font-display tracking-tight leading-tight group-hover:text-accent transition-colors">
+                    {featuredItem.title}
+                  </h2>
+                </Link>
 
                 <p className="text-sm sm:text-base font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
                   {featuredItem.excerpt}
@@ -304,12 +317,18 @@ export default function NewsEventsClient({
                 )}
 
                 <div className="pt-3 flex flex-wrap items-center gap-3">
-                  <button
-                    onClick={() => setSelectedItem(featuredItem)}
+                  <Link
+                    href={`/news-events/${featuredItem.id}`}
                     className="primary-btn flex items-center gap-2 px-6 py-3 rounded-xl shadow-md font-bold text-sm"
                   >
                     <span>Read Full Details</span>
                     <ArrowRight className="w-4 h-4" />
+                  </Link>
+                  <button
+                    onClick={() => setSelectedItem(featuredItem)}
+                    className="secondary-btn px-4 py-3 rounded-xl text-xs font-bold"
+                  >
+                    Quick Modal Preview
                   </button>
                   <span className="text-xs font-semibold text-slate-400 italic">
                     • Prior registration recommended at campus counter
@@ -424,9 +443,11 @@ export default function NewsEventsClient({
                     )}
                   </div>
 
-                  <h3 className="text-lg font-bold text-[#010E62] dark:text-white font-display tracking-tight leading-snug line-clamp-2 group-hover:text-accent transition-colors">
-                    {item.title}
-                  </h3>
+                  <Link href={`/news-events/${item.id}`} className="block">
+                    <h3 className="text-lg font-bold text-[#010E62] dark:text-white font-display tracking-tight leading-snug line-clamp-2 group-hover:text-accent transition-colors">
+                      {item.title}
+                    </h3>
+                  </Link>
 
                   <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 line-clamp-3 leading-relaxed">
                     {item.excerpt}
@@ -435,13 +456,21 @@ export default function NewsEventsClient({
 
                 {/* Card Footer Button */}
                 <div className="pt-4 border-t border-border/40 flex items-center justify-between">
-                  <button
-                    onClick={() => setSelectedItem(item)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#010E62] dark:text-accent hover:underline group/btn"
-                  >
-                    <span>Read Details</span>
-                    <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-1" />
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href={`/news-events/${item.id}`}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#010E62] dark:text-accent hover:underline group/btn"
+                    >
+                      <span>Read Details</span>
+                      <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-1" />
+                    </Link>
+                    <button
+                      onClick={() => setSelectedItem(item)}
+                      className="text-[11px] font-bold text-slate-400 hover:text-slate-600 underline"
+                    >
+                      Quick Modal
+                    </button>
+                  </div>
 
                   <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                     Shifat's Tales
@@ -547,12 +576,21 @@ export default function NewsEventsClient({
                       Visit Shifat's Tales campus counter during daily office hours (4:00 PM - 9:00 PM) or call directly.
                     </p>
                   </div>
-                  <button
-                    onClick={() => setSelectedItem(null)}
-                    className="primary-btn px-6 py-2.5 rounded-xl text-xs font-bold shrink-0"
-                  >
-                    Close Window
-                  </button>
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    <Link
+                      href={`/news-events/${selectedItem.id}`}
+                      className="primary-btn px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md"
+                    >
+                      <span>Full Detail Page</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </Link>
+                    <button
+                      onClick={() => setSelectedItem(null)}
+                      className="secondary-btn px-5 py-2.5 rounded-xl text-xs font-bold bg-white/10 text-white hover:bg-white/20 border-white/20"
+                    >
+                      Close
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
