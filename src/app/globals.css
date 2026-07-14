@@ -427,3 +427,44 @@
   border-color: #CCFBF1 !important;
 }
 
+/* ==========================================
+   PREMIUM SITE LOADER ANIMATIONS & STYLES
+   Inspired by dhakhl.com & buekbd.com
+   ========================================== */
+@keyframes loader-orbit-outer {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes loader-orbit-inner {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
+}
+
+@keyframes loader-seal-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 25px rgba(251, 181, 3, 0.25), 0 0 50px rgba(1, 14, 98, 0.4); }
+  50% { transform: scale(1.04); box-shadow: 0 0 35px rgba(251, 181, 3, 0.45), 0 0 70px rgba(1, 14, 98, 0.6); }
+}
+
+@keyframes loader-shimmer-progress {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-loader-orbit-outer {
+  animation: loader-orbit-outer 10s linear infinite;
+}
+
+.animate-loader-orbit-inner {
+  animation: loader-orbit-inner 6s linear infinite;
+}
+
+.animate-loader-seal {
+  animation: loader-seal-pulse 2.5s ease-in-out infinite;
+}
+
+.animate-loader-shimmer {
+  animation: loader-shimmer-progress 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+

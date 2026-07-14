@@ -22,7 +22,8 @@ import {
   Sparkles, 
   ArrowUpRight,
   GraduationCap,
-  Activity
+  Activity,
+  DollarSign
 } from "lucide-react";
 import { formatCurrency } from "@/lib/currency";
 
@@ -261,109 +262,167 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
       </div>
 
       {/* 2. Masterpiece Hero Banner Card */}
-      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-border/60 shadow-xs space-y-7">
+      <div className="bg-white p-5 sm:p-8 rounded-3xl border border-border/60 shadow-xs space-y-6 sm:space-y-7 min-w-0">
         
         {/* Top Half: Batch Identity & Top 4 Metric Pills */}
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 pb-6 border-b border-slate-100">
-          <div className="flex items-start sm:items-center gap-4">
-            <div className="p-4 bg-gradient-to-tr from-[#0A192F] to-blue-800 text-white rounded-2xl shadow-md shrink-0">
-              <BookOpen className="w-8 h-8 sm:w-9 sm:h-9" />
+          <div className="flex items-start sm:items-center gap-4 min-w-0 flex-1">
+            <div className="p-3.5 sm:p-4 bg-gradient-to-tr from-[#0A192F] to-blue-800 text-white rounded-2xl shadow-md shrink-0">
+              <BookOpen className="w-7 h-7 sm:w-9 sm:h-9" />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-black font-display text-slate-900 leading-tight">
+                <h1 className="text-xl sm:text-2xl font-black font-display text-slate-900 leading-tight break-words">
                   {batch.name}
                 </h1>
-                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Active Enrollment
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-slate-600 font-semibold mt-1">
+              <p className="text-xs sm:text-sm text-slate-600 font-semibold mt-1 break-words">
                 Subject: <span className="text-primary font-black">{batch.subject || "General"}</span> &bull; Academic Year: <span className="text-primary font-black">{batch.academic_level || "N/A"}</span>
               </p>
             </div>
           </div>
 
           {/* Right Side 4 Top Metric Pills */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 xl:flex xl:items-center gap-3">
-            <div className="bg-slate-50/90 border border-slate-200/80 p-3 rounded-2xl flex items-center gap-3 shrink-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:flex xl:items-center gap-3 w-full xl:w-auto">
+            <div className="bg-slate-50/90 border border-slate-200/80 p-3 rounded-2xl flex items-center gap-3 shrink-0 min-w-0">
               <Calendar className="w-5 h-5 text-blue-600 shrink-0" />
-              <div className="overflow-hidden">
-                <span className="text-[9px] text-muted font-extrabold uppercase block">Weekly Schedule</span>
-                <span className="text-xs font-black text-slate-900 truncate block">{schedule.days || "Not configured"}</span>
+              <div className="min-w-0 flex-1">
+                <span className="text-[9px] text-muted font-extrabold uppercase block truncate">Weekly Schedule</span>
+                <span className="text-xs font-black text-slate-900 truncate block" title={schedule.days || "Not configured"}>{schedule.days || "Not configured"}</span>
               </div>
             </div>
 
-            <div className="bg-slate-50/90 border border-slate-200/80 p-3 rounded-2xl flex items-center gap-3 shrink-0">
+            <div className="bg-slate-50/90 border border-slate-200/80 p-3 rounded-2xl flex items-center gap-3 shrink-0 min-w-0">
               <Clock className="w-5 h-5 text-purple-600 shrink-0" />
-              <div className="overflow-hidden">
-                <span className="text-[9px] text-muted font-extrabold uppercase block">Class Time Slot</span>
-                <span className="text-xs font-black text-slate-900 truncate block">{schedule.time || "Not configured"}</span>
+              <div className="min-w-0 flex-1">
+                <span className="text-[9px] text-muted font-extrabold uppercase block truncate">Class Time Slot</span>
+                <span className="text-xs font-black text-slate-900 truncate block" title={schedule.time || "Not configured"}>{schedule.time || "Not configured"}</span>
               </div>
             </div>
 
-            <Link href={`/student/batches/${batchId}/payments`} className="bg-slate-50/90 hover:bg-rose-50/80 border border-slate-200/80 hover:border-rose-200 p-3 rounded-2xl flex items-center gap-3 shrink-0 transition-all group">
+            <Link href={`/student/batches/${batchId}/payments`} className="bg-slate-50/90 hover:bg-rose-50/80 border border-slate-200/80 hover:border-rose-200 p-3 rounded-2xl flex items-center gap-3 shrink-0 transition-all group min-w-0">
               <CreditCard className="w-5 h-5 text-rose-600 shrink-0 group-hover:scale-110 transition-transform" />
-              <div className="overflow-hidden">
-                <span className="text-[9px] text-muted font-extrabold uppercase block">Fee Status</span>
-                <span className={`text-xs font-black truncate block ${outstandingDue > 0 ? "text-rose-700" : "text-emerald-700"}`}>
+              <div className="min-w-0 flex-1">
+                <span className="text-[9px] text-muted font-extrabold uppercase block truncate">Fee Status</span>
+                <span className={`text-xs font-black truncate block ${outstandingDue > 0 ? "text-rose-700" : "text-emerald-700"}`} title={outstandingDue > 0 ? `${formatCurrency(outstandingDue, currency)} Due` : "All Paid"}>
                   {outstandingDue > 0 ? `${formatCurrency(outstandingDue, currency)} Due` : "All Paid"}
                 </span>
               </div>
             </Link>
 
-            <div className="bg-slate-50/90 border border-slate-200/80 p-3 rounded-2xl flex items-center gap-3 shrink-0">
+            <div className="bg-slate-50/90 border border-slate-200/80 p-3 rounded-2xl flex items-center gap-3 shrink-0 min-w-0">
               <Layers className="w-5 h-5 text-amber-600 shrink-0" />
-              <div className="overflow-hidden">
-                <span className="text-[9px] text-muted font-extrabold uppercase block">Batch Code</span>
-                <span className="text-xs font-black text-slate-900 truncate block">{batch.code}</span>
+              <div className="min-w-0 flex-1">
+                <span className="text-[9px] text-muted font-extrabold uppercase block truncate">Batch Code</span>
+                <span className="text-xs font-black text-slate-900 truncate block" title={batch.code}>{batch.code}</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom Half: 4 Pill Stats Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-1">
-          <Link href={`/student/batches/${batchId}/materials`} className="p-4 rounded-2xl bg-blue-50/50 hover:bg-blue-50 border border-blue-100/80 flex items-center gap-3.5 transition-colors group">
-            <div className="p-2.5 bg-blue-100/90 text-blue-700 rounded-xl group-hover:scale-105 transition-transform">
-              <FileText className="w-5 h-5" />
+        {/* Bottom Half: 4 Pill Stats Row (Avg Score, Monthly Fee, Progress, Materials) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 pt-1">
+          {/* Stat 1 */}
+          <Link href={`/student/batches/${batchId}/exams`} className="bg-slate-50/60 hover:bg-slate-100/80 border border-slate-200/80 p-4 rounded-2xl flex items-center gap-3.5 transition-all group min-w-0">
+            <div className="p-2.5 bg-amber-100/90 text-amber-800 rounded-xl shrink-0 group-hover:scale-105 transition-transform">
+              <Sparkles className="w-5 h-5" />
             </div>
-            <div>
-              <span className="text-xl sm:text-2xl font-black font-display text-slate-900 block leading-none">{materialsCount}</span>
-              <span className="text-[11px] font-extrabold text-blue-900 block mt-1">Study Materials Shared</span>
-            </div>
-          </Link>
-
-          <Link href={`/student/batches/${batchId}/exams`} className="p-4 rounded-2xl bg-purple-50/50 hover:bg-purple-50 border border-purple-100/80 flex items-center gap-3.5 transition-colors group">
-            <div className="p-2.5 bg-purple-100/90 text-purple-700 rounded-xl group-hover:scale-105 transition-transform">
-              <Award className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-xl sm:text-2xl font-black font-display text-slate-900 block leading-none">{upcomingExams.length}</span>
-              <span className="text-[11px] font-extrabold text-purple-900 block mt-1">Upcoming Exams</span>
+            <div className="min-w-0 flex-1">
+              <span className="text-[10px] sm:text-xs font-extrabold text-muted uppercase block truncate">Batch Avg Score</span>
+              <div className="flex items-baseline gap-1.5 mt-0.5">
+                <span className="text-xl sm:text-2xl font-black text-slate-900 font-display truncate">{avgPercentage}%</span>
+                <span className="text-[10px] text-emerald-600 font-extrabold shrink-0">Overall</span>
+              </div>
             </div>
           </Link>
 
-          <Link href={`/student/batches/${batchId}/announcements`} className="p-4 rounded-2xl bg-amber-50/50 hover:bg-amber-50 border border-amber-100/80 flex items-center gap-3.5 transition-colors group">
-            <div className="p-2.5 bg-amber-100/90 text-amber-800 rounded-xl group-hover:scale-105 transition-transform">
-              <Bell className="w-5 h-5" />
+          {/* Stat 2 */}
+          <Link href={`/student/batches/${batchId}/payments`} className="bg-slate-50/60 hover:bg-slate-100/80 border border-slate-200/80 p-4 rounded-2xl flex items-center gap-3.5 transition-all group min-w-0">
+            <div className="p-2.5 bg-rose-100/90 text-rose-800 rounded-xl shrink-0 group-hover:scale-105 transition-transform">
+              <DollarSign className="w-5 h-5" />
             </div>
-            <div>
-              <span className="text-xl sm:text-2xl font-black font-display text-slate-900 block leading-none">{announcementsCount}</span>
-              <span className="text-[11px] font-extrabold text-amber-900 block mt-1">Active Notices</span>
+            <div className="min-w-0 flex-1">
+              <span className="text-[10px] sm:text-xs font-extrabold text-muted uppercase block truncate">Monthly Fee</span>
+              <div className="flex items-baseline gap-1.5 mt-0.5">
+                <span className="text-lg sm:text-xl font-black text-slate-900 font-display truncate" title={formatCurrency(Number(batch.monthly_fee) || 0, currency)}>{formatCurrency(Number(batch.monthly_fee) || 0, currency)}</span>
+                <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded shrink-0 ${
+                  currentMonthStatus === "PAID" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
+                }`}>
+                  {currentMonthStatus}
+                </span>
+              </div>
             </div>
           </Link>
 
-          <Link href={`/student/batches/${batchId}/results`} className="p-4 rounded-2xl bg-emerald-50/50 hover:bg-emerald-50 border border-emerald-100/80 flex items-center gap-3.5 transition-colors group">
-            <div className="p-2.5 bg-emerald-100/90 text-emerald-700 rounded-xl group-hover:scale-105 transition-transform">
+          {/* Stat 3 */}
+          <Link href={`/student/batches/${batchId}/exams`} className="bg-slate-50/60 hover:bg-slate-100/80 border border-slate-200/80 p-4 rounded-2xl flex items-center gap-3.5 transition-all group min-w-0">
+            <div className="p-2.5 bg-purple-100/90 text-purple-800 rounded-xl shrink-0 group-hover:scale-105 transition-transform">
               <TrendingUp className="w-5 h-5" />
             </div>
-            <div>
-              <span className="text-xl sm:text-2xl font-black font-display text-slate-900 block leading-none">{publishedBatchResults.length > 0 ? `${avgPercentage}%` : "-"}</span>
-              <span className="text-[11px] font-extrabold text-emerald-900 block mt-1">Batch Score Average</span>
+            <div className="min-w-0 flex-1">
+              <span className="text-[10px] sm:text-xs font-extrabold text-muted uppercase block truncate">Batch Progress</span>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="w-full bg-slate-200/80 h-2 rounded-full overflow-hidden">
+                  <div className="bg-purple-600 h-full rounded-full" style={{ width: `${progressPercent}%` }} />
+                </div>
+                <span className="text-xs font-black text-slate-800 shrink-0">{progressPercent}%</span>
+              </div>
             </div>
           </Link>
+
+          {/* Stat 4 */}
+          <Link href={`/student/batches/${batchId}/materials`} className="bg-slate-50/60 hover:bg-slate-100/80 border border-slate-200/80 p-4 rounded-2xl flex items-center gap-3.5 transition-all group min-w-0">
+            <div className="p-2.5 bg-blue-100/90 text-blue-800 rounded-xl shrink-0 group-hover:scale-105 transition-transform">
+              <FileText className="w-5 h-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <span className="text-[10px] sm:text-xs font-extrabold text-muted uppercase block truncate">Study Materials</span>
+              <div className="flex items-baseline gap-1.5 mt-0.5">
+                <span className="text-xl sm:text-2xl font-black text-slate-900 font-display truncate">{materialsCount}</span>
+                <span className="text-[10px] text-slate-500 font-bold truncate">Shared</span>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        {/* Live Next Class & Weekly Routine Box */}
+        <div className="bg-gradient-to-r from-[#0A192F] via-slate-900 to-indigo-950 p-5 sm:p-7 rounded-3xl text-white shadow-md relative overflow-hidden border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-5 min-w-0">
+          <div className="space-y-2.5 z-10 min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/30 text-blue-200 border border-blue-400/40 flex items-center gap-1.5 shadow-2xs shrink-0">
+                <Calendar className="w-3.5 h-3.5 text-blue-300" /> Next Class Routine
+              </span>
+              {nextClassDisplay?.isToday && (
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 animate-bounce shadow-2xs shrink-0">
+                  Today!
+                </span>
+              )}
+            </div>
+
+            <div className="min-w-0">
+              <h3 className="text-lg sm:text-xl md:text-2xl font-black font-display !text-white tracking-tight leading-snug drop-shadow-xs break-words" style={{ color: '#FFFFFF' }}>
+                {nextClassDisplay ? `${nextClassDisplay.dayText} • ${nextClassDisplay.timeText}` : "Class Schedule Not Set"}
+              </h3>
+              <p className="text-xs !text-slate-200 font-semibold mt-1.5 leading-relaxed break-words" style={{ color: '#E2E8F0' }}>
+                Schedule Days: <span className="!text-white font-black underline decoration-blue-400 decoration-2" style={{ color: '#FFFFFF' }}>{schedule.days || "N/A"}</span> &bull; Subject: <span className="!text-amber-300 font-black" style={{ color: '#FCD34D' }}>{batch.subject || "General"}</span>
+              </p>
+            </div>
+          </div>
+
+          <div className="z-10 shrink-0 self-start sm:self-center">
+            <Link
+              href="/class-routine"
+              className="px-6 py-3.5 bg-white hover:bg-slate-100 !text-[#0A192F] rounded-2xl font-black text-xs sm:text-sm transition-all flex items-center justify-center gap-2 shadow-md shrink-0 hover:scale-105"
+              style={{ color: '#0A192F' }}
+            >
+              <span>View Full Routine</span>
+              <ArrowUpRight className="w-4 h-4 shrink-0" />
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -373,50 +432,14 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
         {/* Left Column (Span 2): Next Class Banner, Exams, Materials, Results */}
         <div className="lg:col-span-2 space-y-8">
           
-          {/* Live Next Class & Weekly Routine Box */}
-          <div className="bg-gradient-to-r from-[#0A192F] via-slate-900 to-indigo-950 p-6 sm:p-7 rounded-3xl text-white shadow-md relative overflow-hidden border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-            <div className="space-y-2.5 z-10">
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/30 text-blue-200 border border-blue-400/40 flex items-center gap-1.5 shadow-2xs">
-                  <Calendar className="w-3.5 h-3.5 text-blue-300" /> Next Class Routine
-                </span>
-                {nextClassDisplay?.isToday && (
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 animate-bounce shadow-2xs">
-                    Today!
-                  </span>
-                )}
-              </div>
-
-              <div>
-                <h3 className="text-xl sm:text-2xl font-black font-display !text-white tracking-tight leading-snug drop-shadow-xs" style={{ color: '#FFFFFF' }}>
-                  {nextClassDisplay ? `${nextClassDisplay.dayText} • ${nextClassDisplay.timeText}` : "Class Schedule Not Set"}
-                </h3>
-                <p className="text-xs !text-slate-200 font-semibold mt-1.5 leading-relaxed" style={{ color: '#E2E8F0' }}>
-                  Schedule Days: <span className="!text-white font-black underline decoration-blue-400 decoration-2" style={{ color: '#FFFFFF' }}>{schedule.days || "N/A"}</span> &bull; Subject: <span className="!text-amber-300 font-black" style={{ color: '#FCD34D' }}>{batch.subject || "General"}</span>
-                </p>
-              </div>
-            </div>
-
-            <div className="z-10 shrink-0">
-              <Link
-                href="/class-routine"
-                className="px-6 py-3.5 bg-white hover:bg-slate-100 !text-[#0A192F] rounded-2xl font-black text-xs sm:text-sm transition-all flex items-center justify-center gap-2 shadow-md shrink-0 hover:scale-105"
-                style={{ color: '#0A192F' }}
-              >
-                <span>View Full Routine</span>
-                <ArrowUpRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-
           {/* Upcoming Exams & Tests Card */}
-          <div className="bg-white p-6 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-5">
+          <div className="bg-white p-5 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-5 min-w-0">
             <div className="flex justify-between items-center border-b border-slate-100 pb-4">
               <h3 className="text-base font-black font-display text-slate-900 flex items-center gap-2.5">
-                <Award className="h-5 w-5 text-primary" />
+                <Award className="h-5 w-5 text-primary shrink-0" />
                 <span>Upcoming Exams &amp; Tests</span>
               </h3>
-              <Link href={`/student/batches/${batchId}/exams`} className="text-xs font-bold text-primary hover:text-accent flex items-center gap-1">
+              <Link href={`/student/batches/${batchId}/exams`} className="text-xs font-bold text-primary hover:text-accent flex items-center gap-1 shrink-0">
                 <span>View All Exams</span>
                 <ChevronRight className="h-3.5 w-3.5" />
               </Link>
@@ -435,29 +458,29 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
                     <Link
                       key={exam.id}
                       href={`/student/batches/${batchId}/exams`}
-                      className="p-4 border border-slate-200/80 rounded-2xl bg-slate-50/50 hover:bg-white hover:shadow-md hover:border-slate-300 transition-all flex items-center justify-between gap-4 group"
+                      className="p-4 border border-slate-200/80 rounded-2xl bg-slate-50/50 hover:bg-white hover:shadow-md hover:border-slate-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 group min-w-0"
                     >
-                      <div className="flex items-center gap-4 overflow-hidden">
+                      <div className="flex items-start sm:items-center gap-3.5 min-w-0 flex-1">
                         {/* Circular/Box Date Badge */}
                         <div className="w-12 h-13 bg-white border-2 border-[#0A192F] rounded-xl flex flex-col items-center justify-center text-center shrink-0 shadow-2xs group-hover:bg-[#0A192F] group-hover:text-white transition-all">
                           <span className="text-[9px] font-black leading-none uppercase">{monthName}</span>
                           <span className="text-base font-black leading-tight mt-0.5">{dayNum}</span>
                         </div>
 
-                        <div className="overflow-hidden">
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h4 className="font-black text-sm text-slate-900 group-hover:text-primary transition-colors truncate">{exam.name}</h4>
-                            <span className="px-2 py-0.5 bg-purple-100 text-purple-800 rounded text-[9px] font-black uppercase tracking-wider">
+                            <h4 className="font-black text-sm text-slate-900 group-hover:text-primary transition-colors truncate" title={exam.name}>{exam.name}</h4>
+                            <span className="px-2 py-0.5 bg-purple-100 text-purple-800 rounded text-[9px] font-black uppercase tracking-wider shrink-0">
                               {exam.exam_type.replace("_", " ")}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-500 font-semibold mt-1">
+                          <p className="text-xs text-slate-500 font-semibold mt-1 truncate">
                             Total Marks: <span className="text-slate-800 font-extrabold">{Number(exam.total_marks)}</span> &bull; Date: <span className="text-slate-800 font-extrabold">{exam.exam_date} ({dayOfWeek})</span>
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60">
                         <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
                           countdown === "Today" || countdown === "Tomorrow" || countdown.includes("In")
                             ? "bg-emerald-50 text-emerald-700 border-emerald-200"
@@ -480,13 +503,13 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
           </div>
 
           {/* Study Materials & Resources Card with [NEW] Pill & Download Action */}
-          <div className="bg-white p-6 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-5">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+          <div className="bg-white p-5 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-5 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
               <h3 className="text-base font-black font-display text-slate-900 flex items-center gap-2.5">
-                <FileText className="h-5 w-5 text-primary" />
+                <FileText className="h-5 w-5 text-primary shrink-0" />
                 <span>Study Materials &amp; Resources</span>
               </h3>
-              <Link href={`/student/batches/${batchId}/materials`} className="text-xs font-bold text-primary hover:text-accent flex items-center gap-1">
+              <Link href={`/student/batches/${batchId}/materials`} className="text-xs font-bold text-primary hover:text-accent flex items-center gap-1 self-start sm:self-auto shrink-0">
                 <span>View All Materials ({materialsCount})</span>
                 <ChevronRight className="h-3.5 w-3.5" />
               </Link>
@@ -501,30 +524,30 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
                   const isNew = daysAgo <= 3;
 
                   return (
-                    <div key={m.id} className="p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl flex items-center justify-between gap-4 hover:border-slate-300 transition-all group">
-                      <div className="flex items-center gap-3.5 overflow-hidden">
+                    <div key={m.id} className="p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 hover:border-slate-300 transition-all group min-w-0">
+                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
                         <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase shrink-0 ${
                           isPdf ? "bg-rose-100 text-rose-800" : "bg-blue-100 text-blue-800"
                         }`}>
                           {isPdf ? "PDF" : "LINK"}
                         </span>
 
-                        <div className="overflow-hidden">
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h4 className="font-black text-xs sm:text-sm text-slate-900 group-hover:text-primary transition-colors truncate">{m.title}</h4>
+                            <h4 className="font-black text-xs sm:text-sm text-slate-900 group-hover:text-primary transition-colors truncate" title={m.title}>{m.title}</h4>
                             {isNew && (
-                              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[9px] font-black uppercase tracking-wider">
+                              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[9px] font-black uppercase tracking-wider shrink-0">
                                 NEW
                               </span>
                             )}
                           </div>
-                          <p className="text-[11px] text-slate-500 font-semibold mt-0.5">
+                          <p className="text-[11px] text-slate-500 font-semibold mt-0.5 truncate">
                             {m.content_type} &bull; Uploaded {daysAgo === 0 ? "Today" : `${daysAgo} day${daysAgo === 1 ? '' : 's'} ago`}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center justify-end gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60">
                         <Link
                           href={`/student/batches/${batchId}/materials`}
                           className="px-3 py-1.5 bg-white hover:bg-[#0A192F] hover:text-white text-slate-700 rounded-xl text-xs font-extrabold border border-slate-200 transition-all shadow-2xs"
@@ -552,21 +575,21 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
           </div>
 
           {/* Recent Batch Results Table with TREND Pills */}
-          <div className="bg-white p-6 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-5">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+          <div className="bg-white p-5 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-5 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
               <h3 className="text-base font-black font-display text-slate-900 flex items-center gap-2.5">
-                <Layers className="h-5 w-5 text-primary" />
+                <Layers className="h-5 w-5 text-primary shrink-0" />
                 <span>Recent Batch Results</span>
               </h3>
-              <Link href={`/student/batches/${batchId}/results`} className="text-xs font-bold text-primary hover:text-accent flex items-center gap-1">
+              <Link href={`/student/batches/${batchId}/results`} className="text-xs font-bold text-primary hover:text-accent flex items-center gap-1 self-start sm:self-auto shrink-0">
                 <span>View Full Ledger</span>
                 <ChevronRight className="h-3.5 w-3.5" />
               </Link>
             </div>
 
             {publishedBatchResults.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs font-bold text-slate-800">
+              <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
+                <table className="w-full text-left text-xs font-bold text-slate-800 min-w-[550px]">
                   <thead>
                     <tr className="border-b border-slate-200 text-slate-400 uppercase text-[10px] font-black tracking-wider">
                       <th className="pb-3 pl-2">Exam</th>
@@ -587,12 +610,12 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
 
                       return (
                         <tr key={r.id} className="hover:bg-slate-50/80 transition-colors group">
-                          <td className="py-3.5 pl-2 font-black text-slate-900 group-hover:text-primary transition-colors">
+                          <td className="py-3.5 pl-2 font-black text-slate-900 group-hover:text-primary transition-colors max-w-[160px] truncate" title={r.exam.name}>
                             <Link href={`/student/batches/${batchId}/exams/${r.exam.id}`}>
                               {r.exam.name}
                             </Link>
                           </td>
-                          <td className="py-3.5 text-slate-500 font-semibold">{r.exam.exam_date}</td>
+                          <td className="py-3.5 text-slate-500 font-semibold truncate max-w-[110px]">{r.exam.exam_date}</td>
                           <td className="py-3.5 text-center font-extrabold">
                             {isAbs ? (
                               <span className="text-rose-700 bg-rose-50 px-2 py-0.5 rounded text-[10px] border border-rose-200">ABSENT</span>
@@ -649,16 +672,16 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
         </div>
 
         {/* Right Sidebar (Span 1): Announcements, Billing, Progress, Quick Actions */}
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8 min-w-0">
           
           {/* Announcements Box */}
-          <div className="bg-white p-6 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-4">
+          <div className="bg-white p-5 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-4 min-w-0">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="text-sm font-black font-display text-slate-900 flex items-center gap-2">
-                <Bell className="h-4.5 w-4.5 text-amber-500" />
+                <Bell className="h-4.5 w-4.5 text-amber-500 shrink-0" />
                 <span>Announcements &amp; Notices</span>
               </h3>
-              <Link href={`/student/batches/${batchId}/announcements`} className="text-xs font-bold text-primary hover:text-accent">
+              <Link href={`/student/batches/${batchId}/announcements`} className="text-xs font-bold text-primary hover:text-accent shrink-0">
                 View All
               </Link>
             </div>
@@ -666,17 +689,17 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
             {recentAnnouncements.length > 0 ? (
               <div className="space-y-3.5">
                 {recentAnnouncements.map((ann, idx) => (
-                  <div key={ann.id} className="p-4 bg-amber-50/50 border border-amber-200/70 rounded-2xl space-y-2 hover:border-amber-300 transition-all">
-                    <div className="flex justify-between items-center">
-                      <span className="px-2 py-0.5 bg-rose-100 text-rose-800 rounded text-[9px] font-black uppercase tracking-wider">
+                  <div key={ann.id} className="p-4 bg-amber-50/50 border border-amber-200/70 rounded-2xl space-y-2 hover:border-amber-300 transition-all min-w-0">
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="px-2 py-0.5 bg-rose-100 text-rose-800 rounded text-[9px] font-black uppercase tracking-wider shrink-0">
                         {idx === 0 ? "IMPORTANT" : "NOTICE"}
                       </span>
-                      <span className="text-[10px] text-amber-900/60 font-bold">
+                      <span className="text-[10px] text-amber-900/60 font-bold shrink-0">
                         {new Date(ann.published_at || ann.created_at).toLocaleDateString()}
                       </span>
                     </div>
-                    <h4 className="font-black text-xs text-slate-900 leading-snug">{ann.title}</h4>
-                    <p className="text-[11px] text-slate-600 font-semibold line-clamp-3 leading-relaxed">{ann.message}</p>
+                    <h4 className="font-black text-xs text-slate-900 leading-snug break-words">{ann.title}</h4>
+                    <p className="text-[11px] text-slate-600 font-semibold line-clamp-3 leading-relaxed break-words">{ann.message}</p>
                   </div>
                 ))}
               </div>
@@ -688,31 +711,33 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
           </div>
 
           {/* Billing Summary Box */}
-          <div className="bg-white p-6 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-5">
+          <div className="bg-white p-5 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-5 min-w-0">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="text-sm font-black font-display text-slate-900 flex items-center gap-2">
-                <CreditCard className="h-4.5 w-4.5 text-primary" />
+                <CreditCard className="h-4.5 w-4.5 text-primary shrink-0" />
                 <span>Billing Summary</span>
               </h3>
-              <Link href={`/student/batches/${batchId}/payments`} className="text-xs font-bold text-primary hover:text-accent">
+              <Link href={`/student/batches/${batchId}/payments`} className="text-xs font-bold text-primary hover:text-accent shrink-0">
                 View History
               </Link>
             </div>
 
-            <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/70 space-y-3">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="text-xs font-black text-slate-900 block">{currentMonthPayment ? `Month: ${currentMonthPayment.billing_month}/${currentMonthPayment.billing_year}` : "Current Status"}</span>
-                  <span className="text-[11px] font-semibold text-slate-500 block mt-0.5">Outstanding Balance</span>
+            <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/70 space-y-3 min-w-0">
+              <div className="flex justify-between items-start gap-2">
+                <div className="min-w-0 flex-1">
+                  <span className="text-xs font-black text-slate-900 block truncate">{currentMonthPayment ? `Month: ${currentMonthPayment.billing_month}/${currentMonthPayment.billing_year}` : "Current Status"}</span>
+                  <span className="text-[11px] font-semibold text-slate-500 block mt-0.5 truncate">Outstanding Balance</span>
                 </div>
-                <StatusBadge status={currentMonthStatus} />
+                <div className="shrink-0">
+                  <StatusBadge status={currentMonthStatus} />
+                </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-200/60 flex justify-between items-baseline">
-                <span className={`text-2xl font-black font-display ${outstandingDue > 0 ? "text-rose-600" : "text-emerald-600"}`}>
+              <div className="pt-2 border-t border-slate-200/60 flex justify-between items-baseline gap-2">
+                <span className={`text-xl sm:text-2xl font-black font-display truncate ${outstandingDue > 0 ? "text-rose-600" : "text-emerald-600"}`} title={formatCurrency(outstandingDue, currency)}>
                   {formatCurrency(outstandingDue, currency)}
                 </span>
-                <span className="text-[10px] font-extrabold text-slate-500">
+                <span className="text-[10px] font-extrabold text-slate-500 shrink-0">
                   {latestConfirmation !== "No payments confirmed yet" ? "Paid recently" : "Fee log"}
                 </span>
               </div>
@@ -722,19 +747,19 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
               href={`/student/batches/${batchId}/payments`}
               className="w-full py-3 bg-[#0A192F] text-white hover:bg-[#1E3A8A] rounded-2xl font-black text-xs transition-all flex items-center justify-center gap-2 shadow-2xs"
             >
-              <CreditCard className="w-4 h-4" />
-              <span>Make a Payment / View Log</span>
+              <CreditCard className="w-4 h-4 shrink-0" />
+              <span className="truncate">Make a Payment / View Log</span>
             </Link>
           </div>
 
           {/* Batch Progress Meter (Realistic based on actual exams & materials) */}
-          <div className="bg-white p-6 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-5">
+          <div className="bg-white p-5 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-5 min-w-0">
             <h3 className="text-sm font-black font-display text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <Activity className="h-4.5 w-4.5 text-emerald-600" />
+              <Activity className="h-4.5 w-4.5 text-emerald-600 shrink-0" />
               <span>Batch Progress</span>
             </h3>
 
-            <div className="flex items-center gap-5 pt-1">
+            <div className="flex flex-col sm:flex-row items-center gap-5 pt-1">
               {/* Circular Donut Gauge SVG */}
               <div className="relative w-22 h-22 flex items-center justify-center shrink-0">
                 <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
@@ -762,11 +787,11 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
               </div>
 
               {/* 3 Progress Bars */}
-              <div className="flex-1 space-y-3">
+              <div className="w-full sm:flex-1 space-y-3 min-w-0">
                 <div>
                   <div className="flex justify-between text-[11px] font-extrabold text-slate-700 mb-1">
-                    <span>Study Materials</span>
-                    <span>{materialsCount} items</span>
+                    <span className="truncate pr-2">Study Materials</span>
+                    <span className="shrink-0">{materialsCount} items</span>
                   </div>
                   <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min(materialsCount * 20, 100)}%` }} />
@@ -775,8 +800,8 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
 
                 <div>
                   <div className="flex justify-between text-[11px] font-extrabold text-slate-700 mb-1">
-                    <span>Exams Graded</span>
-                    <span>{publishedBatchResults.length} / {totalExamsCount || 1}</span>
+                    <span className="truncate pr-2">Exams Graded</span>
+                    <span className="shrink-0">{publishedBatchResults.length} / {totalExamsCount || 1}</span>
                   </div>
                   <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${totalExamsCount > 0 ? Math.round((publishedBatchResults.length / totalExamsCount) * 100) : 0}%` }} />
@@ -785,8 +810,8 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
 
                 <div>
                   <div className="flex justify-between text-[11px] font-extrabold text-slate-700 mb-1">
-                    <span>Average Score</span>
-                    <span>{avgPercentage}%</span>
+                    <span className="truncate pr-2">Average Score</span>
+                    <span className="shrink-0">{avgPercentage}%</span>
                   </div>
                   <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full bg-purple-500 rounded-full" style={{ width: `${avgPercentage}%` }} />
@@ -797,28 +822,28 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
           </div>
 
           {/* Quick Actions Grid (Exactly the 4 real modules of our system) */}
-          <div className="bg-white p-6 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-4">
+          <div className="bg-white p-5 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-4 min-w-0">
             <h3 className="text-sm font-black font-display text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <Sparkles className="h-4.5 w-4.5 text-amber-500" />
+              <Sparkles className="h-4.5 w-4.5 text-amber-500 shrink-0" />
               <span>Quick Actions</span>
             </h3>
 
-            <div className="grid grid-cols-2 gap-3 text-center text-xs">
-              <Link href={`/student/batches/${batchId}/materials`} className="p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center gap-2 group shadow-2xs">
-                <FileText className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors" />
-                <span className="font-extrabold">Study Materials</span>
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 text-center text-xs">
+              <Link href={`/student/batches/${batchId}/materials`} className="p-3.5 sm:p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center justify-center gap-2 group shadow-2xs min-w-0">
+                <FileText className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors shrink-0" />
+                <span className="font-extrabold truncate w-full">Materials</span>
               </Link>
-              <Link href={`/student/batches/${batchId}/exams`} className="p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center gap-2 group shadow-2xs">
-                <GraduationCap className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors" />
-                <span className="font-extrabold">Exams &amp; Schedule</span>
+              <Link href={`/student/batches/${batchId}/exams`} className="p-3.5 sm:p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center justify-center gap-2 group shadow-2xs min-w-0">
+                <GraduationCap className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors shrink-0" />
+                <span className="font-extrabold truncate w-full">Schedule</span>
               </Link>
-              <Link href={`/student/batches/${batchId}/results`} className="p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center gap-2 group shadow-2xs">
-                <Award className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors" />
-                <span className="font-extrabold">My Results</span>
+              <Link href={`/student/batches/${batchId}/results`} className="p-3.5 sm:p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center justify-center gap-2 group shadow-2xs min-w-0">
+                <Award className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors shrink-0" />
+                <span className="font-extrabold truncate w-full">My Results</span>
               </Link>
-              <Link href={`/student/batches/${batchId}/payments`} className="p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center gap-2 group shadow-2xs">
-                <CreditCard className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors" />
-                <span className="font-extrabold">Fee Payments</span>
+              <Link href={`/student/batches/${batchId}/payments`} className="p-3.5 sm:p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center justify-center gap-2 group shadow-2xs min-w-0">
+                <CreditCard className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors shrink-0" />
+                <span className="font-extrabold truncate w-full">Payments</span>
               </Link>
             </div>
           </div>

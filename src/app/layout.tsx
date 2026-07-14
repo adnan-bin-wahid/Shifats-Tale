@@ -4,6 +4,7 @@ import "./globals.css";
 import { getGlobalSettings } from "@/features/website-cms/actions/global-settings";
 import { SiteSettingsProvider } from "@/lib/providers/SiteSettingsProvider";
 import { Toaster } from "react-hot-toast";
+import { InitialSplashLoader } from "@/components/common/InitialSplashLoader";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -58,6 +59,7 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-bg-soft font-sans" suppressHydrationWarning>
         <SiteSettingsProvider settings={settings}>
+          <InitialSplashLoader />
           {children}
           <Toaster position="top-center" toastOptions={{ duration: 4000 }} />
         </SiteSettingsProvider>

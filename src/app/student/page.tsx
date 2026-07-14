@@ -322,33 +322,33 @@ export default async function StudentDashboardPage() {
   return (
     <div className="space-y-8 text-xs font-bold text-primary max-w-[1500px] mx-auto pb-12">
       {/* 1. Header Row */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 sm:p-7 rounded-3xl border border-border/60 shadow-xs">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black font-display text-slate-900 tracking-tight flex items-center gap-2.5">
-            <span>Welcome back, {profile.full_name}</span>
-            <span className="animate-wave inline-block">👋</span>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 bg-white p-5 sm:p-7 rounded-3xl border border-border/60 shadow-xs">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black font-display text-slate-900 tracking-tight flex items-center gap-2 flex-wrap">
+            <span className="break-words">Welcome back, {profile.full_name}</span>
+            <span className="animate-wave inline-block shrink-0">👋</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 font-semibold mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 font-semibold mt-1 leading-relaxed">
             Stay consistent—small efforts today, big results tomorrow.
           </p>
         </div>
-        <div className="flex items-center gap-2.5 bg-slate-50/80 px-4 py-2.5 rounded-2xl border border-slate-200/80 shadow-2xs self-start md:self-auto">
-          <span className="text-[10px] text-muted uppercase tracking-wider font-extrabold">Student ID:</span>
-          <span className="text-xs font-black text-[#0A192F] font-display">
+        <div className="flex items-center gap-2.5 bg-slate-50/90 px-4 py-2.5 rounded-2xl border border-slate-200/80 shadow-2xs self-start md:self-auto shrink-0 max-w-full">
+          <span className="text-[10px] sm:text-xs text-muted uppercase tracking-wider font-extrabold shrink-0">Student ID:</span>
+          <span className="text-xs sm:text-sm font-black text-[#0A192F] font-display truncate">
             {studentProfile.student_code}
           </span>
         </div>
       </div>
 
       {/* 2. Micro-Alerts Banner Row (4 Pill Cards exactly like UI Mockup) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-4">
         {/* Banner 1: Needs Attention */}
-        <div className="bg-amber-50/80 border border-amber-200/80 p-4 rounded-2xl flex items-center gap-3.5 shadow-2xs hover:shadow-sm transition-all">
+        <div className="bg-amber-50/90 border border-amber-200/80 p-4 rounded-2xl flex items-center gap-3.5 shadow-2xs hover:shadow-sm transition-all min-w-0">
           <div className="p-2.5 bg-amber-100/90 text-amber-800 rounded-xl shrink-0">
             <AlertCircle className="w-5 h-5" />
           </div>
-          <div className="overflow-hidden">
-            <div className="text-xs font-black text-amber-900 leading-tight">Needs Attention</div>
+          <div className="min-w-0 flex-1">
+            <div className="text-xs font-black text-amber-900 leading-tight truncate">Needs Attention</div>
             <div className="text-[11px] font-semibold text-amber-800/80 truncate mt-0.5">
               {totalActionItems > 0 ? `${totalActionItems} item${totalActionItems > 1 ? 's' : ''} need your action` : 'No action needed right now'}
             </div>
@@ -356,12 +356,12 @@ export default async function StudentDashboardPage() {
         </div>
 
         {/* Banner 2: Payment Due */}
-        <Link href="/student/payments" className="bg-rose-50/80 border border-rose-200/80 p-4 rounded-2xl flex items-center gap-3.5 shadow-2xs hover:shadow-sm transition-all group">
+        <Link href="/student/payments" className="bg-rose-50/90 border border-rose-200/80 p-4 rounded-2xl flex items-center gap-3.5 shadow-2xs hover:shadow-sm transition-all group min-w-0">
           <div className="p-2.5 bg-rose-100/90 text-rose-800 rounded-xl shrink-0 group-hover:scale-105 transition-transform">
             <CreditCard className="w-5 h-5" />
           </div>
-          <div className="overflow-hidden">
-            <div className="text-xs font-black text-rose-900 leading-tight">
+          <div className="min-w-0 flex-1">
+            <div className="text-xs font-black text-rose-900 leading-tight truncate">
               {totalDueThisMonth > 0 ? `${pendingCountThisMonth} Payment Due` : 'All Paid'}
             </div>
             <div className="text-[11px] font-extrabold text-rose-800/90 truncate mt-0.5">
@@ -371,12 +371,12 @@ export default async function StudentDashboardPage() {
         </Link>
 
         {/* Banner 3: Unread Alert */}
-        <Link href="/student/notifications" className="bg-purple-50/80 border border-purple-200/80 p-4 rounded-2xl flex items-center gap-3.5 shadow-2xs hover:shadow-sm transition-all group">
+        <Link href="/student/notifications" className="bg-purple-50/90 border border-purple-200/80 p-4 rounded-2xl flex items-center gap-3.5 shadow-2xs hover:shadow-sm transition-all group min-w-0">
           <div className="p-2.5 bg-purple-100/90 text-purple-800 rounded-xl shrink-0 group-hover:scale-105 transition-transform">
             <Bell className="w-5 h-5" />
           </div>
-          <div className="overflow-hidden">
-            <div className="text-xs font-black text-purple-900 leading-tight">
+          <div className="min-w-0 flex-1">
+            <div className="text-xs font-black text-purple-900 leading-tight truncate">
               {unreadCount || 0} Unread Alert{(unreadCount || 0) === 1 ? '' : 's'}
             </div>
             <div className="text-[11px] font-semibold text-purple-800/80 truncate mt-0.5">
@@ -386,12 +386,12 @@ export default async function StudentDashboardPage() {
         </Link>
 
         {/* Banner 4: Next Class */}
-        <div className="bg-white border border-slate-200/80 p-4 rounded-2xl flex items-center gap-3.5 shadow-2xs hover:shadow-sm transition-all">
+        <div className="bg-white border border-slate-200/80 p-4 rounded-2xl flex items-center gap-3.5 shadow-2xs hover:shadow-sm transition-all min-w-0">
           <div className="p-2.5 bg-slate-100 text-slate-700 rounded-xl shrink-0">
             <Calendar className="w-5 h-5" />
           </div>
-          <div className="overflow-hidden">
-            <div className="text-xs font-black text-slate-800 leading-tight">Next Class</div>
+          <div className="min-w-0 flex-1">
+            <div className="text-xs font-black text-slate-800 leading-tight truncate">Next Class</div>
             <div className="text-[11px] font-bold text-slate-600 truncate mt-0.5">
               {nextClassInfo ? `${nextClassInfo.text} • ${nextClassInfo.batchName}` : "Schedule not configured"}
             </div>
@@ -400,66 +400,66 @@ export default async function StudentDashboardPage() {
       </div>
 
       {/* 3. Big Metric Cards Row (4 White Cards with Icons & Navigation Arrows) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
         {/* Card 1: Active Batches */}
-        <Link href="/student/profile" className="bg-white border border-border/60 p-6 rounded-3xl shadow-xs hover:shadow-md transition-all group flex flex-col justify-between">
+        <Link href="/student/profile" className="bg-white border border-border/60 p-5 sm:p-6 rounded-3xl shadow-xs hover:shadow-md transition-all group flex flex-col justify-between min-w-0 overflow-hidden">
           <div className="flex items-center justify-between">
-            <div className="p-3.5 bg-blue-50/90 text-blue-700 rounded-2xl border border-blue-100 group-hover:scale-105 transition-transform">
+            <div className="p-3.5 bg-blue-50/90 text-blue-700 rounded-2xl border border-blue-100 shrink-0 group-hover:scale-105 transition-transform">
               <BookOpen className="h-6 w-6" />
             </div>
-            <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+            <ChevronRight className="w-5 h-5 text-slate-400 shrink-0 group-hover:text-primary group-hover:translate-x-1 transition-all" />
           </div>
-          <div className="mt-5">
-            <span className="text-3xl font-black text-slate-900 font-display block leading-none">{activeBatchCount}</span>
-            <span className="text-xs font-black text-slate-800 block mt-1.5">Active Batches</span>
-            <span className="text-[11px] text-slate-500 font-semibold block mt-0.5">Keep up the great work!</span>
+          <div className="mt-5 min-w-0">
+            <span className="text-2xl sm:text-3xl font-black text-slate-900 font-display block leading-none truncate">{activeBatchCount}</span>
+            <span className="text-xs font-black text-slate-800 block mt-1.5 truncate">Active Batches</span>
+            <span className="text-[11px] text-slate-500 font-semibold block mt-0.5 truncate">Keep up the great work!</span>
           </div>
         </Link>
 
         {/* Card 2: Unread Alerts */}
-        <Link href="/student/notifications" className="bg-white border border-border/60 p-6 rounded-3xl shadow-xs hover:shadow-md transition-all group flex flex-col justify-between">
+        <Link href="/student/notifications" className="bg-white border border-border/60 p-5 sm:p-6 rounded-3xl shadow-xs hover:shadow-md transition-all group flex flex-col justify-between min-w-0 overflow-hidden">
           <div className="flex items-center justify-between">
-            <div className="p-3.5 bg-purple-50/90 text-purple-700 rounded-2xl border border-purple-100 group-hover:scale-105 transition-transform">
+            <div className="p-3.5 bg-purple-50/90 text-purple-700 rounded-2xl border border-purple-100 shrink-0 group-hover:scale-105 transition-transform">
               <Bell className="h-6 w-6" />
             </div>
-            <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+            <ChevronRight className="w-5 h-5 text-slate-400 shrink-0 group-hover:text-primary group-hover:translate-x-1 transition-all" />
           </div>
-          <div className="mt-5">
-            <span className="text-3xl font-black text-slate-900 font-display block leading-none">{unreadCount || 0}</span>
-            <span className="text-xs font-black text-slate-800 block mt-1.5">Unread Alerts</span>
-            <span className="text-[11px] text-slate-500 font-semibold block mt-0.5">Check your updates</span>
+          <div className="mt-5 min-w-0">
+            <span className="text-2xl sm:text-3xl font-black text-slate-900 font-display block leading-none truncate">{unreadCount || 0}</span>
+            <span className="text-xs font-black text-slate-800 block mt-1.5 truncate">Unread Alerts</span>
+            <span className="text-[11px] text-slate-500 font-semibold block mt-0.5 truncate">Check your updates</span>
           </div>
         </Link>
 
         {/* Card 3: Due this Month */}
-        <Link href="/student/payments" className="bg-white border border-border/60 p-6 rounded-3xl shadow-xs hover:shadow-md transition-all group flex flex-col justify-between">
+        <Link href="/student/payments" className="bg-white border border-border/60 p-5 sm:p-6 rounded-3xl shadow-xs hover:shadow-md transition-all group flex flex-col justify-between min-w-0 overflow-hidden">
           <div className="flex items-center justify-between">
-            <div className="p-3.5 bg-rose-50/90 text-rose-700 rounded-2xl border border-rose-100 group-hover:scale-105 transition-transform">
+            <div className="p-3.5 bg-rose-50/90 text-rose-700 rounded-2xl border border-rose-100 shrink-0 group-hover:scale-105 transition-transform">
               <CreditCard className="h-6 w-6" />
             </div>
-            <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+            <ChevronRight className="w-5 h-5 text-slate-400 shrink-0 group-hover:text-primary group-hover:translate-x-1 transition-all" />
           </div>
-          <div className="mt-5">
-            <span className="text-2xl sm:text-3xl font-black text-slate-900 font-display block leading-none">{formatCurrency(totalDueThisMonth, currency)}</span>
-            <span className="text-xs font-black text-slate-800 block mt-1.5">Due this Month</span>
-            <span className="text-[11px] text-slate-500 font-semibold block mt-0.5">
+          <div className="mt-5 min-w-0">
+            <span className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 font-display block leading-none truncate" title={formatCurrency(totalDueThisMonth, currency)}>{formatCurrency(totalDueThisMonth, currency)}</span>
+            <span className="text-xs font-black text-slate-800 block mt-1.5 truncate">Due this Month</span>
+            <span className="text-[11px] text-slate-500 font-semibold block mt-0.5 truncate">
               {pendingCountThisMonth > 0 ? `${pendingCountThisMonth} payment pending` : 'All cleared for this month'}
             </span>
           </div>
         </Link>
 
         {/* Card 4: Outstanding Due */}
-        <Link href="/student/payments" className="bg-white border border-border/60 p-6 rounded-3xl shadow-xs hover:shadow-md transition-all group flex flex-col justify-between">
+        <Link href="/student/payments" className="bg-white border border-border/60 p-5 sm:p-6 rounded-3xl shadow-xs hover:shadow-md transition-all group flex flex-col justify-between min-w-0 overflow-hidden">
           <div className="flex items-center justify-between">
-            <div className="p-3.5 bg-amber-50/90 text-amber-700 rounded-2xl border border-amber-100 group-hover:scale-105 transition-transform">
+            <div className="p-3.5 bg-amber-50/90 text-amber-700 rounded-2xl border border-amber-100 shrink-0 group-hover:scale-105 transition-transform">
               <TrendingUp className="h-6 w-6" />
             </div>
-            <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+            <ChevronRight className="w-5 h-5 text-slate-400 shrink-0 group-hover:text-primary group-hover:translate-x-1 transition-all" />
           </div>
-          <div className="mt-5">
-            <span className="text-2xl sm:text-3xl font-black text-slate-900 font-display block leading-none">{formatCurrency(totalOutstandingDue, currency)}</span>
-            <span className="text-xs font-black text-slate-800 block mt-1.5">Outstanding Due</span>
-            <span className="text-[11px] text-slate-500 font-semibold block mt-0.5">View billing details</span>
+          <div className="mt-5 min-w-0">
+            <span className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 font-display block leading-none truncate" title={formatCurrency(totalOutstandingDue, currency)}>{formatCurrency(totalOutstandingDue, currency)}</span>
+            <span className="text-xs font-black text-slate-800 block mt-1.5 truncate">Outstanding Due</span>
+            <span className="text-[11px] text-slate-500 font-semibold block mt-0.5 truncate">View billing details</span>
           </div>
         </Link>
       </div>
@@ -470,19 +470,19 @@ export default async function StudentDashboardPage() {
         <div className="lg:col-span-2 space-y-8">
           
           {/* Active Batches Section */}
-          <div className="bg-white p-6 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-5">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+          <div className="bg-white p-5 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-5 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
               <h3 className="text-base font-black font-display text-slate-900 flex items-center gap-2.5">
-                <BookOpen className="h-5 w-5 text-primary" />
+                <BookOpen className="h-5 w-5 text-primary shrink-0" />
                 <span>Active Batches</span>
               </h3>
-              <span className="text-xs font-extrabold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+              <span className="text-xs font-extrabold text-slate-500 bg-slate-100 px-3 py-1 rounded-full self-start sm:self-auto">
                 Joined {activeBatchCount} Batch{activeBatchCount === 1 ? '' : 'es'}
               </span>
             </div>
 
             {activeBatchCount > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                 {activeEnrollments.map((enr) => {
                   const batch = enr.batches;
                   const payment = currentPayments.find(p => p.batch_id === enr.batch_id);
@@ -496,13 +496,13 @@ export default async function StudentDashboardPage() {
                   ) as any;
 
                   return (
-                    <div key={enr.id} className="p-5 border border-slate-200/80 rounded-2xl bg-white flex flex-col justify-between hover:shadow-md hover:border-slate-300 transition-all group">
-                      <div className="space-y-3.5">
-                        <div className="flex justify-between items-start">
-                          <span className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-[10px] font-black uppercase tracking-wider">
+                    <div key={enr.id} className="p-4 sm:p-5 border border-slate-200/80 rounded-2xl bg-white flex flex-col justify-between hover:shadow-md hover:border-slate-300 transition-all group min-w-0">
+                      <div className="space-y-3.5 min-w-0">
+                        <div className="flex justify-between items-start gap-2">
+                          <span className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-[10px] font-black uppercase tracking-wider shrink-0">
                             {batch?.code}
                           </span>
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 ${
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shrink-0 ${
                             isPaid 
                               ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
                               : "bg-amber-50 text-amber-800 border border-amber-200"
@@ -512,27 +512,27 @@ export default async function StudentDashboardPage() {
                           </span>
                         </div>
 
-                        <div>
-                          <h4 className="text-sm font-black text-slate-900 line-clamp-1">{batch?.name}</h4>
-                          <span className="text-xs text-slate-500 block mt-1 font-semibold">
+                        <div className="min-w-0">
+                          <h4 className="text-sm font-black text-slate-900 truncate" title={batch?.name}>{batch?.name}</h4>
+                          <span className="text-xs text-slate-500 block mt-1 font-semibold truncate" title={`Level: ${batch?.academic_level || 'N/A'} • Subject: ${batch?.subject || 'General'}`}>
                             Level: {batch?.academic_level || 'N/A'} &bull; Subject: {batch?.subject || 'General'}
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
-                          <div className="bg-slate-50/80 p-2.5 rounded-xl border border-slate-100">
-                            <span className="text-[10px] text-muted block font-extrabold uppercase flex items-center gap-1">
-                              <Calendar className="w-3 h-3 text-primary" /> Next Class
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3 border-t border-slate-100">
+                          <div className="bg-slate-50/80 p-2.5 rounded-xl border border-slate-100 min-w-0">
+                            <span className="text-[10px] text-muted font-extrabold uppercase flex items-center gap-1">
+                              <Calendar className="w-3 h-3 text-primary shrink-0" /> Next Class
                             </span>
-                            <span className="text-xs font-extrabold text-slate-800 block mt-1 truncate">
+                            <span className="text-xs font-extrabold text-slate-800 block mt-1 truncate" title={schedule?.time || "Not configured"}>
                               {schedule?.time || "Not configured"}
                             </span>
                           </div>
-                          <div className="bg-slate-50/80 p-2.5 rounded-xl border border-slate-100">
-                            <span className="text-[10px] text-muted block font-extrabold uppercase flex items-center gap-1">
-                              <Clock className="w-3 h-3 text-primary" /> Schedule
+                          <div className="bg-slate-50/80 p-2.5 rounded-xl border border-slate-100 min-w-0">
+                            <span className="text-[10px] text-muted font-extrabold uppercase flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-primary shrink-0" /> Schedule
                             </span>
-                            <span className="text-xs font-extrabold text-slate-800 block mt-1 truncate">
+                            <span className="text-xs font-extrabold text-slate-800 block mt-1 truncate" title={schedule?.days || "Not configured"}>
                               {schedule?.days || "Not configured"}
                             </span>
                           </div>
@@ -545,7 +545,7 @@ export default async function StudentDashboardPage() {
                           className="w-full py-2.5 bg-[#0A192F] text-white hover:bg-[#1E3A8A] rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 shadow-xs group-hover:shadow-md"
                         >
                           <span>Open Batch Console</span>
-                          <ArrowUpRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                          <ArrowUpRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform shrink-0" />
                         </Link>
                       </div>
                     </div>
@@ -561,45 +561,47 @@ export default async function StudentDashboardPage() {
             )}
           </div>
 
-          {/* Upcoming Examinations Timeline Card */}
-          <div className="bg-white p-6 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-5">
+          {/* Upcoming Examinations Card */}
+          <div className="bg-white p-5 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-5 min-w-0">
             <div className="flex justify-between items-center border-b border-slate-100 pb-4">
               <h3 className="text-base font-black font-display text-slate-900 flex items-center gap-2.5">
-                <Calendar className="h-5 w-5 text-primary" />
+                <Calendar className="h-5 w-5 text-primary shrink-0" />
                 <span>Upcoming Examinations</span>
               </h3>
-              <Link href="/student/exams" className="text-xs font-bold text-primary hover:text-accent flex items-center gap-1">
+              <Link href="/student/exams" className="text-xs font-bold text-primary hover:text-accent flex items-center gap-1 shrink-0">
                 <span>View All</span>
                 <ChevronRight className="h-3.5 w-3.5" />
               </Link>
             </div>
 
             {upcomingExams.length > 0 ? (
-              <div className="border-l-2 border-slate-200 ml-3 sm:ml-5 pl-5 sm:pl-7 space-y-6 relative py-1">
+              <div className="space-y-3.5">
                 {upcomingExams.map((exam) => {
                   const dateObj = new Date(exam.exam_date);
                   const monthName = dateObj.toLocaleString("default", { month: "short" }).toUpperCase();
                   const dayNum = dateObj.getDate();
-                  const dayOfWeek = dateObj.toLocaleString("default", { weekday: "long" });
+                  const dayOfWeek = dateObj.toLocaleString("default", { weekday: "short" });
 
                   return (
-                    <div key={exam.id} className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 group">
-                      {/* Timeline Circular Dot / Badge on line */}
-                      <div className="absolute -left-[35px] sm:-left-[43px] top-0 sm:top-1 w-10 h-11 bg-white border-2 border-[#0A192F] rounded-xl flex flex-col items-center justify-center shadow-xs text-center group-hover:scale-110 group-hover:bg-[#0A192F] group-hover:text-white transition-all">
-                        <span className="text-[9px] font-black leading-none uppercase">{monthName}</span>
-                        <span className="text-sm font-black leading-tight mt-0.5">{dayNum}</span>
+                    <div key={exam.id} className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 hover:border-slate-300 hover:bg-white transition-all group min-w-0">
+                      <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+                        {/* Box Date Badge (Safe on all mobile screens) */}
+                        <div className="w-12 h-13 bg-white border-2 border-[#0A192F] rounded-xl flex flex-col items-center justify-center shadow-2xs text-center shrink-0 group-hover:bg-[#0A192F] group-hover:text-white transition-all">
+                          <span className="text-[9px] font-black leading-none uppercase">{monthName}</span>
+                          <span className="text-base font-black leading-tight mt-0.5">{dayNum}</span>
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-black text-sm text-slate-900 group-hover:text-primary transition-colors truncate" title={exam.name}>{exam.name}</h4>
+                          <p className="text-xs text-slate-500 font-semibold mt-0.5 truncate" title={`${(exam.batches as any)?.name || ''} • ${exam.exam_type.replace("_", " ")}`}>
+                            {(exam.batches as any)?.name} &bull; <span className="text-primary font-bold">{exam.exam_type.replace("_", " ")}</span>
+                          </p>
+                        </div>
                       </div>
 
-                      <div className="pl-6 sm:pl-3">
-                        <h4 className="font-black text-sm text-slate-900 group-hover:text-primary transition-colors">{exam.name}</h4>
-                        <p className="text-xs text-slate-500 font-semibold mt-0.5">
-                          {(exam.batches as any)?.name} &bull; <span className="text-primary font-bold">{exam.exam_type.replace("_", " ")}</span>
-                        </p>
-                      </div>
-
-                      <div className="pl-6 sm:pl-0 sm:text-right">
-                        <span className="font-extrabold text-slate-800 text-xs block">{exam.exam_date}</span>
-                        <span className="text-[11px] text-slate-500 font-semibold block mt-0.5">{dayOfWeek}</span>
+                      <div className="flex sm:flex-col justify-between sm:justify-center items-center sm:items-end gap-1 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60 shrink-0 text-xs font-extrabold text-slate-800">
+                        <span>{exam.exam_date}</span>
+                        <span className="text-[11px] text-slate-500 font-semibold">{dayOfWeek}</span>
                       </div>
                     </div>
                   );
@@ -614,13 +616,13 @@ export default async function StudentDashboardPage() {
           </div>
 
           {/* Recent Results Ledger & Trend Table */}
-          <div className="bg-white p-6 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-5">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+          <div className="bg-white p-5 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-5 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
               <h3 className="text-base font-black font-display text-slate-900 flex items-center gap-2.5">
-                <Award className="h-5 w-5 text-primary" />
+                <Award className="h-5 w-5 text-primary shrink-0" />
                 <span>Recent Results</span>
               </h3>
-              <Link href="/student/results" className="text-xs font-bold text-primary hover:text-accent flex items-center gap-1">
+              <Link href="/student/results" className="text-xs font-bold text-primary hover:text-accent flex items-center gap-1 self-start sm:self-auto">
                 <span>View Performance Ledger</span>
                 <ChevronRight className="h-3.5 w-3.5" />
               </Link>
@@ -628,8 +630,8 @@ export default async function StudentDashboardPage() {
 
             {recentPublishedResults.length > 0 ? (
               <div className="space-y-4">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs font-bold text-slate-800">
+                <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
+                  <table className="w-full text-left text-xs font-bold text-slate-800 min-w-[550px]">
                     <thead>
                       <tr className="border-b border-slate-200 text-slate-400 uppercase text-[10px] font-black tracking-wider">
                         <th className="pb-3 pl-2">Exam</th>
@@ -662,8 +664,8 @@ export default async function StudentDashboardPage() {
 
                         return (
                           <tr key={r.id} className="hover:bg-slate-50/80 transition-colors group">
-                            <td className="py-3.5 pl-2 font-black text-slate-900 group-hover:text-primary transition-colors">{r.exam.name}</td>
-                            <td className="py-3.5 text-slate-500 font-semibold truncate max-w-[150px]">{(r.exam.batches as any)?.name}</td>
+                            <td className="py-3.5 pl-2 font-black text-slate-900 group-hover:text-primary transition-colors max-w-[160px] truncate" title={r.exam.name}>{r.exam.name}</td>
+                            <td className="py-3.5 text-slate-500 font-semibold truncate max-w-[140px]" title={(r.exam.batches as any)?.name || ''}>{(r.exam.batches as any)?.name}</td>
                             <td className="py-3.5 text-center font-extrabold">
                               {isAbs ? (
                                 <span className="text-rose-700 bg-rose-50 border border-rose-200 rounded-md px-2 py-0.5 text-[10px]">ABSENT</span>
@@ -690,7 +692,7 @@ export default async function StudentDashboardPage() {
                             <td className="py-3.5 text-right pr-2">
                               <Link 
                                 href={`/student/batches/${r.exam.batch_id}/exams/${r.exam.id}`} 
-                                className="px-3 py-1.5 text-xs font-extrabold bg-slate-100 hover:bg-[#0A192F] hover:text-white text-slate-700 rounded-xl transition-all inline-block"
+                                className="px-3 py-1.5 text-xs font-extrabold bg-slate-100 hover:bg-[#0A192F] hover:text-white text-slate-700 rounded-xl transition-all inline-block shrink-0"
                               >
                                 View Details
                               </Link>
@@ -715,66 +717,67 @@ export default async function StudentDashboardPage() {
         </div>
 
         {/* Right Column (Sidebar - Span 1): Quick Actions, Billing, Materials, Notices, Insights */}
-        <div className="space-y-8">
+        {/* Right Column (Sidebar - Span 1): Quick Actions, Billing, Materials, Notices, Insights */}
+        <div className="space-y-6 sm:space-y-8 min-w-0">
           
           {/* Quick Actions Card */}
-          <div className="bg-white p-6 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-4">
+          <div className="bg-white p-5 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-4 min-w-0">
             <h3 className="text-sm font-black font-display text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <Zap className="h-4.5 w-4.5 text-amber-500" />
+              <Zap className="h-4.5 w-4.5 text-amber-500 shrink-0" />
               <span>Quick Actions</span>
             </h3>
-            <div className="grid grid-cols-2 gap-3 text-center text-xs">
-              <Link href="/student/profile" className="p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center gap-2 group shadow-2xs">
-                <User className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors" />
-                <span className="font-extrabold">My Profile</span>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-2.5 sm:gap-3 text-center text-xs">
+              <Link href="/student/profile" className="p-3.5 sm:p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center justify-center gap-2 group shadow-2xs min-w-0">
+                <User className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors shrink-0" />
+                <span className="font-extrabold truncate w-full">My Profile</span>
               </Link>
-              <Link href="/student/payments" className="p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center gap-2 group shadow-2xs">
-                <CreditCard className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors" />
-                <span className="font-extrabold">Payments</span>
+              <Link href="/student/payments" className="p-3.5 sm:p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center justify-center gap-2 group shadow-2xs min-w-0">
+                <CreditCard className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors shrink-0" />
+                <span className="font-extrabold truncate w-full">Payments</span>
               </Link>
-              <Link href="/student/results" className="p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center gap-2 group shadow-2xs">
-                <Award className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors" />
-                <span className="font-extrabold">Report Cards</span>
+              <Link href="/student/results" className="p-3.5 sm:p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center justify-center gap-2 group shadow-2xs min-w-0">
+                <Award className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors shrink-0" />
+                <span className="font-extrabold truncate w-full">Report Cards</span>
               </Link>
-              <Link href="/student/exams" className="p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center gap-2 group shadow-2xs">
-                <GraduationCap className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors" />
-                <span className="font-extrabold">Examinations</span>
+              <Link href="/student/exams" className="p-3.5 sm:p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center justify-center gap-2 group shadow-2xs min-w-0">
+                <GraduationCap className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors shrink-0" />
+                <span className="font-extrabold truncate w-full">Examinations</span>
               </Link>
-              <Link href="/student/profile" className="p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center gap-2 group shadow-2xs">
-                <FileText className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors" />
-                <span className="font-extrabold">Study Materials</span>
+              <Link href="/student/profile" className="p-3.5 sm:p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center justify-center gap-2 group shadow-2xs min-w-0">
+                <FileText className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors shrink-0" />
+                <span className="font-extrabold truncate w-full">Materials</span>
               </Link>
-              <Link href="/class-routine" className="p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center gap-2 group shadow-2xs">
-                <Calendar className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors" />
-                <span className="font-extrabold">Class Routine</span>
+              <Link href="/class-routine" className="p-3.5 sm:p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center justify-center gap-2 group shadow-2xs min-w-0">
+                <Calendar className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors shrink-0" />
+                <span className="font-extrabold truncate w-full">Class Routine</span>
               </Link>
             </div>
           </div>
 
           {/* Billing Summary Card */}
-          <div className="bg-white p-6 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-5">
+          <div className="bg-white p-5 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-5 min-w-0">
             <h3 className="text-sm font-black font-display text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <CreditCard className="h-4.5 w-4.5 text-primary" />
+              <CreditCard className="h-4.5 w-4.5 text-primary shrink-0" />
               <span>Billing Summary</span>
             </h3>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/60">
-                <span className="text-[10px] text-muted font-black uppercase tracking-wider block">Current Dues</span>
-                <span className="text-xl font-black text-rose-600 font-display block mt-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/60 min-w-0">
+                <span className="text-[10px] text-muted font-black uppercase tracking-wider block truncate">Current Dues</span>
+                <span className="text-lg sm:text-xl font-black text-rose-600 font-display block mt-1 truncate" title={formatCurrency(totalDueThisMonth, currency)}>
                   {formatCurrency(totalDueThisMonth, currency)}
                 </span>
-                <span className="text-[10px] text-slate-500 font-semibold block mt-1">
+                <span className="text-[10px] text-slate-500 font-semibold block mt-1 truncate">
                   {pendingCountThisMonth > 0 ? `${pendingCountThisMonth} invoice pending` : 'All cleared'}
                 </span>
               </div>
 
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/60">
-                <span className="text-[10px] text-muted font-black uppercase tracking-wider block">Outstanding Due</span>
-                <span className="text-xl font-black text-amber-600 font-display block mt-1">
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/60 min-w-0">
+                <span className="text-[10px] text-muted font-black uppercase tracking-wider block truncate">Outstanding Due</span>
+                <span className="text-lg sm:text-xl font-black text-amber-600 font-display block mt-1 truncate" title={formatCurrency(totalOutstandingDue, currency)}>
                   {formatCurrency(totalOutstandingDue, currency)}
                 </span>
-                <span className="text-[10px] text-slate-500 font-semibold block mt-1">
+                <span className="text-[10px] text-slate-500 font-semibold block mt-1 truncate">
                   Total remaining
                 </span>
               </div>
@@ -784,19 +787,19 @@ export default async function StudentDashboardPage() {
               href="/student/payments"
               className="w-full py-3 bg-slate-100 hover:bg-[#0A192F] hover:text-white text-slate-800 rounded-2xl font-black text-xs transition-all flex items-center justify-center gap-2 shadow-2xs"
             >
-              <span>View Billing &amp; History</span>
-              <ChevronRight className="w-4 h-4" />
+              <span className="truncate">View Billing &amp; History</span>
+              <ChevronRight className="w-4 h-4 shrink-0" />
             </Link>
           </div>
 
           {/* Recent Study Materials Card */}
-          <div className="bg-white p-6 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-4">
+          <div className="bg-white p-5 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-4 min-w-0">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="text-sm font-black font-display text-slate-900 flex items-center gap-2">
-                <FileText className="h-4.5 w-4.5 text-primary" />
-                <span>Recent Study Materials</span>
+                <FileText className="h-4.5 w-4.5 text-primary shrink-0" />
+                <span>Study Materials</span>
               </h3>
-              <Link href="/student/profile" className="text-xs font-bold text-primary hover:text-accent">
+              <Link href="/student/profile" className="text-xs font-bold text-primary hover:text-accent shrink-0">
                 View All
               </Link>
             </div>
@@ -806,16 +809,16 @@ export default async function StudentDashboardPage() {
                 {recentMaterials.map((m) => {
                   const isPdf = m.content_type?.toUpperCase().includes("PDF");
                   return (
-                    <div key={m.id} className="p-3.5 bg-slate-50/70 border border-slate-200/70 rounded-2xl flex items-center justify-between gap-3 hover:border-slate-300 transition-all group">
-                      <div className="flex items-center gap-3 overflow-hidden">
+                    <div key={m.id} className="p-3.5 bg-slate-50/70 border border-slate-200/70 rounded-2xl flex items-center justify-between gap-3 hover:border-slate-300 transition-all group min-w-0">
+                      <div className="flex items-center gap-3 overflow-hidden min-w-0 flex-1">
                         <span className={`px-2 py-0.5 rounded text-[9px] font-black shrink-0 ${
                           isPdf ? "bg-rose-100 text-rose-800" : "bg-blue-100 text-blue-800"
                         }`}>
                           {isPdf ? "PDF" : "LINK"}
                         </span>
-                        <div className="overflow-hidden">
-                          <h4 className="font-extrabold text-xs text-slate-900 truncate group-hover:text-primary transition-colors">{m.title}</h4>
-                          <p className="text-[10px] text-slate-500 font-semibold truncate mt-0.5">{m.batches?.name}</p>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-extrabold text-xs text-slate-900 truncate group-hover:text-primary transition-colors" title={m.title}>{m.title}</h4>
+                          <p className="text-[10px] text-slate-500 font-semibold truncate mt-0.5" title={m.batches?.name || ''}>{m.batches?.name}</p>
                         </div>
                       </div>
                       <Link
@@ -836,13 +839,13 @@ export default async function StudentDashboardPage() {
           </div>
 
           {/* Latest Notices Board Card */}
-          <div className="bg-white p-6 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-4">
+          <div className="bg-white p-5 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-4 min-w-0">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="text-sm font-black font-display text-slate-900 flex items-center gap-2">
-                <Bell className="h-4.5 w-4.5 text-primary" />
+                <Bell className="h-4.5 w-4.5 text-primary shrink-0" />
                 <span>Latest Notices</span>
               </h3>
-              <Link href="/student/notifications" className="text-xs font-bold text-primary hover:text-accent">
+              <Link href="/student/notifications" className="text-xs font-bold text-primary hover:text-accent shrink-0">
                 View All
               </Link>
             </div>
@@ -850,17 +853,17 @@ export default async function StudentDashboardPage() {
             {recentAnnouncements.length > 0 ? (
               <div className="space-y-3.5">
                 {recentAnnouncements.map((ann) => (
-                  <div key={ann.id} className="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-1.5 hover:border-slate-300 transition-all">
-                    <div className="flex justify-between items-center">
-                      <span className="px-2 py-0.5 bg-amber-100 text-amber-900 rounded text-[9px] font-black uppercase tracking-wider">
+                  <div key={ann.id} className="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-1.5 hover:border-slate-300 transition-all min-w-0">
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="px-2 py-0.5 bg-amber-100 text-amber-900 rounded text-[9px] font-black uppercase tracking-wider shrink-0">
                         Announcement
                       </span>
-                      <span className="text-[10px] text-slate-400 font-semibold">
+                      <span className="text-[10px] text-slate-400 font-semibold shrink-0">
                         {new Date(ann.published_at || ann.created_at).toLocaleDateString()}
                       </span>
                     </div>
-                    <h4 className="font-extrabold text-xs text-slate-900 leading-snug">{ann.title}</h4>
-                    <p className="text-[11px] text-slate-500 font-semibold line-clamp-2">{ann.message}</p>
+                    <h4 className="font-extrabold text-xs text-slate-900 leading-snug break-words">{ann.title}</h4>
+                    <p className="text-[11px] text-slate-500 font-semibold line-clamp-2 break-words">{ann.message}</p>
                   </div>
                 ))}
                 <div className="text-center pt-1 text-[11px] text-slate-400 font-semibold">
@@ -876,23 +879,23 @@ export default async function StudentDashboardPage() {
 
           {/* Section X: Student Insight Chart (Only shown if data exists as instructed) */}
           {hasValidInsight && (
-            <div className="bg-gradient-to-br from-slate-900 via-[#0A192F] to-indigo-950 p-6 sm:p-7 rounded-3xl text-white shadow-lg space-y-5 relative overflow-hidden border border-slate-800">
+            <div className="bg-gradient-to-br from-slate-900 via-[#0A192F] to-indigo-950 p-5 sm:p-7 rounded-3xl text-white shadow-lg space-y-5 relative overflow-hidden border border-slate-800 min-w-0">
               <div className="flex justify-between items-center border-b border-white/10 pb-3">
                 <h3 className="text-sm font-black font-display flex items-center gap-2 !text-white" style={{ color: '#FFFFFF' }}>
-                  <Sparkles className="h-4.5 w-4.5 text-amber-400" />
+                  <Sparkles className="h-4.5 w-4.5 text-amber-400 shrink-0" />
                   <span>Student Insight</span>
                 </h3>
-                <span className="text-xs font-extrabold text-white/70 bg-white/10 px-3 py-1 rounded-full" style={{ color: '#E2E8F0' }}>
+                <span className="text-xs font-extrabold text-white/70 bg-white/10 px-3 py-1 rounded-full shrink-0" style={{ color: '#E2E8F0' }}>
                   This Month
                 </span>
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <span className="text-xs uppercase tracking-wider text-white/60 font-black block" style={{ color: '#CBD5E1' }}>Average Score</span>
-                <div className="flex items-baseline gap-3 mt-1">
-                  <span className="text-4xl font-black font-display tracking-tight !text-white" style={{ color: '#FFFFFF' }}>{avgPercentage}%</span>
+                <div className="flex flex-wrap items-baseline gap-2 sm:gap-3 mt-1">
+                  <span className="text-3xl sm:text-4xl font-black font-display tracking-tight !text-white" style={{ color: '#FFFFFF' }}>{avgPercentage}%</span>
                   {monthlyGrowth !== 0 && (
-                    <span className={`text-xs font-black px-2 py-0.5 rounded-full flex items-center gap-0.5 ${
+                    <span className={`text-xs font-black px-2 py-0.5 rounded-full flex items-center gap-0.5 shrink-0 ${
                       monthlyGrowth > 0 ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "bg-rose-500/20 text-rose-300 border border-rose-500/30"
                     }`}>
                       {monthlyGrowth > 0 ? `↑ ${monthlyGrowth}%` : `↓ ${Math.abs(monthlyGrowth)}%`} vs last month

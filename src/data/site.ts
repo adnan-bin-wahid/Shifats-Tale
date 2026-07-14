@@ -10,6 +10,7 @@ export interface SiteInfo {
   coachingCenterName: string;
   tagline: string;
   shortDescription: string;
+  logoUrl?: string;
   phone: string;
   whatsapp: string; // WhatsApp API phone number prefix (no plus or spaces, e.g. "8801879169446")
   email: string;
