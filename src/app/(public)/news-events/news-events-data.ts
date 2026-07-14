@@ -146,5 +146,6 @@ export function formatAllNewsEventItems(newsEventItems?: any[]): NewsEventItem[]
     };
   });
 
-  return [...cmsFormatted, ...defaultCuratedItems];
+  // Return strictly the items managed inside the backend CMS. If no items exist in backend, return empty array.
+  return cmsFormatted;
 }
