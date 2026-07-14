@@ -205,32 +205,6 @@ export default function NewsEventDetailClient({
                   </p>
                 ))}
               </div>
-
-              {/* Key Takeaways Box */}
-              <div className="border border-[#E8DDBF]/80 rounded-2xl p-6 bg-[#FFF9F2]/60 space-y-4">
-                <h3 className="text-base sm:text-lg font-bold text-[#010E62] flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-accent shrink-0" />
-                  <span>Important Instructions for Students & Parents</span>
-                </h3>
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs sm:text-sm text-[#4A5568] font-semibold">
-                  <li className="flex items-center gap-2 bg-white p-3 rounded-xl border border-[#E8DDBF]/60 shadow-2xs">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#010E62] shrink-0" />
-                    <span>Bring valid coaching Student ID or Registration Slip</span>
-                  </li>
-                  <li className="flex items-center gap-2 bg-white p-3 rounded-xl border border-[#E8DDBF]/60 shadow-2xs">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#010E62] shrink-0" />
-                    <span>Arrive at least 15 minutes prior to scheduled start</span>
-                  </li>
-                  <li className="flex items-center gap-2 bg-white p-3 rounded-xl border border-[#E8DDBF]/60 shadow-2xs">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#010E62] shrink-0" />
-                    <span>Solved sheets & marks published in Student Portal</span>
-                  </li>
-                  <li className="flex items-center gap-2 bg-white p-3 rounded-xl border border-[#E8DDBF]/60 shadow-2xs">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#010E62] shrink-0" />
-                    <span>For urgent queries, contact reception counter</span>
-                  </li>
-                </ul>
-              </div>
             </div>
           </div>
 
