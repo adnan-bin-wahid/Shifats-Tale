@@ -33,11 +33,13 @@ export { defaultCuratedItems, formatAllNewsEventItems };
 export default function NewsEventsClient({
   heroData,
   newsEventItems = [],
+  categories = ["EVENT", "NOTICE", "NEWS"],
 }: {
   heroData?: any;
   newsEventItems?: any[];
+  categories?: string[];
 }) {
-  const [activeTab, setActiveTab] = useState<"ALL" | "EVENT" | "NOTICE" | "NEWS">("ALL");
+  const [activeTab, setActiveTab] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
 
   const allItems: NewsEventItem[] = useMemo(() => {
@@ -59,8 +61,8 @@ export default function NewsEventsClient({
 
   const featuredItem = allItems.find((item) => item.isFeatured) || allItems[0];
 
-  const getCategoryBadge = (category: "EVENT" | "NOTICE" | "NEWS") => {
-    switch (category) {
+  const getCategoryBadge = (category: string) => {
+    switch (category.toUpperCase()) {
       case "EVENT":
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-teal-600/15 text-teal-700 dark:text-teal-400 border border-teal-500/30">
@@ -80,6 +82,13 @@ export default function NewsEventsClient({
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-[#010E62]/15 text-[#010E62] dark:bg-blue-400/15 dark:text-blue-400 border border-[#010E62]/30 dark:border-blue-400/30">
             <Trophy className="w-3.5 h-3.5" />
             <span>News & Success</span>
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-indigo-600/15 text-indigo-700 dark:text-indigo-400 border border-indigo-500/30">
+            <Filter className="w-3.5 h-3.5" />
+            <span>{category}</span>
           </span>
         );
     }
@@ -197,16 +206,35 @@ export default function NewsEventsClient({
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 w-full md:w-auto">
             {[
               { id: "ALL", label: "All Updates", icon: Filter },
-              { id: "EVENT", label: "Upcoming Events", icon: Calendar },
-              { id: "NOTICE", label: "Academic Notices", icon: Bell },
-              { id: "NEWS", label: "Top News & Success", icon: Trophy },
+              ...(categories || []).map((cat) => {
+                const upper = cat.toUpperCase();
+                return {
+                  id: cat,
+                  label:
+                    upper === "EVENT"
+                      ? "Upcoming Events"
+                      : upper === "NOTICE"
+                      ? "Academic Notices"
+                      : upper === "NEWS"
+                      ? "Top News & Success"
+                      : cat,
+                  icon:
+                    upper === "EVENT"
+                      ? Calendar
+                      : upper === "NOTICE"
+                      ? Bell
+                      : upper === "NEWS"
+                      ? Trophy
+                      : Filter,
+                };
+              }),
             ].map((tab) => {
               const IconComp = tab.icon;
               const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => setActiveTab(tab.id)}
                   className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                     isActive
                       ? "bg-[#010E62] text-white shadow-md scale-[1.02]"
