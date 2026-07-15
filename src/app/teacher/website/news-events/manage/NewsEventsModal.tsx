@@ -6,6 +6,37 @@ import toast from "react-hot-toast";
 import { upsertSectionItem } from "@/features/website-cms/actions/content-actions";
 import { MediaSelector } from "@/features/website-cms/components/MediaSelector";
 
+const DAYS_OPTIONS = [
+  "01", "02", "03", "04", "05", "06", "07", "08", "09", "10",
+  "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+  "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31",
+  "TBA", "Daily", "Continuous"
+];
+
+const MONTHS_OPTIONS = [
+  "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+  "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
+  "All Year", "TBA"
+];
+
+const TIME_OPTIONS = [
+  "8:00 AM - 10:30 AM",
+  "9:00 AM - 11:30 AM",
+  "10:00 AM - 12:00 PM",
+  "10:30 AM - 1:00 PM",
+  "2:00 PM - 4:30 PM",
+  "3:00 PM - 5:00 PM",
+  "3:30 PM - 6:30 PM",
+  "4:00 PM - 6:00 PM",
+  "4:30 PM - 7:00 PM",
+  "5:00 PM - 8:00 PM",
+  "6:00 PM - 8:30 PM",
+  "9:00 AM - 5:00 PM (Full Day)",
+  "Daily Office Hours",
+  "Online Schedule",
+  "TBA (To Be Announced)"
+];
+
 export default function NewsEventsModal({
   isOpen,
   onClose,
@@ -130,33 +161,54 @@ export default function NewsEventsModal({
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div>
               <label className="block text-xs font-bold text-muted uppercase mb-1">Date (Day)</label>
-              <input
-                type="text"
+              <select
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                placeholder="25"
-                className="w-full px-3 py-2 rounded-xl border border-border text-sm focus:ring-2 focus:ring-accent"
-              />
+                className="w-full px-3 py-2 rounded-xl border border-border text-sm focus:ring-2 focus:ring-accent bg-white outline-none font-semibold"
+              >
+                {!DAYS_OPTIONS.includes(date) && date && (
+                  <option value={date}>{date}</option>
+                )}
+                {DAYS_OPTIONS.map((day, dIdx) => (
+                  <option key={dIdx} value={day}>
+                    {day}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-xs font-bold text-muted uppercase mb-1">Month</label>
-              <input
-                type="text"
+              <select
                 value={month}
                 onChange={(e) => setMonth(e.target.value)}
-                placeholder="AUG"
-                className="w-full px-3 py-2 rounded-xl border border-border text-sm focus:ring-2 focus:ring-accent"
-              />
+                className="w-full px-3 py-2 rounded-xl border border-border text-sm focus:ring-2 focus:ring-accent bg-white outline-none font-semibold"
+              >
+                {!MONTHS_OPTIONS.includes(month) && month && (
+                  <option value={month}>{month}</option>
+                )}
+                {MONTHS_OPTIONS.map((mon, mIdx) => (
+                  <option key={mIdx} value={mon}>
+                    {mon}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-xs font-bold text-muted uppercase mb-1">Time</label>
-              <input
-                type="text"
+              <select
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
-                placeholder="4:00 PM"
-                className="w-full px-3 py-2 rounded-xl border border-border text-sm focus:ring-2 focus:ring-accent"
-              />
+                className="w-full px-3 py-2 rounded-xl border border-border text-sm focus:ring-2 focus:ring-accent bg-white outline-none font-semibold"
+              >
+                {!TIME_OPTIONS.includes(time) && time && (
+                  <option value={time}>{time}</option>
+                )}
+                {TIME_OPTIONS.map((tOpt, tIdx) => (
+                  <option key={tIdx} value={tOpt}>
+                    {tOpt}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-xs font-bold text-muted uppercase mb-1">Spotlight Item?</label>
