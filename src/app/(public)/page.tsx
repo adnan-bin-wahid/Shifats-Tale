@@ -67,6 +67,10 @@ export default async function HomePage() {
     
   const displayTestimonials = featuredTestimonials.length > 0 ? featuredTestimonials : testimonialsData.slice(0, 9);
 
+  // Fetch home page news & events section and all news items
+  const homeNewsEventsSection = await getPageSection("HOME", "HOME_NEWS_EVENTS");
+  const newsEventItems = await getSectionItems("NEWS_EVENTS_ITEMS");
+
   return <HomeClient 
     heroData={homeHeroSection}
     statsData={homeStatsSection}
@@ -82,5 +86,7 @@ export default async function HomePage() {
     successHeaderData={homeSuccessSection}
     testimonialsData={displayTestimonials}
     testimonialsHeaderData={homeTestimonialsSection}
+    newsEventsData={homeNewsEventsSection}
+    newsItems={newsEventItems || []}
   />;
 }
