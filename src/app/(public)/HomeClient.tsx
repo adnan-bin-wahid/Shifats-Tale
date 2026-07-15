@@ -19,6 +19,7 @@ import ResultsSection from "@/components/home/ResultsSection";
 import YouTubeClassesSection from "@/components/home/YouTubeClassesSection";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import GallerySection from "@/components/home/GallerySection";
+import HomeNewsEventsSection from "@/components/home/HomeNewsEventsSection";
 import { useSiteSettings } from "@/lib/providers/SiteSettingsProvider";
 
 export default function HomeClient({ 
@@ -35,7 +36,9 @@ export default function HomeClient({
   displayStudents,
   successHeaderData,
   testimonialsData,
-  testimonialsHeaderData
+  testimonialsHeaderData,
+  newsEventsData,
+  newsItems
 }: { 
   heroData?: any,
   displayCourses?: any[], 
@@ -50,7 +53,9 @@ export default function HomeClient({
   galleryData?: any,
   displayAlbums?: any[],
   testimonialsData?: any[],
-  testimonialsHeaderData?: any
+  testimonialsHeaderData?: any,
+  newsEventsData?: any,
+  newsItems?: any[]
 }) {
   const siteInfo = useSiteSettings();
   const heroContent = heroData?.content || {};
@@ -108,18 +113,26 @@ export default function HomeClient({
       // Temporarily disable CSS-based smooth scroll to avoid conflicts with JS animation loop
       const originalScrollBehavior = document.documentElement.style.scrollBehavior;
       document.documentElement.style.scrollBehavior = "auto";
+      const duration = 1200;
+      const startTime = performance.now();
 
-      animate(startScroll, offsetTop, {
-        duration: 1.2,
-        ease: [0.25, 1, 0.5, 1], // Perfect matching custom cubic bezier curve
-        onUpdate: (latest) => {
-          window.scrollTo(0, latest);
-        },
-        onComplete: () => {
-          // Restore CSS scroll behavior once transition completes
+      const scrollStep = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeProgress = progress < 0.5
+          ? 4 * progress * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+        window.scrollTo(0, startScroll + (offsetTop - startScroll) * easeProgress);
+
+        if (progress < 1) {
+          requestAnimationFrame(scrollStep);
+        } else {
           document.documentElement.style.scrollBehavior = originalScrollBehavior;
         }
-      });
+      };
+
+      requestAnimationFrame(scrollStep);
     }
   };
 
@@ -136,6 +149,9 @@ export default function HomeClient({
       <ResultsSection studentItems={displayStudents} headerData={successHeaderData} />
       <YouTubeClassesSection youtubeData={youtubeData} />
       <TestimonialsSection initialTestimonials={testimonialsData} headerData={testimonialsHeaderData} />
+
+      {/* Dynamic News & Events Section on Home Page */}
+      <HomeNewsEventsSection headerData={newsEventsData} newsItems={newsItems} />
 
       {/* Dynamic Captured Moments Section */}
       <GallerySection headerData={galleryData} albums={displayAlbums} />

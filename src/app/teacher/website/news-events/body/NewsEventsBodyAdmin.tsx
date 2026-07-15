@@ -24,6 +24,37 @@ export interface CardItem {
   isNew?: boolean;
 }
 
+const DAYS_OPTIONS = [
+  "01", "02", "03", "04", "05", "06", "07", "08", "09", "10",
+  "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+  "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31",
+  "TBA", "Daily", "Continuous"
+];
+
+const MONTHS_OPTIONS = [
+  "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+  "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
+  "All Year", "TBA"
+];
+
+const TIME_OPTIONS = [
+  "8:00 AM - 10:30 AM",
+  "9:00 AM - 11:30 AM",
+  "10:00 AM - 12:00 PM",
+  "10:30 AM - 1:00 PM",
+  "2:00 PM - 4:30 PM",
+  "3:00 PM - 5:00 PM",
+  "3:30 PM - 6:30 PM",
+  "4:00 PM - 6:00 PM",
+  "4:30 PM - 7:00 PM",
+  "5:00 PM - 8:00 PM",
+  "6:00 PM - 8:30 PM",
+  "9:00 AM - 5:00 PM (Full Day)",
+  "Daily Office Hours",
+  "Online Schedule",
+  "TBA (To Be Announced)"
+];
+
 export default function NewsEventsBodyAdmin({
   initialItems,
   categories = ["EVENT", "NOTICE", "NEWS"],
@@ -297,35 +328,56 @@ export default function NewsEventsBodyAdmin({
                   <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-muted uppercase mb-1">Date (Day)</label>
-                      <input
-                        type="text"
+                      <select
                         value={card.date}
                         onChange={(e) => updateCardField(idx, "date", e.target.value)}
-                        placeholder="e.g. 25"
-                        className="w-full px-3.5 py-2 rounded-xl border border-border text-sm font-semibold focus:ring-2 focus:ring-accent outline-none"
-                      />
+                        className="w-full px-3.5 py-2 rounded-xl border border-border text-sm font-semibold focus:ring-2 focus:ring-accent bg-white outline-none"
+                      >
+                        {!DAYS_OPTIONS.includes(card.date) && card.date && (
+                          <option value={card.date}>{card.date}</option>
+                        )}
+                        {DAYS_OPTIONS.map((day, dIdx) => (
+                          <option key={dIdx} value={day}>
+                            {day}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     <div>
                       <label className="block text-xs font-bold text-muted uppercase mb-1">Month</label>
-                      <input
-                        type="text"
+                      <select
                         value={card.month}
                         onChange={(e) => updateCardField(idx, "month", e.target.value)}
-                        placeholder="e.g. AUG"
-                        className="w-full px-3.5 py-2 rounded-xl border border-border text-sm font-semibold focus:ring-2 focus:ring-accent outline-none"
-                      />
+                        className="w-full px-3.5 py-2 rounded-xl border border-border text-sm font-semibold focus:ring-2 focus:ring-accent bg-white outline-none"
+                      >
+                        {!MONTHS_OPTIONS.includes(card.month) && card.month && (
+                          <option value={card.month}>{card.month}</option>
+                        )}
+                        {MONTHS_OPTIONS.map((mon, mIdx) => (
+                          <option key={mIdx} value={mon}>
+                            {mon}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     <div>
                       <label className="block text-xs font-bold text-muted uppercase mb-1">Schedule / Time</label>
-                      <input
-                        type="text"
+                      <select
                         value={card.time}
                         onChange={(e) => updateCardField(idx, "time", e.target.value)}
-                        placeholder="e.g. 3:30 PM - 6:30 PM"
-                        className="w-full px-3.5 py-2 rounded-xl border border-border text-sm font-semibold focus:ring-2 focus:ring-accent outline-none"
-                      />
+                        className="w-full px-3.5 py-2 rounded-xl border border-border text-sm font-semibold focus:ring-2 focus:ring-accent bg-white outline-none"
+                      >
+                        {!TIME_OPTIONS.includes(card.time) && card.time && (
+                          <option value={card.time}>{card.time}</option>
+                        )}
+                        {TIME_OPTIONS.map((tOpt, tIdx) => (
+                          <option key={tIdx} value={tOpt}>
+                            {tOpt}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     <div>

@@ -71,6 +71,7 @@ export const websiteAdminNavItems: NavItem[] = [
       { label: "Our Student Success Stories", href: "/teacher/website/home/success" },
       { label: "Concept Breakdown Theater", href: "/teacher/website/home/youtube" },
       { label: "What Parents & Students Say", href: "/teacher/website/home/testimonials" },
+      { label: "News & Events", href: "/teacher/website/home/news-events" },
       { label: "Captured Moments", href: "/teacher/website/home/gallery" },
     ]
   },
