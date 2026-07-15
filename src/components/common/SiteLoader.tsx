@@ -23,12 +23,22 @@ export function SiteLoader({ isDismissing = false, message }: SiteLoaderProps) {
       role="status"
       aria-live="polite"
       aria-label={`Loading ${title}`}
-      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-[#FFFCF2] via-[#FFF8E6] to-[#FDF4DF] dark:from-[#08122B] dark:via-[#010E62] dark:to-[#0A193D] transition-all duration-700 ease-out ${
+      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden bg-[#FFFCF2] dark:bg-[#08122B] transition-all duration-700 ease-out ${
         isDismissing ? "opacity-0 scale-105 pointer-events-none" : "opacity-100 scale-100"
       }`}
     >
+      {/* Custom User Background Image for Loading Screen */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
+        <img
+          src="/images/bg.png"
+          alt="Loading Background"
+          className="w-full h-full object-cover object-center opacity-95 dark:opacity-85 scale-105 animate-pulse-glow"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#FFFCF2]/65 via-[#FFF8E6]/60 to-[#FDF4DF]/70 dark:from-[#08122B]/75 dark:via-[#010E62]/70 dark:to-[#0A193D]/80 backdrop-blur-[1px]" />
+      </div>
+
       {/* Background Floating Physics & Mathematics Geometric Symbols */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-10">
         {/* Soft Ambient Golden & Navy Orbs */}
         <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[28rem] h-[28rem] bg-[#FBB503]/15 rounded-full blur-3xl animate-pulse-glow" />
         <div className="absolute bottom-1/3 right-1/4 translate-x-1/2 translate-y-1/2 w-[32rem] h-[32rem] bg-[#010E62]/10 dark:bg-cyan-400/10 rounded-full blur-3xl animate-pulse-glow [animation-delay:-1.5s]" />
