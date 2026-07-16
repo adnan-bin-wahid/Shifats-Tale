@@ -4,7 +4,7 @@ import { resolveAuthenticatedDestination } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { DashboardCard } from "@/components/dashboard/dashboard-card";
-import { Calendar, Filter, Award, Percent, Users, AlertTriangle } from "lucide-react";
+import { Calendar, Filter, Award, Percent, Users, AlertTriangle, Download } from "lucide-react";
 import Link from "next/link";
 
 interface PageProps {
@@ -341,13 +341,20 @@ export default async function StudentResultsPage({ searchParams }: PageProps) {
                         {r.rank !== null ? `#${r.rank}` : "-"}
                       </td>
 
-                      <td className="py-4 px-6 text-right">
+                      <td className="py-4 px-6 text-right space-x-1.5">
                         <Link
                           href={`/student/batches/${r.exam.batch_id}/exams/${r.exam.id}`}
                           className="inline-flex items-center gap-1 px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold rounded-lg transition-all border border-border/40"
                         >
                           Details Card
                         </Link>
+                        <a
+                          href={`/api/exams/${r.exam.id}/result-pdf`}
+                          download
+                          className="inline-flex items-center gap-1 px-3 py-1 bg-[#010E62] hover:bg-blue-900 text-white text-[10px] font-bold rounded-lg transition-all shadow-xs"
+                        >
+                          <Download className="h-3 w-3" /> PDF
+                        </a>
                       </td>
                     </tr>
                   );
