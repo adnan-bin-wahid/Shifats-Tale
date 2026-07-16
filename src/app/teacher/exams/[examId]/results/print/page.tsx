@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { resolveAuthenticatedDestination } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 import { calculateGrade } from "@/lib/exams/grading";
+import { AutoPrintClient } from "./AutoPrintClient";
 
 interface PageProps {
   params: Promise<{
@@ -208,16 +209,8 @@ export default async function PrintResultSheetPage({ params }: PageProps) {
 
         </div>
 
-        {/* Auto-print script */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.onload = function() {
-                window.print();
-              }
-            `
-          }}
-        />
+        {/* Auto-print client component */}
+        <AutoPrintClient />
       </div>
     </>
   );
