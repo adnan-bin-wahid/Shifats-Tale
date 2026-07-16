@@ -230,7 +230,7 @@ interface Props {
 
 export const ExamResultDocument: React.FC<Props> = ({ data }) => {
   const { exam, branding, summary, results, generatedAt } = data;
-  const logoPath = path.join(process.cwd(), "public/images/logo_transparent.png");
+  const logoPath = path.join(process.cwd(), "public/images/alternate_logo.png");
 
   return (
     <Document>
