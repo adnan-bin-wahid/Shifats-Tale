@@ -402,12 +402,15 @@ export function ResultsManager({ examId, exam, students, initialResults, initial
               <Eye size={16} /> View Dashboard
             </button>
           )}
+          <a href={`/api/teacher/exams/${examId}/result-pdf`} download className="bg-[#010E62] hover:bg-blue-900 text-white font-semibold text-sm px-4 py-2 rounded-lg shadow-xs flex items-center gap-2 transition-colors">
+            <Download size={16} /> Download PDF
+          </a>
+          <Link href={`/teacher/exams/${examId}/results/print`} target="_blank" className="btn-secondary text-sm px-4 py-2 flex items-center gap-2">
+            <Printer size={16} /> Print Preview
+          </Link>
           <button onClick={exportCSV} className="btn-secondary text-sm px-4 py-2 flex items-center gap-2">
             <FileText size={16} /> Export CSV
           </button>
-          <Link href={`/teacher/exams/${examId}/results/print`} target="_blank" className="btn-secondary text-sm px-4 py-2 flex items-center gap-2">
-            <Printer size={16} /> Print PDF
-          </Link>
           {exam.status === "RESULT_PUBLISHED" ? (
             <button onClick={() => setShowUnpublishConfirm(true)} className="px-4 py-2 bg-red-50 text-red-600 rounded-lg border border-red-200 hover:bg-red-100 text-sm font-medium transition-colors">
               Withdraw Results
