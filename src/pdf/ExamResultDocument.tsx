@@ -43,6 +43,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 2,
   },
+  logoImage: {
+    width: 150,
+    height: 40,
+    objectFit: "contain",
+    marginBottom: 6,
+  },
   coachingSubtitle: {
     color: "#FBB503",
     fontSize: 10,
@@ -224,14 +230,15 @@ interface Props {
 
 export const ExamResultDocument: React.FC<Props> = ({ data }) => {
   const { exam, branding, summary, results, generatedAt } = data;
+  const logoPath = path.join(process.cwd(), "public/images/logo_transparent.png");
 
   return (
     <Document>
       <Page size="A4" style={styles.page} wrap>
-        {/* Header Section (Only Top on first page or repeated if required) */}
-        <View style={styles.headerContainer} fixed>
+        {/* Header Section (Only rendered on the 1st page) */}
+        <View style={styles.headerContainer}>
           <View style={styles.headerLeft}>
-            <Text style={styles.coachingTitle}>{branding.title}</Text>
+            <Image src={logoPath} style={styles.logoImage} />
             <Text style={styles.coachingSubtitle}>{branding.subtitle}</Text>
             <View style={styles.docTitleBadge}>
               <Text style={styles.docTitleText}>Official Examination Result</Text>
@@ -262,7 +269,7 @@ export const ExamResultDocument: React.FC<Props> = ({ data }) => {
           </View>
         </View>
 
-        <View style={styles.goldDivider} fixed />
+        <View style={styles.goldDivider} />
 
         {/* Summary Strip */}
         <View style={styles.summaryStrip}>
