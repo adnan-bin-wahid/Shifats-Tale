@@ -27,14 +27,13 @@ export function SiteLoader({ isDismissing = false, message }: SiteLoaderProps) {
         isDismissing ? "opacity-0 scale-105 pointer-events-none" : "opacity-100 scale-100"
       }`}
     >
-      {/* Custom User Background Image for Loading Screen */}
+      {/* Exact User Background Image for Loading Screen */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
         <img
           src="/images/bg.png"
           alt="Loading Background"
-          className="w-full h-full object-cover object-center opacity-95 dark:opacity-85 scale-105 animate-pulse-glow"
+          className="w-full h-full object-cover object-center opacity-100"
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#FFFCF2]/65 via-[#FFF8E6]/60 to-[#FDF4DF]/70 dark:from-[#08122B]/75 dark:via-[#010E62]/70 dark:to-[#0A193D]/80 backdrop-blur-[1px]" />
       </div>
 
       {/* Background Floating Physics & Mathematics Geometric Symbols */}
