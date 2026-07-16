@@ -16,7 +16,7 @@ export function SiteLoader({ isDismissing = false, message }: SiteLoaderProps) {
     settings?.tagline ||
     settings?.heroDescription ||
     "Physics & Higher Mathematics Admission Care";
-  const logoUrl = settings?.logoUrl || "/images/logo_transparent.png";
+  const logoUrl = settings?.logoUrl || "/images/alternate_logo.png";
 
   return (
     <div

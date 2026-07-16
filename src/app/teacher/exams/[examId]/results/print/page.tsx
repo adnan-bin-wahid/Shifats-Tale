@@ -131,7 +131,7 @@ export default async function PrintResultSheetPage({ params }: PageProps) {
           {/* Header */}
           <div className="text-center border-b-2 border-black pb-4 mb-6 flex flex-col items-center">
             {/* Logo image injection */}
-            <img src="/images/logo_transparent.png" alt="Logo" className="h-16 mb-2" />
+            <img src="/images/alternate_logo.png" alt="Logo" className="h-16 mb-2" />
             <h1 className="text-3xl font-bold tracking-wider mb-1">SHIFAT'S TALES</h1>
             <p className="text-sm font-semibold uppercase tracking-widest text-gray-700">Academic & Coaching Management</p>
             <div className="mt-4 inline-block px-4 py-1 border border-black font-bold uppercase">
