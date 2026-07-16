@@ -23,10 +23,11 @@ export function SiteLoader({ isDismissing = false, message }: SiteLoaderProps) {
       role="status"
       aria-live="polite"
       aria-label={`Loading ${title}`}
-      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden bg-[#FFFCF2] dark:bg-[#08122B] transition-all duration-700 ease-out ${
+      className={`site-loader-overlay fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden bg-[#FFFCF2] dark:bg-[#08122B] transition-all duration-700 ease-out print:hidden print:!hidden print:!opacity-0 print:!pointer-events-none ${
         isDismissing ? "opacity-0 scale-105 pointer-events-none" : "opacity-100 scale-100"
       }`}
     >
+      <style dangerouslySetInnerHTML={{ __html: `@media print { .site-loader-overlay { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; } }` }} />
       {/* Exact User Background Image for Loading Screen */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
         <img
