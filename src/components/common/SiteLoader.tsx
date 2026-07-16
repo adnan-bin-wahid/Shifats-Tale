@@ -83,9 +83,14 @@ export function SiteLoader({ isDismissing = false, message }: SiteLoaderProps) {
         {/* Proper Official Horizontal Logo Showcase */}
         <div className="relative flex items-center justify-center w-64 sm:w-80 h-20 sm:h-24 mb-4">
           <img
+            src="/images/alternate_logo_dark.png"
+            alt={title}
+            className="w-full h-full object-contain filter drop-shadow-sm transition-transform duration-500 hover:scale-[1.02] dark:hidden"
+          />
+          <img
             src={logoUrl}
             alt={title}
-            className="w-full h-full object-contain filter drop-shadow-sm transition-transform duration-500 hover:scale-[1.02]"
+            className="w-full h-full object-contain filter drop-shadow-sm transition-transform duration-500 hover:scale-[1.02] hidden dark:block"
           />
         </div>
 
