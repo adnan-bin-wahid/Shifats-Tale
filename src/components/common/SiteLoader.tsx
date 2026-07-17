@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useEffect, useId } from "react";
 import { useSiteSettings } from "@/lib/providers/SiteSettingsProvider";
 
 interface SiteLoaderProps {
@@ -18,41 +18,20 @@ export function SiteLoader({ isDismissing = false, message }: SiteLoaderProps) {
     "Physics & Higher Mathematics Admission Care";
   const logoUrl = settings?.logoUrl || "/images/alternate_logo.png";
 
-  // Refs for direct DOM updates to bypass React Suspense rendering freezes
-  const barRef = useRef<HTMLDivElement>(null);
-  const bottomBarRef = useRef<HTMLDivElement>(null);
-  const percentRef = useRef<HTMLSpanElement>(null);
+  // Generate unique IDs for native DOM script targeting independent of React Suspense transitions
+  const uniqueId = useId().replace(/[^a-zA-Z0-9]/g, "");
+  const barId = `sl-bar-${uniqueId}`;
+  const botId = `sl-bot-${uniqueId}`;
+  const pctId = `sl-pct-${uniqueId}`;
 
   useEffect(() => {
-    let current = 4;
-    const interval = setInterval(() => {
-      // Smooth progress count up
-      if (current < 65) {
-        current += Math.floor(Math.random() * 6) + 5;
-      } else if (current < 94) {
-        current += Math.floor(Math.random() * 3) + 2;
-      } else if (current < 99) {
-        current += 1;
+    return () => {
+      // Clean up timer on component unmount
+      if (typeof window !== "undefined" && (window as any)[`__sl_timer_${uniqueId}`]) {
+        clearInterval((window as any)[`__sl_timer_${uniqueId}`]);
       }
-
-      if (current >= 99) {
-        current = 99;
-      }
-
-      // Directly update DOM elements to ensure 60fps smooth movement regardless of React transitions
-      if (barRef.current) {
-        barRef.current.style.width = `${current}%`;
-      }
-      if (bottomBarRef.current) {
-        bottomBarRef.current.style.width = `${current}%`;
-      }
-      if (percentRef.current) {
-        percentRef.current.textContent = `${current}%`;
-      }
-    }, 45);
-
-    return () => clearInterval(interval);
-  }, []);
+    };
+  }, [uniqueId]);
 
   return (
     <div
@@ -66,7 +45,7 @@ export function SiteLoader({ isDismissing = false, message }: SiteLoaderProps) {
       <style dangerouslySetInnerHTML={{ __html: `
         @media print { .site-loader-overlay { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; } }
         @keyframes loader-gold-expand {
-          0% { width: 5%; }
+          0% { width: 4%; }
           30% { width: 45%; }
           70% { width: 85%; }
           100% { width: 98%; }
@@ -151,7 +130,7 @@ export function SiteLoader({ isDismissing = false, message }: SiteLoaderProps) {
           {/* Thicker casing with luxury golden border glow */}
           <div className="w-full h-3.5 sm:h-4 bg-[#010E62]/15 dark:bg-black/50 border border-[#FBB503]/40 dark:border-[#FBB503]/50 rounded-full overflow-hidden p-0.5 shadow-inner backdrop-blur-md relative">
             <div
-              ref={barRef}
+              id={barId}
               className="h-full rounded-full transition-all duration-150 ease-out relative overflow-hidden shadow-[0_0_15px_rgba(251,181,3,0.85)] animate-loader-gold-fill"
               style={{
                 width: "4%",
@@ -171,7 +150,7 @@ export function SiteLoader({ isDismissing = false, message }: SiteLoaderProps) {
               <span className="font-semibold text-slate-800 dark:text-slate-100">{message || "Initializing Portal..."}</span>
             </span>
             <span
-              ref={percentRef}
+              id={pctId}
               className="font-black text-sm sm:text-base text-[#010E62] dark:text-[#FBB503] drop-shadow-[0_0_8px_rgba(251,181,3,0.5)]"
             >
               4%
@@ -183,11 +162,35 @@ export function SiteLoader({ isDismissing = false, message }: SiteLoaderProps) {
       {/* Bottom Subtle Shimmer Accent Line */}
       <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-[#010E62]/10 dark:bg-white/10 overflow-hidden">
         <div
-          ref={bottomBarRef}
+          id={botId}
           className="h-full bg-gradient-to-r from-transparent via-[#FBB503] to-transparent transition-all duration-150 ease-out shadow-[0_0_10px_rgba(251,181,3,0.7)] animate-loader-gold-fill"
           style={{ width: "4%" }}
         />
       </div>
+
+      {/* Native inline script that executes immediately upon DOM insertion during Suspense fallbacks */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `(function(){
+            var bar = document.getElementById("${barId}");
+            var bot = document.getElementById("${botId}");
+            var pct = document.getElementById("${pctId}");
+            if(!bar || !pct) return;
+            var current = 4;
+            if (window["__sl_timer_${uniqueId}"]) clearInterval(window["__sl_timer_${uniqueId}"]);
+            var timer = setInterval(function(){
+              if(current < 65) current += Math.floor(Math.random() * 6) + 5;
+              else if(current < 94) current += Math.floor(Math.random() * 3) + 2;
+              else if(current < 99) current += 1;
+              if(current >= 99) current = 99;
+              if(bar) bar.style.width = current + "%";
+              if(bot) bot.style.width = current + "%";
+              if(pct) pct.textContent = current + "%";
+            }, 45);
+            window["__sl_timer_${uniqueId}"] = timer;
+          })();`
+        }}
+      />
     </div>
   );
 }
