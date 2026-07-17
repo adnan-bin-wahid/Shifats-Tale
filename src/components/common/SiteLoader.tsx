@@ -92,63 +92,72 @@ export function SiteLoader({ isDismissing = false, message }: SiteLoaderProps) {
       </div>
 
       {/* Subtle 3D Atomic Orbital Rings behind centerpiece */}
-      <div className="absolute w-[340px] h-[340px] sm:w-[480px] sm:h-[480px] pointer-events-none flex items-center justify-center opacity-30 dark:opacity-40">
+      <div className="absolute w-[380px] h-[380px] sm:w-[540px] sm:h-[540px] pointer-events-none flex items-center justify-center opacity-30 dark:opacity-40">
         <div className="absolute inset-0 border border-dashed border-[#FBB503]/40 dark:border-[#FBB503]/50 rounded-full animate-atom-orbit-1" />
         <div className="absolute inset-8 border border-dotted border-[#010E62]/30 dark:border-cyan-400/40 rounded-full animate-atom-orbit-2" />
       </div>
 
-      {/* Centerpiece: Clean, Plain, Professional Minimalist Style (No Card Box, No Border) */}
-      <div className="relative z-20 flex flex-col items-center justify-center max-w-lg w-[90%] px-4 text-center">
+      {/* Centerpiece: Larger Prominent Layout with Clean Minimalist Style */}
+      <div className="relative z-20 flex flex-col items-center justify-center max-w-2xl w-[94%] px-6 text-center">
         
-        {/* Clean Logo Showcase */}
-        <div className="relative flex items-center justify-center w-64 sm:w-80 h-20 sm:h-24 mb-5">
+        {/* Clean, Larger Prominent Logo Showcase */}
+        <div className="relative flex items-center justify-center w-80 sm:w-96 h-24 sm:h-32 mb-6">
           <img
             src="/images/alternate_logo_dark.png"
             alt={title}
-            className="w-full h-full object-contain filter drop-shadow transition-transform duration-500 hover:scale-[1.02] dark:hidden"
+            className="w-full h-full object-contain filter drop-shadow-md transition-transform duration-500 hover:scale-[1.02] dark:hidden"
           />
           <img
             src={logoUrl}
             alt={title}
-            className="w-full h-full object-contain filter drop-shadow transition-transform duration-500 hover:scale-[1.02] hidden dark:block"
+            className="w-full h-full object-contain filter drop-shadow-md transition-transform duration-500 hover:scale-[1.02] hidden dark:block"
           />
         </div>
 
-        {/* Professional Typography */}
-        <div className="space-y-1.5 max-w-md mx-auto">
-          <h2 className="text-base sm:text-lg font-extrabold tracking-wide text-[#010E62] dark:text-[#FFFCF2] font-display drop-shadow-sm">
+        {/* Prominent Professional Typography */}
+        <div className="space-y-2 max-w-xl mx-auto">
+          <h2 className="text-lg sm:text-2xl font-black tracking-wide text-[#010E62] dark:text-[#FFFCF2] font-display drop-shadow-md">
             {tagline}
           </h2>
-          <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 tracking-wider uppercase font-mono">
+          <p className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 tracking-widest uppercase font-mono">
             Empowering SSC, HSC & Engineering Aspirants
           </p>
         </div>
 
-        {/* Sleek Minimalist Progress Indicator */}
-        <div className="w-64 sm:w-80 mt-9 flex flex-col items-center space-y-2.5">
-          {/* Thin, modern progress bar track */}
-          <div className="w-full h-1.5 bg-[#010E62]/15 dark:bg-white/15 rounded-full overflow-hidden backdrop-blur-sm p-0 shadow-inner">
+        {/* Prominent Stylish Gold Effect Progress Indicator (Clearly Visible Movement) */}
+        <div className="w-80 sm:w-[28rem] md:w-[32rem] mt-10 flex flex-col items-center space-y-3">
+          {/* Thicker casing with luxury golden border glow */}
+          <div className="w-full h-3.5 sm:h-4 bg-[#010E62]/15 dark:bg-black/50 border border-[#FBB503]/40 dark:border-[#FBB503]/50 rounded-full overflow-hidden p-0.5 shadow-inner backdrop-blur-md relative">
             <div
-              className="h-full bg-gradient-to-r from-[#010E62] via-[#FBB503] to-[#FBB503] rounded-full transition-all duration-150 ease-out shadow-sm"
-              style={{ width: `${progress}%` }}
-            />
+              className="h-full rounded-full transition-all duration-150 ease-out relative overflow-hidden shadow-[0_0_15px_rgba(251,181,3,0.85)]"
+              style={{
+                width: `${Math.max(progress, 4)}%`,
+                background: "linear-gradient(90deg, #F99E00, #FBB503, #FFF3B3, #FBB503, #F99E00)",
+                backgroundSize: "200% 100%"
+              }}
+            >
+              {/* Shimmering white/gold light reflection moving across the filling bar */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent w-full animate-shimmer-gold" />
+            </div>
           </div>
 
-          {/* Progress Status & Percentage */}
-          <div className="w-full flex items-center justify-between text-[11px] font-bold tracking-wider text-[#010E62]/90 dark:text-white/90 font-mono">
-            <span className="flex items-center gap-1.5">
-              <span className={`w-1.5 h-1.5 rounded-full ${progress < 100 ? "bg-[#FBB503] animate-ping" : "bg-emerald-500"}`} />
-              <span>{progress < 100 ? (message || "Initializing Portal...") : "Portal Ready"}</span>
+          {/* Larger, Crisp Progress Status & Golden Percentage */}
+          <div className="w-full flex items-center justify-between px-1 text-xs sm:text-sm font-bold tracking-wider text-[#010E62] dark:text-white font-mono">
+            <span className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${progress < 100 ? "bg-[#FBB503] animate-ping shadow-[0_0_8px_rgba(251,181,3,0.8)]" : "bg-emerald-500"}`} />
+              <span className="font-semibold text-slate-800 dark:text-slate-100">{progress < 100 ? (message || "Initializing Portal...") : "Portal Ready"}</span>
             </span>
-            <span className="font-extrabold text-[#010E62] dark:text-[#FBB503]">{progress}%</span>
+            <span className="font-black text-sm sm:text-base text-[#010E62] dark:text-[#FBB503] drop-shadow-[0_0_8px_rgba(251,181,3,0.5)]">
+              {progress}%
+            </span>
           </div>
         </div>
       </div>
 
       {/* Bottom Subtle Shimmer Accent Line */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#010E62]/10 dark:bg-white/10 overflow-hidden">
+      <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-[#010E62]/10 dark:bg-white/10 overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-transparent via-[#FBB503] to-transparent transition-all duration-150 ease-out"
+          className="h-full bg-gradient-to-r from-transparent via-[#FBB503] to-transparent transition-all duration-150 ease-out shadow-[0_0_10px_rgba(251,181,3,0.7)]"
           style={{ width: `${progress}%` }}
         />
       </div>
