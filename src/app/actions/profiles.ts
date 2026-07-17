@@ -416,6 +416,85 @@ export async function updateStudentProfileByTeacherAction(studentId: string, raw
 }
 
 /**
+ * 3.5. Teacher/Admin deletes Student profile & account permanently with clean cascade
+ */
+export async function deleteStudentByAdminAction(studentId: string) {
+  try {
+    const { destination, profile: teacher } = await resolveAuthenticatedDestination();
+    if (destination !== "TEACHER_DASHBOARD" || !teacher || teacher.role !== "TEACHER") {
+      return { success: false, message: "Unauthorized: Only active teachers/admins can delete students." };
+    }
+
+    const admin = createAdminClient();
+
+    // 1. Fetch student and associated profile_id
+    const { data: student, error: fetchErr } = await admin
+      .from("student_profiles")
+      .select("*, profile:profiles(*)")
+      .eq("id", studentId)
+      .single();
+
+    if (fetchErr || !student) {
+      return { success: false, message: "Student record not found." };
+    }
+
+    const profileId = student.profile_id;
+
+    // 2. Clean up child records linked to student_profiles.id (studentId)
+    await admin.from("enrollments").delete().eq("student_id", studentId);
+    await admin.from("payments").delete().eq("student_id", studentId);
+    await admin.from("exam_results").delete().eq("student_id", studentId);
+    await admin.from("attendance").delete().eq("student_id", studentId);
+
+    // 3. Clean up child records linked to profile.id where relevant
+    if (profileId) {
+      await admin.from("notifications").delete().eq("recipient_profile_id", profileId);
+      await admin.from("attendance").delete().eq("profile_id", profileId);
+    }
+
+    // 4. Delete the student_profiles row
+    const { error: deleteStudentErr } = await admin
+      .from("student_profiles")
+      .delete()
+      .eq("id", studentId);
+
+    if (deleteStudentErr) {
+      return { success: false, message: `Failed to delete student: ${deleteStudentErr.message}` };
+    }
+
+    // 5. Delete the profile row if it belongs purely to this student
+    if (profileId) {
+      const { data: profileObj } = await admin.from("profiles").select("role, auth_user_id").eq("id", profileId).maybeSingle();
+      if (profileObj && profileObj.role === "STUDENT") {
+        await admin.from("profiles").delete().eq("id", profileId);
+        if (profileObj.auth_user_id && admin.auth?.admin?.deleteUser) {
+          try {
+            await admin.auth.admin.deleteUser(profileObj.auth_user_id);
+          } catch (e) {
+            console.error("Non-fatal: could not delete auth.user:", e);
+          }
+        }
+      }
+    }
+
+    // 6. Audit log
+    await createAuditLog({
+      actorProfileId: teacher.id,
+      action: "STUDENT_DELETED",
+      entityType: "student_profiles",
+      entityId: studentId,
+      oldValue: student,
+    });
+
+    revalidatePath("/teacher/students");
+    return { success: true };
+  } catch (err: any) {
+    console.error("Error in deleteStudentByAdminAction:", err);
+    return { success: false, message: err.message || "Internal server error" };
+  }
+}
+
+/**
  * 4. Teachers update coaching center application settings
  */
 export async function updateAppSettingsAction(rawInput: any) {

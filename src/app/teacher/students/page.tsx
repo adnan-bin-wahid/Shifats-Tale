@@ -5,6 +5,7 @@ import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-heade
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { Search, Filter, Users, Mail, Phone, Calendar } from "lucide-react";
 import { DebouncedSearchInput } from "@/components/ui/debounced-search-input";
+import { StudentListActions } from "@/components/dashboard/student-list-actions";
 
 interface PageProps {
   searchParams: Promise<{
@@ -347,12 +348,11 @@ export default async function TeacherStudentsPage({ searchParams }: PageProps) {
 
                       {/* Actions */}
                       <td className="py-4 px-6 text-right">
-                        <Link
-                          href={`/teacher/students/${student.id}`}
-                          className="px-3 py-1.5 rounded-xl border border-border bg-white hover:bg-slate-50 text-xs font-bold text-muted hover:text-primary transition-all inline-flex items-center"
-                        >
-                          View Details
-                        </Link>
+                        <StudentListActions
+                          studentId={student.id}
+                          studentName={profile.full_name || "Unknown"}
+                          studentCode={student.student_code}
+                        />
                       </td>
                     </tr>
                   );

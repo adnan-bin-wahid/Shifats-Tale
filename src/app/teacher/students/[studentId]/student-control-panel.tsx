@@ -7,10 +7,12 @@ import {
   updateStudentAccountStatusAction,
   enrollStudentAction
 } from "@/app/actions/teacher";
+import { deleteStudentByAdminAction } from "@/app/actions/profiles";
 import { EnrollmentRowActions } from "@/components/dashboard/enrollment-row-actions";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { useRouter as useNextRouter } from "next/navigation";
-import { Loader2, Plus, Edit, Save, UserX, UserCheck, AlertTriangle } from "lucide-react";
+import { Loader2, Plus, Edit, Save, UserX, UserCheck, AlertTriangle, Trash2 } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface StudentControlPanelProps {
   student: any;
@@ -27,6 +29,7 @@ export function StudentControlPanel({
   const [loading, setLoading] = useState(false);
   const [note, setNote] = useState(student.teacher_note || "");
   const [savingNote, setSavingNote] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Enrollment form state
   const [selectedBatchId, setSelectedBatchId] = useState("");
@@ -41,11 +44,13 @@ export function StudentControlPanel({
     try {
       const res = await updateStudentNoteAction(student.id, note);
       if (!res.success) {
-        alert(res.message || "Failed to update note");
+        toast.error(res.message || "Failed to update note");
+      } else {
+        toast.success("Private note saved!");
       }
     } catch (err) {
       console.error(err);
-      alert("Error saving note");
+      toast.error("Error saving note");
     } finally {
       setSavingNote(false);
     }
@@ -56,13 +61,14 @@ export function StudentControlPanel({
     try {
       const res = await updateStudentRegistrationAction(student.id, status);
       if (!res.success) {
-        alert(res.message || "Failed to update registration status");
+        toast.error(res.message || "Failed to update registration status");
       } else {
+        toast.success(`Registration marked as ${status}!`);
         router.refresh();
       }
     } catch (err) {
       console.error(err);
-      alert("Error occurred");
+      toast.error("An error occurred");
     } finally {
       setLoading(false);
     }
@@ -74,7 +80,7 @@ export function StudentControlPanel({
       const input = prompt("Please enter a reason for disabling this student's account:");
       if (input === null) return;
       if (input.trim() === "") {
-        alert("A reason is required to suspend an account.");
+        toast.error("A reason is required to suspend an account.");
         return;
       }
       reason = input.trim();
@@ -89,13 +95,14 @@ export function StudentControlPanel({
       });
 
       if (!res.success) {
-        alert(res.message || "Failed to update account status");
+        toast.error(res.message || "Failed to update account status");
       } else {
+        toast.success(`Account status updated to ${status}!`);
         router.refresh();
       }
     } catch (err) {
       console.error(err);
-      alert("Error occurred");
+      toast.error("An error occurred");
     } finally {
       setLoading(false);
     }
@@ -104,7 +111,7 @@ export function StudentControlPanel({
   const handleEnroll = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedBatchId) {
-      alert("Please select a batch to enroll.");
+      toast.error("Please select a batch to enroll.");
       return;
     }
 
@@ -112,14 +119,34 @@ export function StudentControlPanel({
     try {
       const res = await enrollStudentAction(student.id, selectedBatchId, enrollStatus);
       if (!res.success) {
-        alert(res.message || "Enrollment failed.");
+        toast.error(res.message || "Enrollment failed.");
       } else {
+        toast.success("Student enrolled successfully!");
         setSelectedBatchId("");
         router.refresh();
       }
     } catch (err) {
       console.error(err);
-      alert("Error during enrollment");
+      toast.error("Error during enrollment");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    setLoading(true);
+    setShowDeleteModal(false);
+    try {
+      const res = await deleteStudentByAdminAction(student.id);
+      if (!res.success) {
+        toast.error(res.message || "Failed to delete student");
+      } else {
+        toast.success("Student deleted permanently!");
+        router.push("/teacher/students");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("An error occurred during deletion");
     } finally {
       setLoading(false);
     }
@@ -333,8 +360,60 @@ export function StudentControlPanel({
               </button>
             )}
           </div>
+
+          {/* Permanent Student Deletion */}
+          <div className="space-y-2 pt-2 border-t border-rose-200/50">
+            <span className="text-[10px] text-rose-600 uppercase tracking-wider block font-black">Danger Zone</span>
+            <button
+              type="button"
+              onClick={() => setShowDeleteModal(true)}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-3 border border-rose-300 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 rounded-xl transition-all font-extrabold"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>Delete Student Permanently</span>
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white border-2 border-rose-300 rounded-2xl p-6 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200 space-y-4 text-left">
+            <div className="flex items-start gap-3">
+              <div className="p-3 bg-rose-100 text-rose-800 rounded-xl shrink-0">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-primary text-base">Confirm Permanent Deletion</h4>
+                <p className="text-xs text-muted leading-relaxed font-medium mt-1">
+                  Are you sure you want to permanently delete student <strong className="text-primary font-bold">{profile.full_name || "Unknown"} ({student.student_code})</strong> along with all associated enrollments, payments, and exam results? This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={loading}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteConfirm}
+                disabled={loading}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all disabled:opacity-50"
+              >
+                {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                <span>Delete Permanently</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
