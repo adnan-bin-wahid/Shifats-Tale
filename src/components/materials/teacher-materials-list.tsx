@@ -17,8 +17,10 @@ import {
   XCircle, 
   Archive,
   ExternalLink,
-  ChevronDown
+  ChevronDown,
+  AlertTriangle
 } from "lucide-react";
+import { CascadeDeletionDetails } from "@/components/common/cascade-deletion-details";
 
 interface Batch {
   id: string;
@@ -435,25 +437,45 @@ export function TeacherMaterialsList({ materials, batches, selectedBatchId = "" 
 
       {/* Delete confirmation modal */}
       {confirmDeleteId && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 border border-slate-100 shadow-xl space-y-4">
-            <h3 className="text-sm font-black text-slate-900">Confirm Deletion</h3>
-            <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">
-              Are you sure you want to delete this study material? This action will permanently drop the database record and delete its associated file from Cloudinary.
-            </p>
-            <div className="flex gap-2 justify-end">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border-2 border-rose-300 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95 duration-200 space-y-4 text-left">
+            <div className="flex items-start gap-3">
+              <div className="p-3 bg-rose-100 text-rose-800 rounded-xl shrink-0">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-primary text-base">Permanent Delete</h4>
+                <p className="text-xs text-muted leading-relaxed font-medium mt-1">
+                  Are you sure you want to permanently delete this study material? This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <CascadeDeletionDetails
+              entityName="Study Material"
+              deletedItems={[
+                { label: "Material DB Record", description: "The central study material title, description, and link row" },
+                { label: "Cloudflare R2 & Cloudinary Storage Files", description: "Any attached PDF, note, or media file object in cloud storage will be permanently wiped" },
+              ]}
+              preservedItems={[
+                { label: "Parent Batch & Curriculum", description: "The batch and other study resources remain completely unaffected" },
+              ]}
+            />
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
               <button
                 onClick={() => setConfirmDeleteId(null)}
-                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all font-bold text-[10px]"
+                disabled={isPending}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all font-bold text-xs"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleDelete(confirmDeleteId)}
                 disabled={isPending}
-                className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl transition-all font-bold text-[10px] disabled:opacity-55"
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl transition-all font-extrabold text-xs disabled:opacity-50"
               >
-                {isPending ? "Deleting..." : "Delete Permanently"}
+                {isPending ? "Deleting..." : "Confirm Delete"}
               </button>
             </div>
           </div>
