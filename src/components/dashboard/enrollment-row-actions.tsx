@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { updateEnrollmentStatusAction, deleteEnrollmentAction } from "@/app/actions/teacher";
 import { Loader2, Settings, Ban, ShieldCheck, CheckCircle2, RotateCcw, AlertTriangle, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { CascadeDeletionDetails } from "@/components/common/cascade-deletion-details";
 
 interface EnrollmentRowActionsProps {
   enrollmentId: string;
@@ -241,10 +242,24 @@ export function EnrollmentRowActions({
               <div>
                 <h4 className="font-extrabold text-primary text-base">Permanent Delete</h4>
                 <p className="text-xs text-muted leading-relaxed font-medium mt-1">
-                  Are you sure you want to permanently delete this enrollment for <strong className="text-primary font-bold">{studentName}</strong>? This will also remove any attendance and payment records specifically associated with this enrollment.
+                  Are you sure you want to permanently delete this enrollment for <strong className="text-primary font-bold">{studentName}</strong>? This action cannot be undone.
                 </p>
               </div>
             </div>
+
+            <CascadeDeletionDetails
+              entityName="Batch Enrollment"
+              deletedItems={[
+                { label: "Enrollment Fee Ledgers", description: "All payments and invoices specifically generated under this enrollment ID" },
+                { label: "Class Attendance Entries", description: "Class presence records logged under this batch enrollment" },
+                { label: "Enrollment Notifications", description: "Alerts or messages tied specifically to this enrollment status" },
+              ]}
+              preservedItems={[
+                { label: "Main Student Profile Account", description: "The student's central profile, auth credentials, and other enrollments remain 100% intact" },
+                { label: "Parent Batch Configuration", description: "The academic batch and its curriculum remain untouched" },
+              ]}
+            />
+
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
               <button
                 type="button"

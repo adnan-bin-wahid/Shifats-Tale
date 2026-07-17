@@ -318,8 +318,22 @@ export async function deleteBatchAction(batchId: string) {
       return { success: false, message: "Batch not found." };
     }
 
-    // Clean up dependent child records before deleting the batch
-    // 1. Get all exams for this batch to clean up exam_results
+    // Comprehensive Cascade Deletion of Child Records (Student Accounts are preserved)
+    // 1. Get all enrollments for this batch to clean up tied payments, attendance, and notifications
+    const { data: batchEnrollments } = await admin
+      .from("enrollments")
+      .select("id")
+      .eq("batch_id", batchId);
+
+    if (batchEnrollments && batchEnrollments.length > 0) {
+      const enrollmentIds = batchEnrollments.map((e) => e.id);
+      await admin.from("payments").delete().in("enrollment_id", enrollmentIds);
+      await admin.from("attendance").delete().in("enrollment_id", enrollmentIds);
+      await admin.from("notifications").delete().in("related_entity_id", enrollmentIds);
+      await admin.from("enrollments").delete().in("id", enrollmentIds);
+    }
+
+    // 2. Get all exams for this batch to clean up exam_results, attendance, and notifications
     const { data: batchExams } = await admin
       .from("exams")
       .select("id")
@@ -328,17 +342,23 @@ export async function deleteBatchAction(batchId: string) {
     if (batchExams && batchExams.length > 0) {
       const examIds = batchExams.map((e) => e.id);
       await admin.from("exam_results").delete().in("exam_id", examIds);
-      await admin.from("exams").delete().eq("batch_id", batchId);
+      await admin.from("attendance").delete().in("exam_id", examIds);
+      await admin.from("notifications").delete().in("related_entity_id", examIds);
+      await admin.from("exams").delete().in("id", examIds);
     }
 
-    // 2. Clean up attendance, announcements, contents, payments, and enrollments
+    // 3. Clean up study materials linked to this batch
+    await admin.from("materials").delete().eq("batch_id", batchId);
+
+    // 4. Clean up attendance, announcements, contents, payments, and enrollments specifically tied by batch_id
     await admin.from("attendance").delete().eq("batch_id", batchId);
     await admin.from("batch_announcements").delete().eq("batch_id", batchId);
     await admin.from("batch_contents").delete().eq("batch_id", batchId);
     await admin.from("payments").delete().eq("batch_id", batchId);
     await admin.from("enrollments").delete().eq("batch_id", batchId);
+    await admin.from("notifications").delete().eq("related_entity_id", batchId);
 
-    // 3. Delete the batch
+    // 5. Delete the batch record itself
     const { error } = await admin.from("batches").delete().eq("id", batchId);
     if (error) {
       return { success: false, message: error.message };
@@ -355,6 +375,10 @@ export async function deleteBatchAction(batchId: string) {
     }
 
     revalidatePath("/teacher/batches");
+    revalidatePath("/teacher/exams");
+    revalidatePath("/teacher/materials");
+    revalidatePath("/teacher/enrollments");
+    revalidatePath("/teacher/payments");
     return { success: true };
   } catch (err: any) {
     return { success: false, message: err.message || "Internal server error" };

@@ -19,9 +19,11 @@ import {
   Loader2,
   CheckCircle,
   XCircle,
-  Archive
+  Archive,
+  AlertTriangle
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { CascadeDeletionDetails } from "@/components/common/cascade-deletion-details";
 
 interface Announcement {
   id: string;
@@ -415,25 +417,45 @@ export function TeacherAnnouncementsPanel({ batchId, batchName, announcements }:
 
       {/* Delete confirmation modal */}
       {confirmDeleteId && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 border border-slate-100 shadow-xl space-y-4">
-            <h3 className="text-sm font-black text-slate-900">Confirm Deletion</h3>
-            <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">
-              Are you sure you want to delete this announcement? This action will permanently drop the notice from the log.
-            </p>
-            <div className="flex gap-2 justify-end">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border-2 border-rose-300 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95 duration-200 space-y-4 text-left">
+            <div className="flex items-start gap-3">
+              <div className="p-3 bg-rose-100 text-rose-800 rounded-xl shrink-0">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-primary text-base">Permanent Delete</h4>
+                <p className="text-xs text-muted leading-relaxed font-medium mt-1">
+                  Are you sure you want to permanently delete this announcement? This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <CascadeDeletionDetails
+              entityName="Announcement Notice"
+              deletedItems={[
+                { label: "Announcement Record", description: "The central bulletin board notice in database" },
+                { label: "Student Feed & Push Notifications", description: "All active dashboard banner displays and feed entries tied to this announcement" },
+              ]}
+              preservedItems={[
+                { label: "Parent Batch & Student Accounts", description: "The academic batch and student records remain completely unaffected" },
+              ]}
+            />
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
               <button
                 onClick={() => setConfirmDeleteId(null)}
-                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all font-bold text-[10px]"
+                disabled={isPending}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all font-bold text-xs"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleDelete(confirmDeleteId)}
                 disabled={isPending}
-                className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl transition-all font-bold text-[10px] disabled:opacity-55"
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl transition-all font-extrabold text-xs disabled:opacity-50"
               >
-                {isPending ? "Deleting..." : "Delete Permanently"}
+                {isPending ? "Deleting..." : "Confirm Delete"}
               </button>
             </div>
           </div>

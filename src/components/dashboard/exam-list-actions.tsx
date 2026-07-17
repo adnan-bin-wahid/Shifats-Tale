@@ -21,6 +21,7 @@ import {
   CalendarCheck
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { CascadeDeletionDetails } from "@/components/common/cascade-deletion-details";
 
 interface ExamListActionsProps {
   examId: string;
@@ -324,10 +325,23 @@ export function ExamListActions({ examId, examName, status }: ExamListActionsPro
               <div className="text-left">
                 <h4 className="font-extrabold text-primary text-base">Permanent Delete</h4>
                 <p className="text-xs text-muted leading-relaxed font-medium mt-1">
-                  Are you sure you want to permanently delete <strong className="text-primary font-bold">{examName}</strong>? This action cannot be undone.
+                  Are you sure you want to permanently delete <strong className="text-primary font-bold">{examName}</strong> along with all student results and attendance? This action cannot be undone.
                 </p>
               </div>
             </div>
+
+            <CascadeDeletionDetails
+              entityName="Examination"
+              deletedItems={[
+                { label: "Student Marks & Results", description: "All published and internal exam_results scorecards for this test" },
+                { label: "Exam Attendance Logs", description: "All student presence and roll sheets for this examination" },
+                { label: "Exam Notifications", description: "All alerts or announcements sent out regarding this examination" },
+              ]}
+              preservedItems={[
+                { label: "Parent Batch & Student Profiles", description: "The parent batch configuration and student accounts remain intact" },
+              ]}
+            />
+
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
               <button
                 type="button"
