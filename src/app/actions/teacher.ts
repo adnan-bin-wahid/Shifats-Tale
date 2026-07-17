@@ -6,6 +6,8 @@ import { resolveAuthenticatedDestination } from "@/lib/supabase/auth";
 import { createAuditLog } from "@/lib/audit";
 import { createNotification, createNotificationForProfile } from "@/lib/notifications";
 import { batchSchema } from "@/lib/validations/batch";
+import { deletePrivateAsset } from "@/lib/cloudinary";
+import { deleteR2File } from "@/lib/r2";
 import { revalidatePath } from "next/cache";
 
 async function assertActiveTeacher() {
@@ -319,7 +321,7 @@ export async function deleteBatchAction(batchId: string) {
     }
 
     // Comprehensive Cascade Deletion of Child Records (Student Accounts are preserved)
-    // 1. Get all enrollments for this batch to clean up tied payments, attendance, and notifications
+    // 1. Get all enrollments for this batch to clean up tied payments, attendance, exam_results, and notifications
     const { data: batchEnrollments } = await admin
       .from("enrollments")
       .select("id")
@@ -328,6 +330,7 @@ export async function deleteBatchAction(batchId: string) {
     if (batchEnrollments && batchEnrollments.length > 0) {
       const enrollmentIds = batchEnrollments.map((e) => e.id);
       await admin.from("payments").delete().in("enrollment_id", enrollmentIds);
+      await admin.from("exam_results").delete().in("enrollment_id", enrollmentIds);
       await admin.from("attendance").delete().in("enrollment_id", enrollmentIds);
       await admin.from("notifications").delete().in("related_entity_id", enrollmentIds);
       await admin.from("enrollments").delete().in("id", enrollmentIds);
@@ -347,12 +350,38 @@ export async function deleteBatchAction(batchId: string) {
       await admin.from("exams").delete().in("id", examIds);
     }
 
-    // 3. Clean up study materials linked to this batch
-    await admin.from("materials").delete().eq("batch_id", batchId);
+    // 3. Clean up study materials (batch_contents) & their R2/Cloudinary storage assets
+    const { data: batchContents } = await admin
+      .from("batch_contents")
+      .select("*")
+      .eq("batch_id", batchId);
+
+    if (batchContents && batchContents.length > 0) {
+      for (const material of batchContents) {
+        if (material.cloudinary_public_id) {
+          try {
+            const resourceType = (material.cloudinary_resource_type as any) || "raw";
+            await deletePrivateAsset(material.cloudinary_public_id, resourceType);
+          } catch (err) {
+            console.error("Cloudinary cleanup error:", err);
+          }
+        }
+        if (material.storage_path) {
+          try {
+            await deleteR2File(material.storage_path);
+          } catch (err) {
+            console.error("R2 cleanup error:", err);
+          }
+        }
+      }
+      const contentIds = batchContents.map((m) => m.id);
+      await admin.from("notifications").delete().in("related_entity_id", contentIds);
+      await admin.from("batch_contents").delete().eq("batch_id", batchId);
+    }
 
     // 4. Clean up attendance, announcements, contents, payments, and enrollments specifically tied by batch_id
     await admin.from("attendance").delete().eq("batch_id", batchId);
-    await admin.from("batch_announcements").delete().eq("batch_id", batchId);
+    await admin.from("announcements").delete().eq("batch_id", batchId);
     await admin.from("batch_contents").delete().eq("batch_id", batchId);
     await admin.from("payments").delete().eq("batch_id", batchId);
     await admin.from("enrollments").delete().eq("batch_id", batchId);
@@ -690,13 +719,16 @@ export async function deleteEnrollmentAction(enrollmentId: string) {
     // 1. Clean up payments tied specifically to this enrollment
     await admin.from("payments").delete().eq("enrollment_id", enrollmentId);
 
-    // 2. Clean up notifications tied specifically to this enrollment
+    // 2. Clean up exam_results tied specifically to this enrollment
+    await admin.from("exam_results").delete().eq("enrollment_id", enrollmentId);
+
+    // 3. Clean up notifications tied specifically to this enrollment
     await admin.from("notifications").delete().eq("related_entity_id", enrollmentId);
 
-    // 3. Clean up attendance records tied specifically to this enrollment if any
+    // 4. Clean up attendance records tied specifically to this enrollment if any
     await admin.from("attendance").delete().eq("enrollment_id", enrollmentId);
 
-    // 4. Delete the enrollment record itself
+    // 5. Delete the enrollment record itself
     const { error: dbError } = await admin
       .from("enrollments")
       .delete()
