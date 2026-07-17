@@ -159,10 +159,24 @@ export default function StudentCardsAdmin({ initialItems }: { initialItems: any[
             <CascadeDeletionDetails
               entityName="Student Success Card"
               deletedItems={[
-                { label: "Website Success Story Row", description: "The public student achievement card displayed on the results section" },
+                {
+                  label: "Website Success Story Row",
+                  description: "The public student achievement card displayed on the results section",
+                  subItems: [
+                    "Database content row (`website_content` table: student name, college, GPA/rank, testimonial text)",
+                    "Student portrait image link and highlighted achievement badge on the website",
+                  ],
+                },
               ]}
               preservedItems={[
-                { label: "Student Institutional Record & Exams", description: "The student's actual database profile, enrollments, and academic exam marks remain 100% untouched" },
+                {
+                  label: "Student Institutional Record & Exams",
+                  description: "The student's actual database profile, enrollments, and academic exam marks remain 100% untouched",
+                  subItems: [
+                    "The student's real profile account inside `student_profiles` and Supabase Auth",
+                    "The student's actual examination scorecards, batch enrollments, and tuition fee ledgers",
+                  ],
+                },
               ]}
             />
 

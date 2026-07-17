@@ -162,11 +162,33 @@ export default function CourseCardsAdmin({ initialItems }: { initialItems: any[]
             <CascadeDeletionDetails
               entityName="Course Card"
               deletedItems={[
-                { label: "Website Section Display Row", description: "The public course card item in the website content table" },
+                {
+                  label: "Website Section Display Row",
+                  description: "The public course card item in the website content table",
+                  subItems: [
+                    "Database content row (`website_content` / section items table)",
+                    "Course card thumbnail image link and feature highlight bullets",
+                    "Course pricing banner and public join button redirect on the website",
+                  ],
+                },
               ]}
               preservedItems={[
-                { label: "Actual Academic Batches", description: "The underlying academic batches and enrolled students remain 100% untouched" },
-                { label: "Other Website Sections", description: "All other homepage and course catalog items remain intact" },
+                {
+                  label: "Actual Academic Batches",
+                  description: "The underlying academic batches and enrolled students remain 100% untouched",
+                  subItems: [
+                    "The teacher's internal academic batches (`batches` table)",
+                    "Enrolled student accounts, fee ledgers, and classroom routines",
+                  ],
+                },
+                {
+                  label: "Other Website Sections",
+                  description: "All other homepage and course catalog items remain intact",
+                  subItems: [
+                    "Other published course cards and programs on the website",
+                    "Hero banner, teachers showcase, and student reviews sections",
+                  ],
+                },
               ]}
             />
 

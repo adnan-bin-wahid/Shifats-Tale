@@ -77,12 +77,41 @@ export function PaymentListActions({ paymentId, studentName, billingInfo }: Paym
             <CascadeDeletionDetails
               entityName="Payment Record"
               deletedItems={[
-                { label: "Ledger Transaction Entry", description: "The fee payment row and receipt log in database" },
-                { label: "Payment Alerts", description: "Any automated notifications dispatched for this payment ID" },
+                {
+                  label: "Ledger Transaction Entry",
+                  description: "The fee payment row and receipt log in database",
+                  subItems: [
+                    "The transaction entry inside the accounting ledger (`payments` table)",
+                    "Assigned invoice ID, payment receipt number, and collected cash/online log",
+                    "Teacher collection reconciliation entries tied to this payment ID",
+                  ],
+                },
+                {
+                  label: "Payment Alerts & Receipts",
+                  description: "Any automated notifications dispatched for this payment ID",
+                  subItems: [
+                    "Payment confirmation SMS logs and invoice delivery records",
+                    "Dashboard receipt download link history for the student",
+                  ],
+                },
               ]}
               preservedItems={[
-                { label: "Student & Enrollment Status", description: "The student's enrollment and account profile remain intact" },
-                { label: "Auto-Recalculated Dues", description: "The student's net outstanding balance will adjust cleanly" },
+                {
+                  label: "Student & Enrollment Status",
+                  description: "The student's enrollment and account profile remain intact",
+                  subItems: [
+                    "The student profile (`student_profiles` table) and active academic enrollments",
+                    "Previous and future payment slips and transaction ledgers",
+                  ],
+                },
+                {
+                  label: "Auto-Recalculated Dues",
+                  description: "The student's net outstanding balance will adjust cleanly",
+                  subItems: [
+                    "The student's net outstanding due amount will automatically recalculate without this receipt",
+                    "Batch fee structure and discount allocations remain unaffected",
+                  ],
+                },
               ]}
             />
 

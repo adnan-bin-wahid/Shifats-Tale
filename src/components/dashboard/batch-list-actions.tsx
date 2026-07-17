@@ -218,15 +218,75 @@ export function BatchListActions({
             <CascadeDeletionDetails
               entityName="Batch"
               deletedItems={[
-                { label: "Student Enrollments", description: "All enrollment links under this batch" },
-                { label: "Exams & Exam Results", description: "All exams, questions, attendance logs, and student scorecards" },
-                { label: "Study Materials & R2 Files", description: "All uploaded notes, PDFs, and Cloudflare R2 storage files for this batch" },
-                { label: "Financial Payments & Fee Ledgers", description: "All payment records, invoice history, and fee structures tied to this batch" },
-                { label: "Attendance & Batch Announcements", description: "Daily attendance sheets, batch notices, and class updates" },
+                {
+                  label: "Student Enrollments",
+                  description: "All enrollment links under this batch",
+                  subItems: [
+                    "Student-to-Batch enrollment link records (`batch_enrollments` table)",
+                    "Student dashboard batch access & curriculum assignments",
+                    "Assigned seat & roll numbers within this specific batch",
+                    "Batch-specific student progress and submission records",
+                  ],
+                },
+                {
+                  label: "Exams & Exam Results",
+                  description: "All exams, questions, attendance logs, and student scorecards",
+                  subItems: [
+                    "All examination setups assigned specifically to this batch (`exams` table)",
+                    "Question papers, MCQs, and rubric configurations attached to this batch's exams",
+                    "Student scorecards, obtained marks, and grading sheets (`exam_marks` table)",
+                    "Exam-specific invigilation & attendance sheets",
+                  ],
+                },
+                {
+                  label: "Study Materials & R2 Files",
+                  description: "All uploaded notes, PDFs, and Cloudflare R2 storage files for this batch",
+                  subItems: [
+                    "All lecture notes, PDFs, and links uploaded for this batch (`materials` table)",
+                    "Cloudflare R2 private document storage files associated with this batch",
+                    "Cloudinary media assets & preview banners attached to this batch's lectures",
+                    "Student bookmark & access history logs for these materials",
+                  ],
+                },
+                {
+                  label: "Financial Payments & Fee Ledgers",
+                  description: "All payment records, invoice history, and fee structures tied to this batch",
+                  subItems: [
+                    "All tuition fee ledgers and transaction records generated for this batch (`payments` table)",
+                    "Monthly payment slips, due logs, and invoice receipts tied to this batch",
+                    "Any discount or scholarship allocations specific to this batch enrollment",
+                  ],
+                },
+                {
+                  label: "Attendance & Batch Announcements",
+                  description: "Daily attendance sheets, batch notices, and class updates",
+                  subItems: [
+                    "Daily student present/absent sheets (`attendance` table)",
+                    "All bulletin board notices and announcements posted to this batch (`announcements` table)",
+                    "Student notification alerts and push notification logs sent for this batch",
+                    "Live class links, schedule entries, and class routine assignments",
+                  ],
+                },
               ]}
               preservedItems={[
-                { label: "Registered Student Accounts", description: "Main student_profiles and auth accounts are completely preserved" },
-                { label: "Other Center Batches", description: "All other academic batches and institutional configurations remain untouched" },
+                {
+                  label: "Registered Student Accounts",
+                  description: "Main student_profiles and auth accounts are completely preserved",
+                  subItems: [
+                    "Central student profiles (`student_profiles` table: names, phone numbers, parents info)",
+                    "Supabase Auth login accounts and passwords (`auth.users`)",
+                    "Student enrollments, marks, and progress in other active academic batches",
+                  ],
+                },
+                {
+                  label: "Other Center Batches",
+                  description: "All other academic batches and institutional configurations remain untouched",
+                  subItems: [
+                    "All other academic batches, branches, and programs across the institute",
+                    "Global teacher profiles and administrative permissions",
+                    "Website public pages, course catalog, and institute-wide configurations",
+                  ],
+                },
               ]}
             />
 
