@@ -73,15 +73,42 @@ export default async function TeacherEnrollmentsPage({ searchParams }: PageProps
     enrollQuery = enrollQuery.eq("batch_id", batchId);
   }
 
-  // 3. Search (Student Code, Full Name, Batch Code)
+  // 3. Search (Student Code, Full Name, Batch Code, Batch Name)
   if (search) {
-    // We can do search using subqueries or standard OR on nested tables
-    // PostgREST handles text search across inner-joined tables using dot-notation:
-    // e.g. "student.student_code.ilike.%search%, student.profile.full_name.ilike.%search%, batch.code.ilike.%search%"
-    enrollQuery = enrollQuery.or(
-      `student_code.ilike.%${search}%,full_name.ilike.%${search}%,code.ilike.%${search}%`,
-      { foreignTable: "student" }
-    );
+    const { data: matchedProfiles } = await supabase
+      .from("profiles")
+      .select("id")
+      .or(`full_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`);
+    const profileIds = matchedProfiles?.map((p) => p.id) || [];
+
+    let stuQuery = supabase.from("student_profiles").select("id");
+    if (profileIds.length > 0) {
+      stuQuery = stuQuery.or(`student_code.ilike.%${search}%,profile_id.in.(${profileIds.join(",")})`);
+    } else {
+      stuQuery = stuQuery.ilike("student_code", `%${search}%`);
+    }
+    const { data: matchedStudents } = await stuQuery;
+    const studentIds = matchedStudents?.map((s) => s.id) || [];
+
+    const { data: matchedBatches } = await supabase
+      .from("batches")
+      .select("id")
+      .or(`name.ilike.%${search}%,code.ilike.%${search}%`);
+    const matchingBatchIds = matchedBatches?.map((b) => b.id) || [];
+
+    const filterParts: string[] = [];
+    if (studentIds.length > 0) {
+      filterParts.push(`student_id.in.(${studentIds.join(",")})`);
+    }
+    if (matchingBatchIds.length > 0) {
+      filterParts.push(`batch_id.in.(${matchingBatchIds.join(",")})`);
+    }
+
+    if (filterParts.length > 0) {
+      enrollQuery = enrollQuery.or(filterParts.join(","));
+    } else {
+      enrollQuery = enrollQuery.eq("id", "00000000-0000-0000-0000-000000000000");
+    }
   }
 
   // Sorting & Ranges

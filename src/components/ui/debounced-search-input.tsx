@@ -24,6 +24,7 @@ export function DebouncedSearchInput({
   // Use state to make it a controlled input for immediate feedback
   const [value, setValue] = useState(defaultValue || searchParams.get(paramName) || "");
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     // Sync with URL if it changes externally (e.g., via browser back button)
@@ -43,8 +44,21 @@ export function DebouncedSearchInput({
 
     debounceRef.current = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString());
-      if (newValue) {
-        params.set(paramName, newValue);
+      
+      // If inside a form, preserve any unsubmitted select/input filter values from that form
+      if (inputRef.current?.form) {
+        const formData = new FormData(inputRef.current.form);
+        formData.forEach((val, key) => {
+          if (typeof val === "string" && val.trim() !== "") {
+            params.set(key, val.trim());
+          } else {
+            params.delete(key);
+          }
+        });
+      }
+
+      if (newValue.trim() !== "") {
+        params.set(paramName, newValue.trim());
       } else {
         params.delete(paramName);
       }
@@ -63,6 +77,7 @@ export function DebouncedSearchInput({
     <div className="relative w-full h-full">
       <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
       <input
+        ref={inputRef}
         type="text"
         name={paramName}
         value={value}
