@@ -13,6 +13,7 @@ import { StatusBadge } from "@/components/dashboard/status-badge";
 import { useRouter as useNextRouter } from "next/navigation";
 import { Loader2, Plus, Edit, Save, UserX, UserCheck, AlertTriangle, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { CascadeDeletionDetails } from "@/components/common/cascade-deletion-details";
 
 interface StudentControlPanelProps {
   student: any;
@@ -392,6 +393,21 @@ export function StudentControlPanel({
                 </p>
               </div>
             </div>
+
+            <CascadeDeletionDetails
+              entityName="Student Profile"
+              deletedItems={[
+                { label: "Batch Enrollments", description: "All active and past batch enrollment records for this student" },
+                { label: "Fee & Payment History", description: "All fee ledgers, transaction histories, and invoice items" },
+                { label: "Exam Results & Scorecards", description: "All published and internal exam marks and answer records" },
+                { label: "Attendance Logs", description: "All class and examination attendance entries" },
+                { label: "User Account & Profile", description: "The student_profiles record and Supabase Auth credentials" },
+              ]}
+              preservedItems={[
+                { label: "Academic Batches & Exams", description: "The parent batches and examinations remain unaffected" },
+              ]}
+            />
+
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
               <button
                 type="button"
