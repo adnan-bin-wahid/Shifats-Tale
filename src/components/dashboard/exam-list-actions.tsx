@@ -333,12 +333,42 @@ export function ExamListActions({ examId, examName, status }: ExamListActionsPro
             <CascadeDeletionDetails
               entityName="Examination"
               deletedItems={[
-                { label: "Student Marks & Results", description: "All published and internal exam_results scorecards for this test" },
-                { label: "Exam Attendance Logs", description: "All student presence and roll sheets for this examination" },
-                { label: "Exam Notifications", description: "All alerts or announcements sent out regarding this examination" },
+                {
+                  label: "Student Marks & Results",
+                  description: "All published and internal exam_results scorecards for this test",
+                  subItems: [
+                    "Individual student scores, percentage marks, and letter grades (`exam_marks` table)",
+                    "Student rank positions, percentile ratings, and performance breakdowns",
+                    "Teacher remark notes and answer paper review comments",
+                  ],
+                },
+                {
+                  label: "Exam Attendance Logs",
+                  description: "All student presence and roll sheets for this examination",
+                  subItems: [
+                    "Invigilation present/absent sheets specifically for this exam date (`attendance` table)",
+                    "Exam room check-in times and seat allocation tracking",
+                  ],
+                },
+                {
+                  label: "Exam Notifications",
+                  description: "All alerts or announcements sent out regarding this examination",
+                  subItems: [
+                    "SMS result delivery logs and parent notification records",
+                    "Student dashboard exam reminders and schedule alerts",
+                  ],
+                },
               ]}
               preservedItems={[
-                { label: "Parent Batch & Student Profiles", description: "The parent batch configuration and student accounts remain intact" },
+                {
+                  label: "Parent Batch & Student Profiles",
+                  description: "The parent batch configuration and student accounts remain intact",
+                  subItems: [
+                    "The parent academic batch record (`batches` table: curriculum, schedule, fee structure)",
+                    "All registered student profiles and Supabase login credentials (`student_profiles` & `auth.users`)",
+                    "Other examinations and test histories within the same batch",
+                  ],
+                },
               ]}
             />
 

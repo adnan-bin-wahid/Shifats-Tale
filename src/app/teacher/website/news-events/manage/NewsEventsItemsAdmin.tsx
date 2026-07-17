@@ -156,10 +156,24 @@ export default function NewsEventsItemsAdmin({ initialItems }: { initialItems: a
             <CascadeDeletionDetails
               entityName="News or Event Post"
               deletedItems={[
-                { label: "Website News/Event Post", description: "The public bulletin story and any spotlight features on the homepage/news page" },
+                {
+                  label: "Website News/Event Post",
+                  description: "The public bulletin story and any spotlight features on the homepage/news page",
+                  subItems: [
+                    "Database news post row (`website_content` table: story title, full details, venue date)",
+                    "Event cover image banner and spotlight toggle status on the public website homepage",
+                  ],
+                },
               ]}
               preservedItems={[
-                { label: "Archival Media & Logs", description: "The institutional archives and internal teacher announcement boards remain untouched" },
+                {
+                  label: "Archival Media & Logs",
+                  description: "The institutional archives and internal teacher announcement boards remain untouched",
+                  subItems: [
+                    "Internal batch bulletin boards and teacher announcements (`announcements` table)",
+                    "Other published news stories, gallery photos, and notice boards",
+                  ],
+                },
               ]}
             />
 

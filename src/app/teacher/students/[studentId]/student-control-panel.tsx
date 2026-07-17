@@ -397,14 +397,60 @@ export function StudentControlPanel({
             <CascadeDeletionDetails
               entityName="Student Profile"
               deletedItems={[
-                { label: "Batch Enrollments", description: "All active and past batch enrollment records for this student" },
-                { label: "Fee & Payment History", description: "All fee ledgers, transaction histories, and invoice items" },
-                { label: "Exam Results & Scorecards", description: "All published and internal exam marks and answer records" },
-                { label: "Attendance Logs", description: "All class and examination attendance entries" },
-                { label: "User Account & Profile", description: "The student_profiles record and Supabase Auth credentials" },
+                {
+                  label: "Batch Enrollments",
+                  description: "All active and past batch enrollment records for this student",
+                  subItems: [
+                    "Student enrollment connection entries across all academic batches (`batch_enrollments` table)",
+                    "Assigned roll numbers, seat reservations, and batch join histories",
+                    "Student access permissions to private batch materials and lectures",
+                  ],
+                },
+                {
+                  label: "Fee & Payment History",
+                  description: "All fee ledgers, transaction histories, and invoice items",
+                  subItems: [
+                    "All tuition payment transactions and manual cash receipts (`payments` table)",
+                    "Monthly billing invoices, due logs, and payment status tracking",
+                    "Any scholarship or discount codes redeemed by this student",
+                  ],
+                },
+                {
+                  label: "Exam Results & Scorecards",
+                  description: "All published and internal exam marks and answer records",
+                  subItems: [
+                    "All exam marks, grades, and answer submission sheets (`exam_marks` table)",
+                    "Individual student rank, percentile logs, and SMS result history",
+                    "Subject-wise performance tracking and academic report cards",
+                  ],
+                },
+                {
+                  label: "Attendance Logs",
+                  description: "All class and examination attendance entries",
+                  subItems: [
+                    "Daily present/absent logs across all enrolled classes (`attendance` table)",
+                    "Exam attendance and invigilation check-in records",
+                  ],
+                },
+                {
+                  label: "User Account & Profile",
+                  description: "The student_profiles record and Supabase Auth credentials",
+                  subItems: [
+                    "Central student profile record (`student_profiles` table: phone number, parent details, photo)",
+                    "Supabase Auth user credentials, login sessions, and password recovery hashes (`auth.users`)",
+                  ],
+                },
               ]}
               preservedItems={[
-                { label: "Academic Batches & Exams", description: "The parent batches and examinations remain unaffected" },
+                {
+                  label: "Academic Batches & Exams",
+                  description: "The parent batches and examinations remain unaffected",
+                  subItems: [
+                    "All academic batches, course configurations, and teacher assignments",
+                    "All examination setups, question papers, and other students' marks and ranks",
+                    "Global institute fee structures and accounting ledgers",
+                  ],
+                },
               ]}
             />
 

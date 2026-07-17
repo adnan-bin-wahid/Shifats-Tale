@@ -454,11 +454,32 @@ export function TeacherMaterialsList({ materials, batches, selectedBatchId = "" 
             <CascadeDeletionDetails
               entityName="Study Material"
               deletedItems={[
-                { label: "Material DB Record", description: "The central study material title, description, and link row" },
-                { label: "Cloudflare R2 & Cloudinary Storage Files", description: "Any attached PDF, note, or media file object in cloud storage will be permanently wiped" },
+                {
+                  label: "Material DB Record",
+                  description: "The central study material title, description, and link row",
+                  subItems: [
+                    "Database record row (`materials` table: title, description, category, batch assignment)",
+                    "Teacher assignment tracking and student download statistics for this item",
+                  ],
+                },
+                {
+                  label: "Cloudflare R2 & Cloudinary Storage Files",
+                  description: "Any attached PDF, note, or media file object in cloud storage will be permanently wiped",
+                  subItems: [
+                    "Actual PDF/Document file stored inside Cloudflare R2 private bucket (`S3/R2 object deletion`)",
+                    "Any Cloudinary media thumbnails, preview images, or attachments linked to this lecture",
+                  ],
+                },
               ]}
               preservedItems={[
-                { label: "Parent Batch & Curriculum", description: "The batch and other study resources remain completely unaffected" },
+                {
+                  label: "Parent Batch & Curriculum",
+                  description: "The batch and other study resources remain completely unaffected",
+                  subItems: [
+                    "The parent academic batch record and curriculum syllabus",
+                    "Other study materials, notes, and video lectures inside the same category",
+                  ],
+                },
               ]}
             />
 

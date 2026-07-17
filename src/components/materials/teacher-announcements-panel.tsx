@@ -434,11 +434,32 @@ export function TeacherAnnouncementsPanel({ batchId, batchName, announcements }:
             <CascadeDeletionDetails
               entityName="Announcement Notice"
               deletedItems={[
-                { label: "Announcement Record", description: "The central bulletin board notice in database" },
-                { label: "Student Feed & Push Notifications", description: "All active dashboard banner displays and feed entries tied to this announcement" },
+                {
+                  label: "Announcement Record",
+                  description: "The central bulletin board notice in database",
+                  subItems: [
+                    "Database notice entry (`announcements` table: title, content, priority, target batch)",
+                    "Teacher author record and posting timestamp metadata",
+                  ],
+                },
+                {
+                  label: "Student Feed & Push Notifications",
+                  description: "All active dashboard banner displays and feed entries tied to this announcement",
+                  subItems: [
+                    "Student dashboard notice feed cards and pinned header alerts",
+                    "Push notification dispatch histories and student view confirmation logs",
+                  ],
+                },
               ]}
               preservedItems={[
-                { label: "Parent Batch & Student Accounts", description: "The academic batch and student records remain completely unaffected" },
+                {
+                  label: "Parent Batch & Student Accounts",
+                  description: "The academic batch and student records remain completely unaffected",
+                  subItems: [
+                    "The academic batch configuration (`batches` table)",
+                    "Student accounts, study materials, and examination schedules",
+                  ],
+                },
               ]}
             />
 

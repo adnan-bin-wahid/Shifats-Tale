@@ -140,10 +140,24 @@ export default function MaterialsItemsAdmin({ initialItems, categories }: { init
             <CascadeDeletionDetails
               entityName="Website Material Entry"
               deletedItems={[
-                { label: "Public Website Material Card", description: "The public study resource link/card displayed on the website materials section" },
+                {
+                  label: "Public Website Material Card",
+                  description: "The public study resource link/card displayed on the website materials section",
+                  subItems: [
+                    "Database public content row (`website_content` table: title, category tag, public drive link)",
+                    "Material preview thumbnail image and public resource description text",
+                  ],
+                },
               ]}
               preservedItems={[
-                { label: "Internal Batch Study Materials", description: "Teacher-uploaded secure PDFs inside specific batches/curriculum remain unaffected" },
+                {
+                  label: "Internal Batch Study Materials",
+                  description: "Teacher-uploaded secure PDFs inside specific batches/curriculum remain unaffected",
+                  subItems: [
+                    "Internal batch study notes, recorded video lectures, and exam question papers",
+                    "Cloudflare R2 secure files and student bookmark logs inside academic batches",
+                  ],
+                },
               ]}
             />
 

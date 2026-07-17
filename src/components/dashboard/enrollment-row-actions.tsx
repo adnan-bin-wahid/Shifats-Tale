@@ -250,13 +250,49 @@ export function EnrollmentRowActions({
             <CascadeDeletionDetails
               entityName="Batch Enrollment"
               deletedItems={[
-                { label: "Enrollment Fee Ledgers", description: "All payments and invoices specifically generated under this enrollment ID" },
-                { label: "Class Attendance Entries", description: "Class presence records logged under this batch enrollment" },
-                { label: "Enrollment Notifications", description: "Alerts or messages tied specifically to this enrollment status" },
+                {
+                  label: "Enrollment Connection & Access",
+                  description: "The specific student-to-batch connection entry (`batch_enrollments` table)",
+                  subItems: [
+                    "Assigned seat number, batch roll number, and enrollment status record",
+                    "Student access permissions to this specific batch's study materials and recorded lectures",
+                    "Assigned batch routine and live class join links on student dashboard",
+                  ],
+                },
+                {
+                  label: "Enrollment Fee Ledgers",
+                  description: "All payments and invoices specifically generated under this enrollment ID",
+                  subItems: [
+                    "Tuition fee invoices, due tracking ledgers, and billing slips generated for this enrollment (`payments` table)",
+                    "Any batch-specific scholarship or discount calculations attached to this enrollment",
+                  ],
+                },
+                {
+                  label: "Class Attendance Entries",
+                  description: "Class presence records logged under this batch enrollment",
+                  subItems: [
+                    "Daily present/absent logs specifically recorded under this batch (`attendance` table)",
+                  ],
+                },
               ]}
               preservedItems={[
-                { label: "Main Student Profile Account", description: "The student's central profile, auth credentials, and other enrollments remain 100% intact" },
-                { label: "Parent Batch Configuration", description: "The academic batch and its curriculum remain untouched" },
+                {
+                  label: "Main Student Profile Account",
+                  description: "The student's central profile, auth credentials, and other enrollments remain 100% intact",
+                  subItems: [
+                    "Central student profile record (`student_profiles` table: phone, photo, parent details)",
+                    "Supabase Auth credentials and active login sessions (`auth.users`)",
+                    "Student enrollments, exam results, and fee ledgers in all other academic batches",
+                  ],
+                },
+                {
+                  label: "Parent Batch Configuration",
+                  description: "The academic batch and its curriculum remain untouched",
+                  subItems: [
+                    "The academic batch record (`batches` table: teacher assignments, routine, syllabus)",
+                    "Other enrolled students and their attendance/payment records in this batch",
+                  ],
+                },
               ]}
             />
 
