@@ -57,55 +57,81 @@ export default async function TeacherPaymentsPage({ searchParams }: PageProps) {
     .select("id, name, code")
     .order("name", { ascending: true });
 
-  // 1. Fetch Aggregates for the selected Month/Year & Batch
-  let aggQuery = supabase
-    .from("payments")
-    .select("expected_amount, paid_amount, status")
-    .eq("billing_month", parseInt(month))
-    .eq("billing_year", parseInt(year));
+  // 1. Resolve Student ID Search mapping cleanly across profiles + student_profiles
+  let searchStudentIds: string[] = [];
+  if (search) {
+    const { data: matchedProfiles } = await supabase
+      .from("profiles")
+      .select("id")
+      .or(`full_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`);
+    const profileIds = matchedProfiles?.map((p) => p.id) || [];
 
-  if (batchId) {
-    aggQuery = aggQuery.eq("batch_id", batchId);
+    let stuQuery = supabase.from("student_profiles").select("id");
+    if (profileIds.length > 0) {
+      stuQuery = stuQuery.or(`student_code.ilike.%${search}%,profile_id.in.(${profileIds.join(",")})`);
+    } else {
+      stuQuery = stuQuery.ilike("student_code", `%${search}%`);
+    }
+    const { data: students } = await stuQuery;
+    searchStudentIds = students?.map((s) => s.id) || [];
   }
 
+  // Helper to apply all filters consistently across queries
+  const applyFilters = (q: any, includeStatus = true) => {
+    if (month && month !== "all") q = q.eq("billing_month", parseInt(month));
+    if (year && year !== "all") q = q.eq("billing_year", parseInt(year));
+    if (batchId) q = q.eq("batch_id", batchId);
+    if (includeStatus && status) q = q.eq("status", status);
+    if (paymentMethod) q = q.eq("payment_method", paymentMethod);
+    if (search) {
+      const textFilters = [
+        `reference_number.ilike.%${search}%`,
+        `transaction_id.ilike.%${search}%`,
+        `note.ilike.%${search}%`
+      ];
+      if (searchStudentIds.length > 0) {
+        textFilters.push(`student_id.in.(${searchStudentIds.join(",")})`);
+      }
+      q = q.or(textFilters.join(","));
+    }
+    return q;
+  };
+
+  // 2. Fetch Aggregates for the active filters (Expected, Collected, Outstanding)
+  let aggQuery = supabase.from("payments").select("expected_amount, paid_amount, status");
+  aggQuery = applyFilters(aggQuery, true);
   const { data: aggData } = await aggQuery;
 
   let expectedTotal = 0;
   let collectedTotal = 0;
   let dueTotal = 0;
-  let paidCount = 0;
-  let partialCount = 0;
-  let unpaidCount = 0;
 
   aggData?.forEach((p) => {
     const exp = Number(p.expected_amount) || 0;
     const paid = Number(p.paid_amount) || 0;
-
     expectedTotal += exp;
     collectedTotal += paid;
-
-    if (p.status === "WAIVED") {
-      dueTotal += 0;
-    } else {
+    if (p.status !== "WAIVED") {
       dueTotal += Math.max(exp - paid, 0);
     }
+  });
 
+  // 3. Fetch Status Counts (Paid, Partially Paid, Unpaid) for active month/batch/search
+  let statusAggQuery = supabase.from("payments").select("status");
+  statusAggQuery = applyFilters(statusAggQuery, false);
+  const { data: statusAggData } = await statusAggQuery;
+
+  let paidCount = 0;
+  let partialCount = 0;
+  let unpaidCount = 0;
+
+  statusAggData?.forEach((p) => {
     if (p.status === "PAID") paidCount++;
     else if (p.status === "PARTIALLY_PAID") partialCount++;
     else if (p.status === "UNPAID") unpaidCount++;
   });
 
-  // 2. Resolve Student ID Search mapping
-  let searchStudentIds: string[] = [];
-  if (search) {
-    const { data: students } = await supabase
-      .from("student_profiles")
-      .select("id, student_code, profile:profiles(full_name)")
-      .or(`student_code.ilike.%${search}%,profile.full_name.ilike.%${search}%`);
-    searchStudentIds = students?.map((s) => s.id) || [];
-  }
-
-  // 3. Paginated Payments Query
+  // 4. Paginated Payments Query
   let query = supabase
     .from("payments")
     .select(`
@@ -127,19 +153,7 @@ export default async function TeacherPaymentsPage({ searchParams }: PageProps) {
       )
     `, { count: "exact" });
 
-  query = query.eq("billing_month", parseInt(month)).eq("billing_year", parseInt(year));
-
-  if (batchId) query = query.eq("batch_id", batchId);
-  if (status) query = query.eq("status", status);
-  if (paymentMethod) query = query.eq("payment_method", paymentMethod);
-
-  if (search) {
-    if (searchStudentIds.length > 0) {
-      query = query.or(`student_id.in.(${searchStudentIds.join(",")}),reference_number.ilike.%${search}%`);
-    } else {
-      query = query.ilike("reference_number", `%${search}%`);
-    }
-  }
+  query = applyFilters(query, true);
 
   // Sorting: newest payments first
   query = query.order("created_at", { ascending: false });
@@ -178,6 +192,8 @@ export default async function TeacherPaymentsPage({ searchParams }: PageProps) {
     "July", "August", "September", "October", "November", "December"
   ];
 
+  const billingDesc = `Selected period: ${month === "all" ? "All Months" : monthNames[parseInt(month) - 1] || "All Months"} ${year === "all" ? "All Years" : year}`;
+
   return (
     <div className="space-y-8 text-xs font-bold text-primary">
       {/* Header */}
@@ -201,7 +217,7 @@ export default async function TeacherPaymentsPage({ searchParams }: PageProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <DashboardCard
           title="Tuition Dues Expected"
-          description={`Selected month: ${monthNames[parseInt(month) - 1]} ${year}`}
+          description={billingDesc}
           icon={<DollarSign className="h-5 w-5 text-indigo-600" />}
         >
           <div className="pt-2">
@@ -216,7 +232,7 @@ export default async function TeacherPaymentsPage({ searchParams }: PageProps) {
 
         <DashboardCard
           title="Tuition Dues Collected"
-          description={`Selected month: ${monthNames[parseInt(month) - 1]} ${year}`}
+          description={billingDesc}
           icon={<CheckCircle2 className="h-5 w-5 text-emerald-600" />}
         >
           <div className="pt-2">
@@ -231,7 +247,7 @@ export default async function TeacherPaymentsPage({ searchParams }: PageProps) {
 
         <DashboardCard
           title="Outstanding Tuition Balance"
-          description={`Selected month: ${monthNames[parseInt(month) - 1]} ${year}`}
+          description={billingDesc}
           icon={<AlertCircle className="h-5 w-5 text-rose-600" />}
         >
           <div className="pt-2">
@@ -306,6 +322,7 @@ export default async function TeacherPaymentsPage({ searchParams }: PageProps) {
                 defaultValue={month}
                 className="w-full px-3 py-2 text-xs border border-border/60 rounded-xl bg-bg/20 focus:border-primary focus:outline-none"
               >
+                <option value="all">All Months</option>
                 {monthNames.map((name, i) => (
                   <option key={i + 1} value={i + 1}>
                     {name}
@@ -324,6 +341,7 @@ export default async function TeacherPaymentsPage({ searchParams }: PageProps) {
                 defaultValue={year}
                 className="w-full px-3 py-2 text-xs border border-border/60 rounded-xl bg-bg/20 focus:border-primary focus:outline-none"
               >
+                <option value="all">All Years</option>
                 {Array.from({ length: 7 }, (_, i) => 2024 + i).map((yr) => (
                   <option key={yr} value={yr}>
                     {yr}
@@ -389,12 +407,22 @@ export default async function TeacherPaymentsPage({ searchParams }: PageProps) {
               </select>
             </div>
 
-            <button
-              type="submit"
-              className="w-full py-2 bg-primary hover:bg-primary/95 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
-            >
-              Apply Filter
-            </button>
+            <div className="flex flex-col gap-2 pt-1">
+              <button
+                type="submit"
+                className="w-full py-2 bg-primary hover:bg-primary/95 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5"
+              >
+                <Filter className="h-3.5 w-3.5" />
+                <span>Apply Filter</span>
+              </button>
+              <Link
+                href="/teacher/payments"
+                className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all text-center flex items-center justify-center gap-1.5"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                <span>Reset Filters</span>
+              </Link>
+            </div>
           </form>
         </div>
 

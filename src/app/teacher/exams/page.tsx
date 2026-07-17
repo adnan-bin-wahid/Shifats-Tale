@@ -44,7 +44,7 @@ export default async function TeacherExamsPage({ searchParams }: PageProps) {
     const { data: matchedBatches } = await supabase
       .from("batches")
       .select("id")
-      .ilike("name", `%${search}%`);
+      .or(`name.ilike.%${search}%,code.ilike.%${search}%`);
     matchingBatchIds = matchedBatches?.map((b) => b.id) || [];
   }
 
