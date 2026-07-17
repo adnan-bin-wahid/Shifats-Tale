@@ -482,3 +482,51 @@ export async function generateMonthlyDuesAction(
     return { success: false, message: err.message || "Internal server error" };
   }
 }
+
+/**
+ * Delete a payment record permanently.
+ */
+export async function deletePaymentAction(paymentId: string) {
+  try {
+    const teacher = await assertActiveTeacher();
+    const admin = createAdminClient();
+
+    const { data: payment, error: fetchError } = await admin
+      .from("payments")
+      .select("*")
+      .eq("id", paymentId)
+      .single();
+
+    if (fetchError || !payment) {
+      return { success: false, message: "Payment record not found." };
+    }
+
+    // Clean up related notifications if any
+    await admin.from("notifications").delete().eq("related_entity_id", paymentId);
+
+    const { error: dbError } = await admin
+      .from("payments")
+      .delete()
+      .eq("id", paymentId);
+
+    if (dbError) {
+      return { success: false, message: `Database deletion failed: ${dbError.message}` };
+    }
+
+    await createAuditLog({
+      actorProfileId: teacher.id,
+      action: "PAYMENT_DELETED",
+      entityType: "payments",
+      entityId: paymentId,
+      oldValue: payment,
+    });
+
+    revalidatePath("/teacher/payments");
+    if (payment.batch_id) {
+      revalidatePath(`/teacher/batches/${payment.batch_id}`);
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, message: err.message || "Internal server error" };
+  }
+}

@@ -5,6 +5,7 @@ import { DebouncedSearchInput } from "@/components/ui/debounced-search-input";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { DashboardCard } from "@/components/dashboard/dashboard-card";
 import { StatusBadge } from "@/components/dashboard/status-badge";
+import { PaymentListActions } from "@/components/dashboard/payment-list-actions";
 import { formatCurrency } from "@/lib/currency";
 import { 
   CreditCard, 
@@ -485,12 +486,11 @@ export default async function TeacherPaymentsPage({ searchParams }: PageProps) {
                               </span>
                             </td>
                             <td className="py-3 text-right">
-                              <Link
-                                href={`/teacher/payments/${p.id}`}
-                                className="px-2.5 py-1 text-[10px] font-bold border border-border/80 bg-white hover:bg-slate-50 text-primary rounded-lg transition-all inline-block"
-                              >
-                                View / Manage
-                              </Link>
+                              <PaymentListActions
+                                paymentId={p.id}
+                                studentName={studentName}
+                                billingInfo={`${monthNames[p.billing_month - 1]} ${p.billing_year}`}
+                              />
                             </td>
                           </tr>
                         );
