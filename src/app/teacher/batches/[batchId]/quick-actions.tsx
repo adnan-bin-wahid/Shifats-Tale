@@ -172,7 +172,7 @@ export function QuickActions({ batchId, status, admissionOpen }: QuickActionsPro
               <div>
                 <h4 className="font-extrabold text-primary text-base">Confirm Permanent Deletion</h4>
                 <p className="text-xs text-muted leading-relaxed font-medium mt-1">
-                  Are you sure you want to permanently delete this batch along with all associated enrollments, exams, and records? This action cannot be undone.
+                  Are you sure you want to permanently delete this batch along with all associated enrollments, study materials, exams, attendance, and fee records? <span className="font-bold text-emerald-700">(Note: Registered student account profiles will remain preserved).</span> This action cannot be undone.
                 </p>
               </div>
             </div>
