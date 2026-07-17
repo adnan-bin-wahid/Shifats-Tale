@@ -6,6 +6,7 @@ import { updatePaymentAction, deletePaymentAction } from "@/app/actions/payments
 import { formatCurrency } from "@/lib/currency";
 import { Loader2, AlertCircle, Trash2, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
+import { CascadeDeletionDetails } from "@/components/common/cascade-deletion-details";
 
 interface Payment {
   id: string;
@@ -383,6 +384,19 @@ export function EditPaymentForm({ payment }: EditPaymentFormProps) {
                 </p>
               </div>
             </div>
+
+            <CascadeDeletionDetails
+              entityName="Payment Record"
+              deletedItems={[
+                { label: "Ledger Transaction Entry", description: "The fee payment row and receipt log in database" },
+                { label: "Payment Alerts", description: "Any automated notifications dispatched for this payment ID" },
+              ]}
+              preservedItems={[
+                { label: "Student & Enrollment Status", description: "The student's enrollment and account profile remain intact" },
+                { label: "Auto-Recalculated Dues", description: "The student's net outstanding balance will adjust cleanly" },
+              ]}
+            />
+
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
               <button
                 type="button"
