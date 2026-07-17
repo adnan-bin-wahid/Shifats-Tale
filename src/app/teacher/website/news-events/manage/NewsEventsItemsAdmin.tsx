@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { Plus, Edit2, Trash2, Calendar, Trophy, Bell, MapPin, Clock } from "lucide-react";
+import { Plus, Edit2, Trash2, Calendar, Trophy, Bell, MapPin, Clock, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
 import { deleteSectionItem } from "@/features/website-cms/actions/content-actions";
+import { CascadeDeletionDetails } from "@/components/common/cascade-deletion-details";
 import NewsEventsModal from "./NewsEventsModal";
 
 export default function NewsEventsItemsAdmin({ initialItems }: { initialItems: any[] }) {
@@ -12,6 +13,7 @@ export default function NewsEventsItemsAdmin({ initialItems }: { initialItems: a
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const handleAddNew = () => {
     setEditingItem(null);
@@ -23,14 +25,13 @@ export default function NewsEventsItemsAdmin({ initialItems }: { initialItems: a
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this announcement/event?")) return;
-
+  const executeDelete = async (id: string) => {
     try {
       setIsDeleting(id);
       await deleteSectionItem(id);
       setItems((prev) => prev.filter((item) => item.id !== id));
       toast.success("Item deleted successfully");
+      setConfirmDeleteId(null);
     } catch (err: any) {
       toast.error(err.message || "Failed to delete item");
     } finally {
@@ -116,7 +117,7 @@ export default function NewsEventsItemsAdmin({ initialItems }: { initialItems: a
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => handleDelete(item.id)}
+                    onClick={() => setConfirmDeleteId(item.id)}
                     disabled={isDeleting === item.id}
                     className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                     title="Delete Item"
@@ -136,6 +137,51 @@ export default function NewsEventsItemsAdmin({ initialItems }: { initialItems: a
         item={editingItem}
         onSaveComplete={onSaveComplete}
       />
+
+      {confirmDeleteId && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border-2 border-rose-300 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95 duration-200 space-y-4 text-left">
+            <div className="flex items-start gap-3">
+              <div className="p-3 bg-rose-100 text-rose-800 rounded-xl shrink-0">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-primary text-base">Permanent Delete</h4>
+                <p className="text-xs text-muted leading-relaxed font-medium mt-1">
+                  Are you sure you want to permanently delete this news/event post from the website? This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <CascadeDeletionDetails
+              entityName="News or Event Post"
+              deletedItems={[
+                { label: "Website News/Event Post", description: "The public bulletin story and any spotlight features on the homepage/news page" },
+              ]}
+              preservedItems={[
+                { label: "Archival Media & Logs", description: "The institutional archives and internal teacher announcement boards remain untouched" },
+              ]}
+            />
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
+              <button
+                onClick={() => setConfirmDeleteId(null)}
+                disabled={isDeleting === confirmDeleteId}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all font-bold text-xs"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => executeDelete(confirmDeleteId)}
+                disabled={isDeleting === confirmDeleteId}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl transition-all font-extrabold text-xs disabled:opacity-50"
+              >
+                {isDeleting === confirmDeleteId ? "Deleting..." : "Confirm Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
