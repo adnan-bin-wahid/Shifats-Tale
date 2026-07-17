@@ -645,6 +645,65 @@ export async function updateEnrollmentStatusAction({
   }
 }
 
+/**
+ * Delete an enrollment record permanently with clean cascade.
+ */
+export async function deleteEnrollmentAction(enrollmentId: string) {
+  try {
+    const teacher = await assertActiveTeacher();
+    const admin = createAdminClient();
+
+    const { data: enrollment, error: fetchError } = await admin
+      .from("enrollments")
+      .select("*")
+      .eq("id", enrollmentId)
+      .single();
+
+    if (fetchError || !enrollment) {
+      return { success: false, message: "Enrollment record not found." };
+    }
+
+    // 1. Clean up payments tied specifically to this enrollment
+    await admin.from("payments").delete().eq("enrollment_id", enrollmentId);
+
+    // 2. Clean up notifications tied specifically to this enrollment
+    await admin.from("notifications").delete().eq("related_entity_id", enrollmentId);
+
+    // 3. Clean up attendance records tied specifically to this enrollment if any
+    await admin.from("attendance").delete().eq("enrollment_id", enrollmentId);
+
+    // 4. Delete the enrollment record itself
+    const { error: dbError } = await admin
+      .from("enrollments")
+      .delete()
+      .eq("id", enrollmentId);
+
+    if (dbError) {
+      return { success: false, message: `Database deletion failed: ${dbError.message}` };
+    }
+
+    await createAuditLog({
+      actorProfileId: teacher.id,
+      action: "ENROLLMENT_DELETED",
+      entityType: "enrollments",
+      entityId: enrollmentId,
+      oldValue: enrollment,
+    });
+
+    revalidatePath("/teacher/students");
+    if (enrollment.student_id) {
+      revalidatePath(`/teacher/students/${enrollment.student_id}`);
+    }
+    if (enrollment.batch_id) {
+      revalidatePath(`/teacher/batches/${enrollment.batch_id}`);
+    }
+    revalidatePath("/teacher/enrollments");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, message: err.message || "Internal server error" };
+  }
+}
+
 export async function updateStudentRegistrationAction(studentId: string, newStatus: "APPROVED" | "REJECTED") {
   try {
     const teacher = await assertActiveTeacher();
