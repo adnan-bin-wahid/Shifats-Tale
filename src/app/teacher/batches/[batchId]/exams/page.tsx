@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { ArrowLeft, Plus, Calendar, Eye, Edit, ListTodo, GraduationCap } from "lucide-react";
+import { ExamListActions } from "@/components/dashboard/exam-list-actions";
 
 interface PageProps {
   params: Promise<{
@@ -205,32 +206,7 @@ export default async function BatchExamsPage({ params }: PageProps) {
                       </td>
 
                       <td className="py-4 px-6 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1">
-                          <Link
-                            href={`/teacher/exams/${exam.id}`}
-                            className="px-2.5 py-1 border border-border/80 hover:bg-slate-50 text-[10px] font-bold rounded-lg text-slate-600"
-                          >
-                            View
-                          </Link>
-                          
-                          {!isArchived && exam.status !== "RESULT_PUBLISHED" && (
-                            <>
-                              <Link
-                                href={`/teacher/exams/${exam.id}/edit`}
-                                className="px-2.5 py-1 border border-border/80 hover:bg-slate-50 text-[10px] font-bold rounded-lg text-slate-600"
-                              >
-                                Edit
-                              </Link>
-                              
-                              <Link
-                                href={`/teacher/exams/${exam.id}/results`}
-                                className="px-2.5 py-1 bg-primary text-white hover:bg-primary-dark text-[10px] font-bold rounded-lg"
-                              >
-                                Enter Marks
-                              </Link>
-                            </>
-                          )}
-                        </div>
+                        <ExamListActions examId={exam.id} examName={exam.name} status={exam.status} />
                       </td>
                     </tr>
                   );

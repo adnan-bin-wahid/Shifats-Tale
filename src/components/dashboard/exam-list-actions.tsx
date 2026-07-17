@@ -114,6 +114,15 @@ export function ExamListActions({ examId, examName, status }: ExamListActionsPro
     <div className="relative flex items-center justify-end gap-1.5">
       {isPending && <Loader2 className="h-4 w-4 animate-spin text-accent mr-1" />}
 
+      {/* 0. View Details Icon */}
+      <Link
+        href={`/teacher/exams/${examId}`}
+        className="p-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-primary rounded-lg transition-all border border-slate-200/60 shadow-xs"
+        title="View Exam Details"
+      >
+        <Eye className="h-4 w-4" />
+      </Link>
+
       {/* 1. Edit Details Icon */}
       {!isArchived && (
         <>
