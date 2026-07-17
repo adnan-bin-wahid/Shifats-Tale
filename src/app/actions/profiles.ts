@@ -440,11 +440,20 @@ export async function deleteStudentByAdminAction(studentId: string) {
 
     const profileId = student.profile_id;
 
-    // 2. Clean up child records linked to student_profiles.id (studentId)
-    await admin.from("enrollments").delete().eq("student_id", studentId);
-    await admin.from("payments").delete().eq("student_id", studentId);
-    await admin.from("exam_results").delete().eq("student_id", studentId);
-    await admin.from("attendance").delete().eq("student_id", studentId);
+    // 2. Fetch all student enrollments to properly cascade-delete payments, exam_results, attendance, notifications
+    const { data: studentEnrollments } = await admin
+      .from("enrollments")
+      .select("id")
+      .eq("student_id", studentId);
+
+    if (studentEnrollments && studentEnrollments.length > 0) {
+      const enrollmentIds = studentEnrollments.map((e) => e.id);
+      await admin.from("payments").delete().in("enrollment_id", enrollmentIds);
+      await admin.from("exam_results").delete().in("enrollment_id", enrollmentIds);
+      await admin.from("attendance").delete().in("enrollment_id", enrollmentIds);
+      await admin.from("notifications").delete().in("related_entity_id", enrollmentIds);
+      await admin.from("enrollments").delete().eq("student_id", studentId);
+    }
 
     // 3. Clean up child records linked to profile.id where relevant
     if (profileId) {
