@@ -220,8 +220,8 @@ export default async function TeacherBatchesPage({ searchParams }: PageProps) {
                   const studentCounts = countsMap[batch.id] || { total: 0, active: 0 };
                   const isDraft = batch.status === "DRAFT";
                   const hasEnrollments = studentCounts.total > 0;
-                  // Draft batch without enrollment can be deleted
-                  const canDelete = isDraft && !hasEnrollments;
+                  // Universal admin deletion enabled for any batch
+                  const canDelete = true;
 
                   return (
                     <tr key={batch.id} className="hover:bg-slate-50/30 transition-colors">

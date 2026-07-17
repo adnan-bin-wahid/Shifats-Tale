@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ResultsManager } from "./results/results-manager";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { ExamListActions } from "@/components/dashboard/exam-list-actions";
 
 interface PageProps {
   params: Promise<{
@@ -74,13 +75,16 @@ export default async function ExamDetailsPage({ params }: PageProps) {
 
   return (
     <div className="space-y-4">
-      <Link
-        href="/teacher/exams"
-        className="inline-flex items-center gap-2 text-primary hover:text-primary-dark transition-colors font-bold text-xs"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to Examinations
-      </Link>
+      <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-border/40 shadow-xs">
+        <Link
+          href="/teacher/exams"
+          className="inline-flex items-center gap-2 text-primary hover:text-primary-dark transition-colors font-bold text-xs"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Examinations
+        </Link>
+        <ExamListActions examId={examId} examName={exam.name} status={exam.status} />
+      </div>
       
       <ResultsManager 
         examId={examId} 

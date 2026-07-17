@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { updateEnrollmentStatusAction } from "@/app/actions/teacher";
-import { Loader2, Settings, Ban, ShieldCheck, CheckCircle2, RotateCcw, AlertTriangle } from "lucide-react";
+import { updateEnrollmentStatusAction, deleteEnrollmentAction } from "@/app/actions/teacher";
+import { Loader2, Settings, Ban, ShieldCheck, CheckCircle2, RotateCcw, AlertTriangle, Trash2 } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface EnrollmentRowActionsProps {
   enrollmentId: string;
@@ -18,7 +19,9 @@ export function EnrollmentRowActions({
 }: EnrollmentRowActionsProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [open, setOpen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleTransition = async (
     newStatus: "PENDING" | "ACTIVE" | "DISABLED" | "COMPLETED" | "REJECTED" | "CANCELLED"
@@ -66,15 +69,34 @@ export function EnrollmentRowActions({
       });
 
       if (!res.success) {
-        alert(res.message || "Failed to update enrollment status");
+        toast.error(res.message || "Failed to update enrollment status");
       } else {
+        toast.success(`Enrollment updated to ${newStatus}`);
         router.refresh();
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("An error occurred");
+      toast.error(err.message || "An error occurred");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const res = await deleteEnrollmentAction(enrollmentId);
+      if (res.success) {
+        toast.success("Enrollment record deleted permanently!");
+        setShowDeleteConfirm(false);
+        router.refresh();
+      } else {
+        toast.error(res.message || "Failed to delete enrollment record.");
+        setDeleting(false);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "An error occurred during deletion.");
+      setDeleting(false);
     }
   };
 
@@ -190,8 +212,60 @@ export function EnrollmentRowActions({
                 <span>Reset to Pending</span>
               </button>
             )}
+
+            <div className="my-1 border-t border-border/40" />
+
+            {/* DELETE ENROLLMENT */}
+            <button
+              onClick={() => {
+                setOpen(false);
+                setShowDeleteConfirm(true);
+              }}
+              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 hover:bg-rose-50 text-rose-600 text-left font-extrabold"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              <span>Delete Enrollment</span>
+            </button>
           </div>
         </>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white border-2 border-rose-300 rounded-2xl p-6 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200 space-y-4 text-left">
+            <div className="flex items-start gap-3">
+              <div className="p-3 bg-rose-100 text-rose-800 rounded-xl shrink-0">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-primary text-base">Permanent Delete</h4>
+                <p className="text-xs text-muted leading-relaxed font-medium mt-1">
+                  Are you sure you want to permanently delete this enrollment for <strong className="text-primary font-bold">{studentName}</strong>? This will also remove any attendance and payment records specifically associated with this enrollment.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all disabled:opacity-50"
+              >
+                {deleting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                <span>Confirm Delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

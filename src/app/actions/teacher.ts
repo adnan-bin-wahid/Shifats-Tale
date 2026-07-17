@@ -308,39 +308,37 @@ export async function deleteBatchAction(batchId: string) {
     const teacher = await assertActiveTeacher();
     const admin = createAdminClient();
 
-    // Check if dependent data exists
-    const { count: enrollmentsCount } = await admin
-      .from("enrollments")
-      .select("id", { count: "exact", head: true })
-      .eq("batch_id", batchId);
-
-    const { count: paymentsCount } = await admin
-      .from("payments")
-      .select("id", { count: "exact", head: true })
-      .eq("batch_id", batchId);
-
-    const { count: examsCount } = await admin
-      .from("exams")
-      .select("id", { count: "exact", head: true })
-      .eq("batch_id", batchId);
-
-    if (
-      (enrollmentsCount && enrollmentsCount > 0) ||
-      (paymentsCount && paymentsCount > 0) ||
-      (examsCount && examsCount > 0)
-    ) {
-      return {
-        success: false,
-        message: "Cannot delete a batch containing enrollments, payments, exams, or historical records.",
-      };
-    }
-
     const { data: oldBatch } = await admin
       .from("batches")
       .select("*")
       .eq("id", batchId)
       .single();
 
+    if (!oldBatch) {
+      return { success: false, message: "Batch not found." };
+    }
+
+    // Clean up dependent child records before deleting the batch
+    // 1. Get all exams for this batch to clean up exam_results
+    const { data: batchExams } = await admin
+      .from("exams")
+      .select("id")
+      .eq("batch_id", batchId);
+
+    if (batchExams && batchExams.length > 0) {
+      const examIds = batchExams.map((e) => e.id);
+      await admin.from("exam_results").delete().in("exam_id", examIds);
+      await admin.from("exams").delete().eq("batch_id", batchId);
+    }
+
+    // 2. Clean up attendance, announcements, contents, payments, and enrollments
+    await admin.from("attendance").delete().eq("batch_id", batchId);
+    await admin.from("batch_announcements").delete().eq("batch_id", batchId);
+    await admin.from("batch_contents").delete().eq("batch_id", batchId);
+    await admin.from("payments").delete().eq("batch_id", batchId);
+    await admin.from("enrollments").delete().eq("batch_id", batchId);
+
+    // 3. Delete the batch
     const { error } = await admin.from("batches").delete().eq("id", batchId);
     if (error) {
       return { success: false, message: error.message };
@@ -642,6 +640,65 @@ export async function updateEnrollmentStatusAction({
     revalidatePath(`/teacher/batches/${enrollment.batch_id}`);
     revalidatePath(`/teacher/enrollments`);
     return { success: true, enrollment: updated };
+  } catch (err: any) {
+    return { success: false, message: err.message || "Internal server error" };
+  }
+}
+
+/**
+ * Delete an enrollment record permanently with clean cascade.
+ */
+export async function deleteEnrollmentAction(enrollmentId: string) {
+  try {
+    const teacher = await assertActiveTeacher();
+    const admin = createAdminClient();
+
+    const { data: enrollment, error: fetchError } = await admin
+      .from("enrollments")
+      .select("*")
+      .eq("id", enrollmentId)
+      .single();
+
+    if (fetchError || !enrollment) {
+      return { success: false, message: "Enrollment record not found." };
+    }
+
+    // 1. Clean up payments tied specifically to this enrollment
+    await admin.from("payments").delete().eq("enrollment_id", enrollmentId);
+
+    // 2. Clean up notifications tied specifically to this enrollment
+    await admin.from("notifications").delete().eq("related_entity_id", enrollmentId);
+
+    // 3. Clean up attendance records tied specifically to this enrollment if any
+    await admin.from("attendance").delete().eq("enrollment_id", enrollmentId);
+
+    // 4. Delete the enrollment record itself
+    const { error: dbError } = await admin
+      .from("enrollments")
+      .delete()
+      .eq("id", enrollmentId);
+
+    if (dbError) {
+      return { success: false, message: `Database deletion failed: ${dbError.message}` };
+    }
+
+    await createAuditLog({
+      actorProfileId: teacher.id,
+      action: "ENROLLMENT_DELETED",
+      entityType: "enrollments",
+      entityId: enrollmentId,
+      oldValue: enrollment,
+    });
+
+    revalidatePath("/teacher/students");
+    if (enrollment.student_id) {
+      revalidatePath(`/teacher/students/${enrollment.student_id}`);
+    }
+    if (enrollment.batch_id) {
+      revalidatePath(`/teacher/batches/${enrollment.batch_id}`);
+    }
+    revalidatePath("/teacher/enrollments");
+    return { success: true };
   } catch (err: any) {
     return { success: false, message: err.message || "Internal server error" };
   }

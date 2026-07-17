@@ -774,6 +774,9 @@ export async function deleteExamAction(examId: string) {
       return { success: false, message: "Examination not found." };
     }
 
+    // Clean up child records linked to examId
+    await admin.from("exam_results").delete().eq("exam_id", examId);
+
     const { error: dbError } = await admin
       .from("exams")
       .delete()
@@ -793,6 +796,7 @@ export async function deleteExamAction(examId: string) {
     });
 
     revalidatePath(`/teacher/batches/${exam.batch_id}/exams`);
+    revalidatePath(`/teacher/exams`);
     return { success: true };
   } catch (err: any) {
     return { success: false, message: err.message || "Internal server error" };

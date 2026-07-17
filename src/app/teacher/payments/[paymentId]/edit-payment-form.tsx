@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { updatePaymentAction } from "@/app/actions/payments";
+import { updatePaymentAction, deletePaymentAction } from "@/app/actions/payments";
 import { formatCurrency } from "@/lib/currency";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, Trash2, AlertTriangle } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface Payment {
   id: string;
@@ -49,6 +50,8 @@ export function EditPaymentForm({ payment }: EditPaymentFormProps) {
 
   // UI state
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -119,13 +122,33 @@ export function EditPaymentForm({ payment }: EditPaymentFormProps) {
         }
       } else {
         setSuccessMessage("Billing record corrected successfully!");
+        toast.success("Billing record corrected successfully!");
         router.refresh();
       }
     } catch (err) {
       console.error(err);
       setErrorMessage("An unexpected error occurred while updating the payment record.");
+      toast.error("An unexpected error occurred while updating the payment record.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const res = await deletePaymentAction(payment.id);
+      if (res.success) {
+        toast.success("Payment record deleted permanently!");
+        router.push("/teacher/payments");
+        router.refresh();
+      } else {
+        toast.error(res.message || "Failed to delete payment record.");
+        setDeleting(false);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "An unexpected error occurred.");
+      setDeleting(false);
     }
   };
 
@@ -324,16 +347,64 @@ export function EditPaymentForm({ payment }: EditPaymentFormProps) {
       </div>
 
       {/* Actions */}
-      <div className="flex justify-end pt-3">
+      <div className="flex items-center justify-between pt-4 border-t border-border/30">
+        <button
+          type="button"
+          onClick={() => setShowDeleteConfirm(true)}
+          disabled={loading || deleting}
+          className="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all border border-rose-200"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          <span>Delete Record</span>
+        </button>
+
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || deleting}
           className="px-5 py-2.5 bg-primary hover:bg-primary/95 text-white rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-sm transition-all"
         >
           {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
           <span>Save Modifications</span>
         </button>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white border-2 border-rose-300 rounded-2xl p-6 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200 space-y-4 text-left">
+            <div className="flex items-start gap-3">
+              <div className="p-3 bg-rose-100 text-rose-800 rounded-xl shrink-0">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-primary text-base">Permanent Delete</h4>
+                <p className="text-xs text-muted leading-relaxed font-medium mt-1">
+                  Are you sure you want to permanently delete this ledger payment record? This will remove the record from all billing reports and student dues calculations immediately.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all disabled:opacity-50"
+              >
+                {deleting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                <span>Confirm Delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }
