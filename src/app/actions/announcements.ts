@@ -246,6 +246,9 @@ export async function deleteAnnouncementAction(announcementId: string) {
       return { success: false, message: "Announcement not found." };
     }
 
+    // Clean up related notifications if any
+    await admin.from("notifications").delete().eq("related_entity_id", announcementId);
+
     const { error: dbError } = await admin
       .from("announcements")
       .delete()
@@ -266,6 +269,7 @@ export async function deleteAnnouncementAction(announcementId: string) {
 
     revalidatePath(`/teacher/batches/${announcement.batch_id}/announcements`);
     revalidatePath(`/student/batches/${announcement.batch_id}/announcements`);
+    revalidatePath(`/teacher/announcements`);
     return { success: true };
   } catch (err: any) {
     return { success: false, message: err.message || "Internal server error" };

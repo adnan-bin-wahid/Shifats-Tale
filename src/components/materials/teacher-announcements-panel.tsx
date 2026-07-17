@@ -21,6 +21,7 @@ import {
   XCircle,
   Archive
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface Announcement {
   id: string;
@@ -129,6 +130,7 @@ export function TeacherAnnouncementsPanel({ batchId, batchName, announcements }:
       }
 
       if (result.success) {
+        toast.success(editingId ? "Announcement updated successfully!" : "Announcement created successfully!");
         handleCancelEdit();
         router.refresh();
       } else {
@@ -136,6 +138,7 @@ export function TeacherAnnouncementsPanel({ batchId, batchName, announcements }:
           setErrors(result.errors as any);
         } else {
           setErrorMessage(result.message || "An error occurred.");
+          toast.error(result.message || "An error occurred.");
         }
       }
     });
@@ -154,9 +157,11 @@ export function TeacherAnnouncementsPanel({ batchId, batchName, announcements }:
     startTransition(async () => {
       const res = await updateAnnouncementAction(ann.id, payload);
       if (res.success) {
+        toast.success(`Announcement status changed to ${newStatus}!`);
         router.refresh();
       } else {
         setErrorMessage(res.message || "Failed to change status.");
+        toast.error(res.message || "Failed to change status.");
       }
     });
   };
@@ -165,10 +170,12 @@ export function TeacherAnnouncementsPanel({ batchId, batchName, announcements }:
     startTransition(async () => {
       const res = await deleteAnnouncementAction(id);
       if (res.success) {
+        toast.success("Announcement deleted permanently!");
         setConfirmDeleteId(null);
         router.refresh();
       } else {
         setErrorMessage(res.message || "Failed to delete announcement.");
+        toast.error(res.message || "Failed to delete announcement.");
       }
     });
   };
