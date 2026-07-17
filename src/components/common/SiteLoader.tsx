@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useRef, useEffect } from "react";
 import { useSiteSettings } from "@/lib/providers/SiteSettingsProvider";
 
 interface SiteLoaderProps {
@@ -18,27 +18,38 @@ export function SiteLoader({ isDismissing = false, message }: SiteLoaderProps) {
     "Physics & Higher Mathematics Admission Care";
   const logoUrl = settings?.logoUrl || "/images/alternate_logo.png";
 
-  // Single-pass progress counter from 0 to 100% (never resets or loops repeatedly)
-  const [progress, setProgress] = useState(0);
+  // Refs for direct DOM updates to bypass React Suspense rendering freezes
+  const barRef = useRef<HTMLDivElement>(null);
+  const bottomBarRef = useRef<HTMLDivElement>(null);
+  const percentRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    let current = 0;
+    let current = 4;
     const interval = setInterval(() => {
-      // Progress smoothly up to 90%, then finish up to exactly 100%
+      // Smooth progress count up
       if (current < 65) {
-        current += Math.floor(Math.random() * 8) + 7;
+        current += Math.floor(Math.random() * 6) + 5;
       } else if (current < 94) {
-        current += Math.floor(Math.random() * 4) + 3;
-      } else if (current < 100) {
-        current += 2;
+        current += Math.floor(Math.random() * 3) + 2;
+      } else if (current < 99) {
+        current += 1;
       }
 
-      if (current >= 100) {
-        current = 100;
-        clearInterval(interval);
+      if (current >= 99) {
+        current = 99;
       }
-      setProgress(current);
-    }, 40);
+
+      // Directly update DOM elements to ensure 60fps smooth movement regardless of React transitions
+      if (barRef.current) {
+        barRef.current.style.width = `${current}%`;
+      }
+      if (bottomBarRef.current) {
+        bottomBarRef.current.style.width = `${current}%`;
+      }
+      if (percentRef.current) {
+        percentRef.current.textContent = `${current}%`;
+      }
+    }, 45);
 
     return () => clearInterval(interval);
   }, []);
@@ -52,7 +63,18 @@ export function SiteLoader({ isDismissing = false, message }: SiteLoaderProps) {
         isDismissing ? "opacity-0 scale-105 pointer-events-none" : "opacity-100 scale-100"
       }`}
     >
-      <style dangerouslySetInnerHTML={{ __html: `@media print { .site-loader-overlay { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; } }` }} />
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print { .site-loader-overlay { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; } }
+        @keyframes loader-gold-expand {
+          0% { width: 5%; }
+          30% { width: 45%; }
+          70% { width: 85%; }
+          100% { width: 98%; }
+        }
+        .animate-loader-gold-fill {
+          animation: loader-gold-expand 2.2s cubic-bezier(0.1, 0.7, 0.1, 1) forwards;
+        }
+      ` }} />
       
       {/* Exact User Background Image for Loading Screen */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
@@ -129,9 +151,10 @@ export function SiteLoader({ isDismissing = false, message }: SiteLoaderProps) {
           {/* Thicker casing with luxury golden border glow */}
           <div className="w-full h-3.5 sm:h-4 bg-[#010E62]/15 dark:bg-black/50 border border-[#FBB503]/40 dark:border-[#FBB503]/50 rounded-full overflow-hidden p-0.5 shadow-inner backdrop-blur-md relative">
             <div
-              className="h-full rounded-full transition-all duration-150 ease-out relative overflow-hidden shadow-[0_0_15px_rgba(251,181,3,0.85)]"
+              ref={barRef}
+              className="h-full rounded-full transition-all duration-150 ease-out relative overflow-hidden shadow-[0_0_15px_rgba(251,181,3,0.85)] animate-loader-gold-fill"
               style={{
-                width: `${Math.max(progress, 4)}%`,
+                width: "4%",
                 background: "linear-gradient(90deg, #F99E00, #FBB503, #FFF3B3, #FBB503, #F99E00)",
                 backgroundSize: "200% 100%"
               }}
@@ -144,11 +167,14 @@ export function SiteLoader({ isDismissing = false, message }: SiteLoaderProps) {
           {/* Larger, Crisp Progress Status & Golden Percentage */}
           <div className="w-full flex items-center justify-between px-1 text-xs sm:text-sm font-bold tracking-wider text-[#010E62] dark:text-white font-mono">
             <span className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${progress < 100 ? "bg-[#FBB503] animate-ping shadow-[0_0_8px_rgba(251,181,3,0.8)]" : "bg-emerald-500"}`} />
-              <span className="font-semibold text-slate-800 dark:text-slate-100">{progress < 100 ? (message || "Initializing Portal...") : "Portal Ready"}</span>
+              <span className="w-2 h-2 rounded-full bg-[#FBB503] animate-ping shadow-[0_0_8px_rgba(251,181,3,0.8)]" />
+              <span className="font-semibold text-slate-800 dark:text-slate-100">{message || "Initializing Portal..."}</span>
             </span>
-            <span className="font-black text-sm sm:text-base text-[#010E62] dark:text-[#FBB503] drop-shadow-[0_0_8px_rgba(251,181,3,0.5)]">
-              {progress}%
+            <span
+              ref={percentRef}
+              className="font-black text-sm sm:text-base text-[#010E62] dark:text-[#FBB503] drop-shadow-[0_0_8px_rgba(251,181,3,0.5)]"
+            >
+              4%
             </span>
           </div>
         </div>
@@ -157,8 +183,9 @@ export function SiteLoader({ isDismissing = false, message }: SiteLoaderProps) {
       {/* Bottom Subtle Shimmer Accent Line */}
       <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-[#010E62]/10 dark:bg-white/10 overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-transparent via-[#FBB503] to-transparent transition-all duration-150 ease-out shadow-[0_0_10px_rgba(251,181,3,0.7)]"
-          style={{ width: `${progress}%` }}
+          ref={bottomBarRef}
+          className="h-full bg-gradient-to-r from-transparent via-[#FBB503] to-transparent transition-all duration-150 ease-out shadow-[0_0_10px_rgba(251,181,3,0.7)] animate-loader-gold-fill"
+          style={{ width: "4%" }}
         />
       </div>
     </div>
