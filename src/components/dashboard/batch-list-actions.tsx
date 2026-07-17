@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { CascadeDeletionDetails } from "@/components/common/cascade-deletion-details";
 
 interface BatchListActionsProps {
   batchId: string;
@@ -213,6 +214,22 @@ export function BatchListActions({
                 </p>
               </div>
             </div>
+
+            <CascadeDeletionDetails
+              entityName="Batch"
+              deletedItems={[
+                { label: "Student Enrollments", description: "All enrollment links under this batch" },
+                { label: "Exams & Exam Results", description: "All exams, questions, attendance logs, and student scorecards" },
+                { label: "Study Materials & R2 Files", description: "All uploaded notes, PDFs, and Cloudflare R2 storage files for this batch" },
+                { label: "Financial Payments & Fee Ledgers", description: "All payment records, invoice history, and fee structures tied to this batch" },
+                { label: "Attendance & Batch Announcements", description: "Daily attendance sheets, batch notices, and class updates" },
+              ]}
+              preservedItems={[
+                { label: "Registered Student Accounts", description: "Main student_profiles and auth accounts are completely preserved" },
+                { label: "Other Center Batches", description: "All other academic batches and institutional configurations remain untouched" },
+              ]}
+            />
+
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
               <button
                 type="button"
