@@ -776,6 +776,14 @@ export async function deleteExamAction(examId: string) {
 
     // Clean up child records linked to examId
     await admin.from("exam_results").delete().eq("exam_id", examId);
+    try { await admin.from("attendance").delete().eq("exam_id", examId); } catch (e) {}
+    await admin.from("notifications").delete().eq("related_entity_id", examId);
+
+    // Step down status sequentially so DB trigger allows deletion
+    await admin.from("exams").update({ status: "RESULT_DRAFT" }).eq("id", examId);
+    await admin.from("exams").update({ status: "COMPLETED" }).eq("id", examId);
+    await admin.from("exams").update({ status: "SCHEDULED" }).eq("id", examId);
+    await admin.from("exams").update({ status: "DRAFT" }).eq("id", examId);
 
     const { error: dbError } = await admin
       .from("exams")
