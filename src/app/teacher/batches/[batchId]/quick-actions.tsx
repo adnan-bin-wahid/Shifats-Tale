@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { updateBatchStatusAction } from "@/app/actions/teacher";
-import { Play, CheckCircle, Archive, XCircle, Unlock, Lock, Edit, Loader2 } from "lucide-react";
+import { updateBatchStatusAction, deleteBatchAction } from "@/app/actions/teacher";
+import { Play, CheckCircle, Archive, XCircle, Unlock, Lock, Edit, Loader2, Trash2, AlertTriangle } from "lucide-react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 interface QuickActionsProps {
   batchId: string;
@@ -15,26 +16,47 @@ interface QuickActionsProps {
 export function QuickActions({ batchId, status, admissionOpen }: QuickActionsProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleAction = async (newStatus?: any, openAdm?: boolean) => {
     setLoading(true);
     try {
       const res = await updateBatchStatusAction(batchId, newStatus, openAdm);
       if (!res.success) {
-        alert(res.message || "Failed to update batch");
+        toast.error(res.message || "Failed to update batch");
       } else {
+        toast.success("Batch updated successfully!");
         router.refresh();
       }
     } catch (err) {
       console.error(err);
-      alert("Error occurred");
+      toast.error("An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    setLoading(true);
+    setShowDeleteModal(false);
+    try {
+      const res = await deleteBatchAction(batchId);
+      if (!res.success) {
+        toast.error(res.message || "Failed to delete batch");
+      } else {
+        toast.success("Batch permanently deleted!");
+        router.push("/teacher/batches");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("An error occurred during deletion");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="bg-white p-5 rounded-2xl border border-border/40 shadow-sm space-y-4 text-xs font-bold text-primary">
+    <div className="bg-white p-5 rounded-2xl border border-border/40 shadow-sm space-y-4 text-xs font-bold text-primary relative">
       <h3 className="text-sm font-extrabold font-display border-b border-border/30 pb-2">
         Quick Administrative Controls
       </h3>
@@ -126,6 +148,56 @@ export function QuickActions({ batchId, status, admissionOpen }: QuickActionsPro
           )}
         </div>
       </div>
+
+      {/* Permanent Deletion Option */}
+      <div className="border-t border-rose-200/60 pt-3">
+        <button
+          onClick={() => setShowDeleteModal(true)}
+          disabled={loading}
+          className="w-full flex items-center justify-center gap-2 py-2.5 px-3 border border-rose-300 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 rounded-xl transition-all font-extrabold"
+        >
+          <Trash2 className="h-4 w-4" />
+          <span>Delete Batch Permanently</span>
+        </button>
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white border-2 border-rose-300 rounded-2xl p-6 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200 space-y-4 text-left">
+            <div className="flex items-start gap-3">
+              <div className="p-3 bg-rose-100 text-rose-800 rounded-xl shrink-0">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-primary text-base">Confirm Permanent Deletion</h4>
+                <p className="text-xs text-muted leading-relaxed font-medium mt-1">
+                  Are you sure you want to permanently delete this batch along with all associated enrollments, exams, and records? This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={loading}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteConfirm}
+                disabled={loading}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all disabled:opacity-50"
+              >
+                {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                <span>Delete Permanently</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
