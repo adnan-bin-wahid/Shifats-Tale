@@ -50,6 +50,7 @@ export const teacherNavItems: NavItem[] = [
   { label: "Academic Calendar", href: "/teacher/website/academic-calendar", icon: Calendar },
   { label: "Class Routine", href: "/teacher/website/class-routine", icon: Calendar },
   { label: "Exams & Grading", href: "/teacher/exams", icon: GraduationCap },
+  { label: "Security & Audit Logs", href: "/teacher/audit-logs", icon: ShieldAlert },
   { label: "Notifications", href: "/teacher/notifications", icon: Bell },
   { label: "My Profile", href: "/teacher/profile", icon: User },
   { label: "Portal Settings", href: "/teacher/settings", icon: Settings },
