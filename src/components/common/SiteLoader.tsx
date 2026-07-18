@@ -25,13 +25,33 @@ export function SiteLoader({ isDismissing = false, message }: SiteLoaderProps) {
   const pctId = `sl-pct-${uniqueId}`;
 
   useEffect(() => {
+    if (typeof window !== "undefined" && (window as any)[`__sl_timer_${uniqueId}`]) {
+      clearInterval((window as any)[`__sl_timer_${uniqueId}`]);
+    }
+
+    let current = 4;
+    const interval = setInterval(() => {
+      const bar = document.getElementById(barId);
+      const bot = document.getElementById(botId);
+      const pct = document.getElementById(pctId);
+
+      if (current < 65) current += Math.floor(Math.random() * 6) + 5;
+      else if (current < 94) current += Math.floor(Math.random() * 3) + 2;
+      else if (current < 99) current += 1;
+      if (current >= 99) current = 99;
+
+      if (bar) bar.style.width = current + "%";
+      if (bot) bot.style.width = current + "%";
+      if (pct) pct.textContent = current + "%";
+    }, 45);
+
     return () => {
-      // Clean up timer on component unmount
+      clearInterval(interval);
       if (typeof window !== "undefined" && (window as any)[`__sl_timer_${uniqueId}`]) {
         clearInterval((window as any)[`__sl_timer_${uniqueId}`]);
       }
     };
-  }, [uniqueId]);
+  }, [barId, botId, pctId, uniqueId]);
 
   return (
     <div

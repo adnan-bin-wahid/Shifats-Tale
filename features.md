@@ -18,11 +18,11 @@
 ---
 
 ## 🎓 2. Student Dashboard (Student Portal)
-*A personalized digital workspace allowing enrolled students to track their progress, view exam schedules, and access exclusive study aids.*
+*A personalized digital workspace allowing enrolled students to track their progress, attend exams, and access exclusive study aids.*
 
 * **Class Routine & Batch Tracking:** Students can view their enrolled batches, live weekly class routines, and upcoming lecture timetables from a single dashboard.
-* **Exam Schedule & Assessment Tracker:** Students get complete visibility into upcoming Class Tests, Weekly Exams, Monthly Model Tests, and Final Exams with scheduled dates, start times, and total marks.
-* **Detailed Scorecards & Merit Ranking:** Once exams are evaluated by teachers, students gain immediate access to their obtained marks, pass/fail status, attendance record, merit positions (ranks), and downloadable official branded result scorecards.
+* **Online Exam & Assessment System:** Enrolled students can participate in scheduled online multiple-choice and written practice exams with live countdown timers and instant submission.
+* **Instant Result Scorecards & Merit Ranking:** Immediate access to exam marks, subject-wise performance breakdowns, merit positions (ranks), and downloadable, official branded result scorecards.
 * **Private Digital Library:** Exclusive access to batch-locked lecture notes, premium solution guides, and recorded class videos.
 * **Tuition Fee & Receipt Tracker:** Complete financial transparency allowing students to view tuition invoices, payment receipts, due date reminders, and transaction histories.
 * **Real-time Batch Alerts:** Instant notification system ensuring students never miss sudden routine adjustments, exam announcements, or teacher broadcasts.
@@ -34,8 +34,8 @@
 *The centralized administrative command center empowering teachers to manage students, conduct exams, evaluate performance, and track financials.*
 
 * **Student & Batch Management:** Comprehensive tools to create and manage academic batches, enroll new students, monitor attendance records, and maintain detailed student profiles.
-* **Exam & Assessment Controller:** Full control to schedule Class Tests, Weekly Exams, Model Tests, and Assignments, define total and passing marks, and set exam timelines for batches.
-* **Result Evaluation & Official Print Engine:** Streamlined system to input student marks, record absent/present status, generate automated merit lists (ranks), and print official, publication-ready batch result sheets and individual student scorecards.
+* **Exam & Question Controller:** Full control to schedule online and offline exams, upload question papers, define marking schemes, and manage grading windows.
+* **Result Evaluation & Official Print Engine:** Streamlined system to grade answer scripts, enter marks, generate automated merit lists, and print official, publication-ready batch result sheets and student scorecards.
 * **Study Material & Lecture Distribution:** Easily upload, categorize, and distribute private lecture notes, PDFs, and video links to specific batches.
 * **Fee Collection & Financial Controller:** Generate monthly tuition fee demands, record online and cash payments, track fee defaulters, and issue digital payment receipts.
 * **Center Analytics & Security Logs:** High-level overview of total active students, batch performance statistics, monthly financial summaries, and system activity logs.
