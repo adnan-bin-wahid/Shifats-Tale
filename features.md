@@ -1,58 +1,58 @@
-# 🚀 Shifat's Tales — Core Features Documentation
+# 🚀 Shifat's Tales — Core Features Overview
 
-**Shifat's Tales (Physics & Higher Mathematics Admission Care)** is a state-of-the-art, comprehensive academic and admission care platform. The system is architected into **4 distinct, seamless modules** designed for clarity, power, and ease of use for students, instructors, and visitors.
+**Shifat's Tales (Physics & Higher Mathematics Admission Care)** is a modern, comprehensive digital educational platform. The system is divided into **four core modules**, designed specifically to provide a seamless experience for students, teachers, administrators, and general visitors without requiring technical knowledge.
 
 ---
 
 ## 🌐 1. Frontend (Public Website & Landing Pages)
-*Designed to deliver a stunning first impression, instant information access, and seamless student recruitment.*
+*Designed to give visitors, parents, and prospective students an engaging, informative, and professional first impression.*
 
-* **Modern Hero & Dynamic Theme (Dark/Light Mode):** A visually captivating landing page featuring floating mathematical and physics formulas (`E = mc²`, `∫ f(x)dx`, `∇ × E = -∂B/∂t`), subtle orbital atomic animations, and responsive dark/light mode toggle.
-* **Admission Open & Course Catalog:** Live highlights of ongoing HSC/SSC/Engineering admission batches, structured academic calendars, and interactive class routine cards.
-* **Public Study Materials Hub:** Free access to categorized physics notes, higher math formula sheets, and practice question banks for general students.
-* **Result Verification & Excellence Showcase:** Public celebration of brilliant success stories, top achievers in BUET/DU/Engineering admissions, and a searchable live result board.
-* **Real-time News, Events & Announcements:** Instant notices regarding admission deadlines, routine updates, coaching events, and breaking educational alerts.
-* **Classroom & Campus Photo/Video Gallery:** Rich albums capturing live classroom environments, special events, teacher publications, and integrated YouTube video lessons.
-* **Student Reviews & Direct Contact Integration:** Verified student testimonials and one-click direct contact via WhatsApp and interactive coaching center location maps.
-
----
-
-## 🎓 2. Student Dashboard & Backend (Student Portal)
-*A dedicated digital portal empowering enrolled students to track their academic progress, participate in exams, and access private study materials.*
-
-* **My Batches & Routine Tracking:** Personalized view of enrolled batches, live classroom schedules, and upcoming lecture timetables.
-* **Online Exam & Assessment Engine:** Take scheduled online MCQ and written/hybrid practice exams directly from the portal with automatic countdown timers and secure submission windows.
-* **Instant Result Analytics & PDF Scorecards:** Access immediate exam evaluations, subject-wise score breakdowns, rank lists, percentile analytics, and **download/print official branded Result Scorecard PDFs** complete with coaching center logos and signatures.
-* **Private Digital Library (Batch-locked Materials):** Exclusive access to batch-restricted secret lecture notes, solved sheets, formula handbooks, and video recording links.
-* **Tuition Fee & Payment Tracker:** Transparent history of monthly tuition invoices, digital payment receipts, due reminders, and transaction histories.
-* **Real-time Batch Notifications:** Instant alerts regarding emergency routine adjustments, upcoming exam dates, and teacher announcements.
-* **Account Security & Profile Management:** Secure profile editing, profile photo upload, and password update utilities.
+* **Interactive & Modern Homepage:** A visually engaging landing page featuring scientific and mathematical themes, smooth animations, and an eye-friendly dark and light mode toggle.
+* **Admission & Batch Catalog:** Clear, up-to-date showcases of ongoing admission batches for SSC, HSC, and Engineering aspirants, complete with live class schedules and academic calendars.
+* **Free Study Resources Hub:** An open digital repository where any student can browse and download public physics notes, higher mathematics formula sheets, and practice suggestions.
+* **Success Stories & Excellence Board:** A dedicated showcase celebrating top achievers in university and engineering admissions, along with a live result verification system.
+* **Notice Board & Latest News:** Real-time updates on admission deadlines, classroom routines, coaching events, and important academic announcements.
+* **Photo & Video Gallery:** Organized albums highlighting classroom environments, special events, campus life, and integrated video lectures.
+* **Student Reviews & Direct Contact:** Authentic student feedback and one-click direct communication via WhatsApp and interactive coaching center location maps.
 
 ---
 
-## 👨‍🏫 3. Teacher Dashboard & Backend (Instructor Portal)
-*The centralized powerhouse for instructors to manage batches, evaluate students, control assessments, and monitor coaching center operations.*
+## 🎓 2. Student Dashboard (Student Portal)
+*A personalized digital workspace allowing enrolled students to track their progress, attend exams, and access exclusive study aids.*
 
-* **Comprehensive Student & Batch Management:** Create, edit, and archive academic batches; enroll and unenroll students; monitor attendance; and manage batch rosters.
-* **Exam & Question Paper Controller:** Create online and offline exams, set grading parameters, define exam windows, upload question paper PDFs, and manage evaluation workflows.
-* **Result Evaluation & Official PDF Print Engine:** Grade student answer scripts, input marks, generate automated merit positions (ranks), and **export or print professional, publication-ready batch result sheets and individual student scorecards (`ExamResultDocument`)**.
-* **Study Material & Lecture Uploader:** Upload, categorize, and assign private lecture notes, PDF guides, and video links to specific target batches.
-* **Fee Collection & Invoice Controller:** Generate tuition fee demands, log cash/online payments, track financial defaulters, and issue digital payment receipts.
-* **Center Analytics & Audit Logs:** High-level statistical overview of total enrolled students, active batches, financial summaries, and detailed system security audit logs (`teacher/audit-logs`).
-* **Direct Broadcasts & Announcements:** Publish targeted notices to specific batches or broadcast global alerts across the entire institution.
+* **Class Routine & Batch Tracking:** Students can view their enrolled batches, live weekly class routines, and upcoming lecture timetables from a single dashboard.
+* **Online Exam & Assessment System:** Enrolled students can participate in scheduled online multiple-choice and written practice exams with live countdown timers and instant submission.
+* **Instant Result Scorecards & Merit Ranking:** Immediate access to exam marks, subject-wise performance breakdowns, merit positions (ranks), and downloadable, official branded result scorecards.
+* **Private Digital Library:** Exclusive access to batch-locked lecture notes, premium solution guides, and recorded class videos.
+* **Tuition Fee & Receipt Tracker:** Complete financial transparency allowing students to view tuition invoices, payment receipts, due date reminders, and transaction histories.
+* **Real-time Batch Alerts:** Instant notification system ensuring students never miss sudden routine adjustments, exam announcements, or teacher broadcasts.
+* **Profile & Security Management:** Easy self-service utilities for updating personal details, uploading profile pictures, and changing account passwords securely.
+
+---
+
+## 👨‍🏫 3. Teacher Dashboard (Instructor Portal)
+*The centralized administrative command center empowering teachers to manage students, conduct exams, evaluate performance, and track financials.*
+
+* **Student & Batch Management:** Comprehensive tools to create and manage academic batches, enroll new students, monitor attendance records, and maintain detailed student profiles.
+* **Exam & Question Controller:** Full control to schedule online and offline exams, upload question papers, define marking schemes, and manage grading windows.
+* **Result Evaluation & Official Print Engine:** Streamlined system to grade answer scripts, enter marks, generate automated merit lists, and print official, publication-ready batch result sheets and student scorecards.
+* **Study Material & Lecture Distribution:** Easily upload, categorize, and distribute private lecture notes, PDFs, and video links to specific batches.
+* **Fee Collection & Financial Controller:** Generate monthly tuition fee demands, record online and cash payments, track fee defaulters, and issue digital payment receipts.
+* **Center Analytics & Security Logs:** High-level overview of total active students, batch performance statistics, monthly financial summaries, and system activity logs.
+* **Direct Broadcast System:** Send instant announcements and emergency notices to specific student batches or across the entire coaching center.
 
 ---
 
-## ⚙️ 4. Website Admin & Backend (CMS Panel inside Teacher Dashboard)
-*A built-in Content Management System (`Teacher -> Website Management`) allowing instructors to control and customize every aspect of the live public website without writing any code.*
+## ⚙️ 4. Website Admin Panel (CMS - Website Remote Control)
+*An intuitive Content Management System built directly inside the teacher dashboard, allowing instructors to update website content instantly without writing code.*
 
-* **Dynamic Homepage & Hero Customizer:** Real-time remote control over the coaching center name, tagline, hero title, description text, and statistical banners (e.g., `99% Success Rate`, `500+ Aspirants`).
-* **Course & Routine Showcase CMS:** Easily add, edit, reorder, or hide public courses, batch cards, excellence highlights, and "Why Learn With Us" sections.
-* **Live News & Event Publisher:** Write, edit, and instantly publish front-page admission news, breaking alerts, and event highlights (`teacher/website/news-events`).
-* **Study Materials CMS & Smart Media Library:** Manage public vs. private study resources with a **Dual Media Selection Strategy ('Upload New' vs. 'Choose from Existing Database')** to eliminate duplicate uploads and save storage.
-* **Teacher Portfolio & Research Showcase Editor:** Update instructor biography, educational qualifications, research experience, technical skills, publications, and ECA achievements (`teacher/website/about/*`).
-* **Review & Gallery Controller:** Approve, feature, or manage student testimonials, and upload new campus photographs and YouTube video highlights to the public gallery.
-* **Global Branding & Contact Settings:** Manage site-wide branding assets including logos (`alternate_logo.png`, `alternate_logo_dark.png`), social media profile links, footer content, and official contact numbers.
+* **Homepage & Banner Editor:** Live remote control to update the coaching center's name, tagline, hero description, and statistical highlights (such as success rates and student counts) anytime.
+* **Course & Routine Customizer:** Easily add, edit, reorder, or hide public courses, routine cards, excellence highlights, and promotional sections directly from the admin panel.
+* **News & Notice Publisher:** Write, format, and instantly publish front-page admission news, breaking alerts, and event details without developer assistance.
+* **Study Materials & Smart Media Manager:** Manage both public and private study resources with a smart dual option to either upload new files or choose existing files from the database to save time and storage.
+* **Teacher Portfolio & Research Editor:** Update instructor biographies, educational qualifications, research experience, technical skills, publications, and extracurricular achievements effortlessly.
+* **Reviews & Gallery Controller:** Approve, feature, or manage student testimonials, and upload new campus photographs and video links to the public gallery.
+* **Global Branding & Contact Settings:** Manage site-wide branding elements including logos, social media links, footer text, and official contact phone numbers from a centralized settings page.
 
 ---
-💡 *Together, these 4 synchronized modules transform **Shifat's Tales** from a simple static website into a **complete, automated, and premium Edu-Tech & Admission Care Ecosystem**.*
+💡 *Together, these four synchronized modules make **Shifat's Tales** a complete, user-friendly, and premium educational ecosystem built for modern academic excellence.*
