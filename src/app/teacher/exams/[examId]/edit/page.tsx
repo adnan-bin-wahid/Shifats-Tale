@@ -49,8 +49,16 @@ export default async function EditExamPage({ params }: PageProps) {
     .not("status", "in", '("ARCHIVED","CANCELLED")')
     .order("name", { ascending: true });
 
+  const { data: subjects } = await supabase
+    .from("batch_subjects")
+    .select("id, batch_id, name, code, status")
+    .eq("batch_id", exam.batch_id)
+    .neq("status", "ARCHIVED")
+    .order("display_order", { ascending: true })
+    .order("name", { ascending: true });
+
   // Query if this exam has entered results
-  const { count: resultsCount, error: resCountErr } = await supabase
+  const { count: resultsCount } = await supabase
     .from("exam_results")
     .select("id", { count: "exact", head: true })
     .eq("exam_id", examId);
@@ -74,8 +82,9 @@ export default async function EditExamPage({ params }: PageProps) {
       </div>
       <div className="flex justify-center md:justify-start">
         <EditExamForm
-          exam={exam as any}
+          exam={exam}
           batches={batches || []}
+          subjects={subjects || []}
           hasResults={hasResults}
         />
       </div>

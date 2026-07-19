@@ -1,4 +1,6 @@
-import "server-only";
+if (process.env.NODE_ENV !== "test" && !process.env.NODE_TEST_CONTEXT) {
+  require("server-only");
+}
 import { createClient } from "@/lib/supabase/server";
 import { calculateGrade } from "./grading";
 

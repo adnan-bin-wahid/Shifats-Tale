@@ -7,7 +7,15 @@ import { NewExamForm } from "./new-exam-form";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
-export default async function NewExamPage() {
+interface NewExamPageProps {
+  searchParams: Promise<{
+    batchId?: string;
+    subjectId?: string;
+  }>;
+}
+
+export default async function NewExamPage({ searchParams }: NewExamPageProps) {
+  const query = await searchParams;
   const { destination } = await resolveAuthenticatedDestination();
 
   if (destination === "UNAUTHENTICATED") {
@@ -20,21 +28,31 @@ export default async function NewExamPage() {
   const supabase = await createClient();
 
   // Query batches that are not ARCHIVED or CANCELLED
-  const { data: batches, error } = await supabase
-    .from("batches")
-    .select("id, name, code, status")
-    .not("status", "in", '("ARCHIVED","CANCELLED")')
-    .order("name", { ascending: true });
+  const [batchesResult, subjectsResult] = await Promise.all([
+    supabase
+      .from("batches")
+      .select("id, name, code, status")
+      .not("status", "in", '("ARCHIVED","CANCELLED")')
+      .order("name", { ascending: true }),
+    supabase
+      .from("batch_subjects")
+      .select("id, batch_id, name, code, status")
+      .neq("status", "ARCHIVED")
+      .order("display_order", { ascending: true })
+      .order("name", { ascending: true }),
+  ]);
+
+  const backHref = query.batchId ? `/teacher/academic/${query.batchId}` : "/teacher/exams";
 
   return (
     <div className="space-y-8">
       <div className="space-y-4">
         <Link
-          href="/teacher/exams"
+          href={backHref}
           className="inline-flex items-center gap-2 text-primary hover:text-primary-dark transition-colors font-bold text-xs"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Examinations
+          {query.batchId ? "Back to Academic Workspace" : "Back to Examinations"}
         </Link>
         <DashboardPageHeader
           title="Create New Examination"
@@ -42,7 +60,12 @@ export default async function NewExamPage() {
         />
       </div>
       <div className="flex justify-center md:justify-start">
-        <NewExamForm batches={batches || []} />
+        <NewExamForm
+          batches={batchesResult.data || []}
+          subjects={subjectsResult.data || []}
+          initialBatchId={query.batchId}
+          initialSubjectId={query.subjectId}
+        />
       </div>
     </div>
   );

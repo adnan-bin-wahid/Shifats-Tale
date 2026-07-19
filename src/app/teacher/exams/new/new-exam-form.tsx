@@ -6,8 +6,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { examSchema } from "@/lib/validations/exams";
 import { createExamAction } from "@/app/actions/exams";
-import { Loader2, ArrowLeft, Save } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 import Link from "next/link";
+import type { z } from "zod";
 
 interface Batch {
   id: string;
@@ -18,24 +19,44 @@ interface Batch {
 
 interface NewExamFormProps {
   batches: Batch[];
+  subjects: Array<{
+    id: string;
+    batch_id: string;
+    name: string;
+    code: string;
+    status: string;
+  }>;
+  initialBatchId?: string;
+  initialSubjectId?: string;
 }
 
-export function NewExamForm({ batches }: NewExamFormProps) {
+export function NewExamForm({
+  batches,
+  subjects,
+  initialBatchId,
+  initialSubjectId,
+}: NewExamFormProps) {
   const router = useRouter();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedBatchId, setSelectedBatchId] = useState(initialBatchId || "");
+
+  type ExamFormInput = z.input<typeof examSchema>;
+  type ExamFormOutput = z.output<typeof examSchema>;
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
-  } = useForm({
+  } = useForm<ExamFormInput, unknown, ExamFormOutput>({
     resolver: zodResolver(examSchema),
     defaultValues: {
-      batchId: "",
+      batchId: initialBatchId || "",
+      subjectId: initialSubjectId || "",
       name: "",
       description: "",
-      examType: "CLASS_TEST" as any,
+      examType: "CLASS_TEST",
       examDate: new Date().toISOString().split("T")[0],
       totalMarks: 100,
       passMarks: 33,
@@ -45,12 +66,15 @@ export function NewExamForm({ batches }: NewExamFormProps) {
     },
   });
 
-  const onSubmit = async (data: any) => {
+  const availableSubjects = subjects.filter((subject) => subject.batch_id === selectedBatchId);
+
+  const onSubmit = async (data: ExamFormOutput) => {
     setIsSubmitting(true);
     setErrorMsg(null);
     try {
       const formData = new FormData();
       formData.append("batchId", data.batchId);
+      formData.append("subjectId", data.subjectId);
       formData.append("name", data.name);
       formData.append("description", data.description || "");
       formData.append("examType", data.examType);
@@ -66,18 +90,17 @@ export function NewExamForm({ batches }: NewExamFormProps) {
       const res = await createExamAction(formData);
       if (!res.success) {
         if (res.errors) {
-          const firstErrKey = Object.keys(res.errors)[0];
-          const firstErrMsg = (res.errors as any)[firstErrKey][0];
-          setErrorMsg(`${firstErrKey}: ${firstErrMsg}`);
+          const firstError = Object.entries(res.errors).find(([, messages]) => messages?.length);
+          setErrorMsg(firstError ? `${firstError[0]}: ${firstError[1]?.[0]}` : "Please check the form fields.");
         } else {
           setErrorMsg(res.message || "Failed to create examination.");
         }
       } else {
-        router.push("/teacher/exams");
+        router.push(initialBatchId ? `/teacher/academic/${data.batchId}` : "/teacher/exams");
         router.refresh();
       }
-    } catch (err: any) {
-      setErrorMsg(err.message || "An unexpected error occurred.");
+    } catch (error: unknown) {
+      setErrorMsg(error instanceof Error ? error.message : "An unexpected error occurred.");
     } finally {
       setIsSubmitting(false);
     }
@@ -99,7 +122,12 @@ export function NewExamForm({ batches }: NewExamFormProps) {
             Target Batch <span className="text-red-500">*</span>
           </label>
           <select
-            {...register("batchId")}
+            {...register("batchId", {
+              onChange: (event) => {
+                setSelectedBatchId(event.target.value);
+                setValue("subjectId", "", { shouldValidate: true });
+              },
+            })}
             className="w-full px-4 py-2.5 rounded-xl border border-border/60 bg-bg/25 text-xs font-bold focus:border-primary focus:outline-none"
           >
             <option value="">Select a batch...</option>
@@ -111,6 +139,37 @@ export function NewExamForm({ batches }: NewExamFormProps) {
           </select>
           {errors.batchId && (
             <p className="mt-1.5 text-rose-600 text-[10px] font-bold">{errors.batchId.message as string}</p>
+          )}
+        </div>
+
+        {/* Subject Select */}
+        <div>
+          <label className="block text-[10px] uppercase font-extrabold tracking-wider text-muted mb-2">
+            Linked Subject <span className="text-red-500">*</span>
+          </label>
+          <select
+            {...register("subjectId")}
+            disabled={!selectedBatchId}
+            className="w-full px-4 py-2.5 rounded-xl border border-border/60 bg-bg/25 text-xs font-bold focus:border-primary focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <option value="">
+              {selectedBatchId ? "Select a subject..." : "Select a batch first..."}
+            </option>
+            {availableSubjects.map((subject) => (
+              <option key={subject.id} value={subject.id}>
+                {subject.name} ({subject.code}) · {subject.status}
+              </option>
+            ))}
+          </select>
+          {selectedBatchId && availableSubjects.length === 0 && (
+            <p className="mt-1.5 text-amber-700 text-[10px] font-bold">
+              Create a subject from Academic Control before scheduling this examination.
+            </p>
+          )}
+          {errors.subjectId && (
+            <p className="mt-1.5 text-rose-600 text-[10px] font-bold">
+              {errors.subjectId.message as string}
+            </p>
           )}
         </div>
 
