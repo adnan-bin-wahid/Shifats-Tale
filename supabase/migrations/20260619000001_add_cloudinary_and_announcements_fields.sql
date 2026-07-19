@@ -20,7 +20,6 @@ ALTER TABLE public.batch_contents
   ADD COLUMN IF NOT EXISTS width INTEGER,
   ADD COLUMN IF NOT EXISTS height INTEGER,
   ADD COLUMN IF NOT EXISTS page_count INTEGER;
-
 -- =========================================================================
 -- 2. ALTER ANNOUNCEMENTS TABLE
 -- =========================================================================
@@ -31,7 +30,6 @@ ALTER TABLE public.announcements
   ADD COLUMN IF NOT EXISTS published_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS updated_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL;
-
 -- =========================================================================
 -- 3. INDEXES SETUP
 -- =========================================================================
@@ -42,12 +40,10 @@ CREATE INDEX IF NOT EXISTS idx_batch_contents_release_at ON public.batch_content
 CREATE INDEX IF NOT EXISTS idx_batch_contents_expires_at ON public.batch_contents(expires_at);
 CREATE INDEX IF NOT EXISTS idx_batch_contents_created_at ON public.batch_contents(created_at);
 CREATE INDEX IF NOT EXISTS idx_batch_contents_published_at ON public.batch_contents(published_at);
-
 CREATE INDEX IF NOT EXISTS idx_announcements_release_at ON public.announcements(release_at);
 CREATE INDEX IF NOT EXISTS idx_announcements_expires_at ON public.announcements(expires_at);
 CREATE INDEX IF NOT EXISTS idx_announcements_created_at ON public.announcements(created_at);
 CREATE INDEX IF NOT EXISTS idx_announcements_published_at ON public.announcements(published_at);
-
 -- =========================================================================
 -- 4. ROW LEVEL SECURITY (RLS) POLICIES UPDATES
 -- =========================================================================
@@ -65,7 +61,6 @@ CREATE POLICY select_announcements ON public.announcements
       (expires_at IS NULL OR expires_at > now())
     )
   );
-
 -- Re-verify RLS select policies on batch_contents to match scheduling strictly
 DROP POLICY IF EXISTS select_batch_contents ON public.batch_contents;
 CREATE POLICY select_batch_contents ON public.batch_contents

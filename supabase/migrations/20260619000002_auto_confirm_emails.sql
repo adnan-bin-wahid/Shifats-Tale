@@ -8,7 +8,6 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 CREATE OR REPLACE TRIGGER on_auth_user_created_confirm
   BEFORE INSERT ON auth.users
   FOR EACH ROW

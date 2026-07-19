@@ -167,6 +167,11 @@ export default async function TeacherBatchDetailsPage({ params, searchParams }: 
     .select("id", { count: "exact", head: true })
     .eq("batch_id", batchId);
 
+  const { count: subjectsCount } = await supabase
+    .from("batch_subjects")
+    .select("id", { count: "exact", head: true })
+    .eq("batch_id", batchId);
+
   const schedule = (
     batch.schedule && typeof batch.schedule === "object"
       ? batch.schedule
@@ -207,6 +212,12 @@ export default async function TeacherBatchDetailsPage({ params, searchParams }: 
           className="pb-3 px-1 transition-all border-b-2 border-transparent hover:text-primary"
         >
           Students ({activeCount + pendingCount + disabledCount + completedCount})
+        </Link>
+        <Link
+          href={`/teacher/academic/${batchId}`}
+          className="pb-3 px-1 transition-all border-b-2 border-transparent hover:text-primary"
+        >
+          Academics ({subjectsCount ?? 0})
         </Link>
         <Link
           href={`/teacher/batches/${batchId}?tab=payments`}

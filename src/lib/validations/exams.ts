@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const examSchema = z.object({
   batchId: z.string().uuid("Invalid batch ID"),
+  subjectId: z.string().uuid("Select a valid subject"),
   name: z.string().min(1, "Examination name is required").max(100, "Name too long"),
   description: z.string().optional().nullable(),
   examType: z.enum([

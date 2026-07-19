@@ -6,8 +6,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { examSchema } from "@/lib/validations/exams";
 import { updateExamAction } from "@/app/actions/exams";
-import { Loader2, ArrowLeft, Save } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 import Link from "next/link";
+import type { z } from "zod";
 
 interface Batch {
   id: string;
@@ -18,6 +19,7 @@ interface Batch {
 interface Exam {
   id: string;
   batch_id: string;
+  subject_id: string;
   name: string;
   description: string | null;
   exam_type: "CLASS_TEST" | "WEEKLY_EXAM" | "MONTHLY_EXAM" | "MODEL_TEST" | "ASSIGNMENT" | "FINAL_EXAM";
@@ -32,22 +34,33 @@ interface Exam {
 interface EditExamFormProps {
   exam: Exam;
   batches: Batch[];
+  subjects: Array<{
+    id: string;
+    batch_id: string;
+    name: string;
+    code: string;
+    status: string;
+  }>;
   hasResults: boolean;
 }
 
-export function EditExamForm({ exam, batches, hasResults }: EditExamFormProps) {
+export function EditExamForm({ exam, batches, subjects, hasResults }: EditExamFormProps) {
   const router = useRouter();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  type ExamFormInput = z.input<typeof examSchema>;
+  type ExamFormOutput = z.output<typeof examSchema>;
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({
+  } = useForm<ExamFormInput, unknown, ExamFormOutput>({
     resolver: zodResolver(examSchema),
     defaultValues: {
       batchId: exam.batch_id,
+      subjectId: exam.subject_id,
       name: exam.name,
       description: exam.description || "",
       examType: exam.exam_type,
@@ -60,7 +73,7 @@ export function EditExamForm({ exam, batches, hasResults }: EditExamFormProps) {
     },
   });
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: ExamFormOutput) => {
     setIsSubmitting(true);
     setErrorMsg(null);
 
@@ -78,6 +91,7 @@ export function EditExamForm({ exam, batches, hasResults }: EditExamFormProps) {
     try {
       const formData = new FormData();
       formData.append("batchId", data.batchId);
+      formData.append("subjectId", data.subjectId);
       formData.append("name", data.name);
       formData.append("description", data.description || "");
       formData.append("examType", data.examType);
@@ -93,9 +107,8 @@ export function EditExamForm({ exam, batches, hasResults }: EditExamFormProps) {
       const res = await updateExamAction(exam.id, formData);
       if (!res.success) {
         if (res.errors) {
-          const firstErrKey = Object.keys(res.errors)[0];
-          const firstErrMsg = (res.errors as any)[firstErrKey][0];
-          setErrorMsg(`${firstErrKey}: ${firstErrMsg}`);
+          const firstError = Object.entries(res.errors).find(([, messages]) => messages?.length);
+          setErrorMsg(firstError ? `${firstError[0]}: ${firstError[1]?.[0]}` : "Please check the form fields.");
         } else {
           setErrorMsg(res.message || "Failed to update examination.");
         }
@@ -103,8 +116,8 @@ export function EditExamForm({ exam, batches, hasResults }: EditExamFormProps) {
         router.push("/teacher/exams");
         router.refresh();
       }
-    } catch (err: any) {
-      setErrorMsg(err.message || "An unexpected error occurred.");
+    } catch (error: unknown) {
+      setErrorMsg(error instanceof Error ? error.message : "An unexpected error occurred.");
     } finally {
       setIsSubmitting(false);
     }
@@ -143,6 +156,51 @@ export function EditExamForm({ exam, batches, hasResults }: EditExamFormProps) {
             ))}
           </select>
           <input type="hidden" {...register("batchId")} />
+        </div>
+
+        {/* Subject Select */}
+        <div>
+          <label className="block text-[10px] uppercase font-extrabold tracking-wider text-muted mb-2">
+            Linked Subject <span className="text-red-500">*</span>
+          </label>
+          {hasResults ? (
+            <>
+              <select
+                disabled
+                value={exam.subject_id}
+                className="w-full cursor-not-allowed rounded-xl border border-border/60 bg-slate-100 px-4 py-2.5 text-xs font-bold opacity-70"
+              >
+                {subjects.map((subject) => (
+                  <option key={subject.id} value={subject.id}>
+                    {subject.name} ({subject.code}) · {subject.status}
+                  </option>
+                ))}
+              </select>
+              <input type="hidden" {...register("subjectId")} />
+            </>
+          ) : (
+            <select
+              {...register("subjectId")}
+              className="w-full rounded-xl border border-border/60 bg-bg/25 px-4 py-2.5 text-xs font-bold focus:border-primary focus:outline-none"
+            >
+              <option value="">Select a subject...</option>
+              {subjects.map((subject) => (
+                <option key={subject.id} value={subject.id}>
+                  {subject.name} ({subject.code}) · {subject.status}
+                </option>
+              ))}
+            </select>
+          )}
+          {hasResults && (
+            <p className="mt-1.5 text-amber-700 text-[10px] font-bold">
+              Subject is locked because results have already been entered.
+            </p>
+          )}
+          {errors.subjectId && (
+            <p className="mt-1.5 text-rose-600 text-[10px] font-bold">
+              {errors.subjectId.message as string}
+            </p>
+          )}
         </div>
 
         {/* Exam Name */}

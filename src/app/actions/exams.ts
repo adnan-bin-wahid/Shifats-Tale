@@ -67,6 +67,7 @@ export async function createExamAction(formData: FormData) {
     const teacher = await assertActiveTeacher();
 
     const batchId = formData.get("batchId") as string;
+    const subjectId = formData.get("subjectId") as string;
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
     const examType = formData.get("examType") as any;
@@ -80,6 +81,7 @@ export async function createExamAction(formData: FormData) {
     // Validate using Zod schema
     const validated = examSchema.safeParse({
       batchId,
+      subjectId,
       name,
       description,
       examType,
@@ -113,11 +115,27 @@ export async function createExamAction(formData: FormData) {
       return { success: false, message: `Cannot schedule examinations for an ${batch.status.toLowerCase()} batch.` };
     }
 
+    const { data: subject, error: subjectError } = await admin
+      .from("batch_subjects")
+      .select("id, batch_id, status")
+      .eq("id", data.subjectId)
+      .eq("batch_id", data.batchId)
+      .single();
+
+    if (subjectError || !subject) {
+      return { success: false, message: "Select a subject that belongs to the target batch." };
+    }
+
+    if (subject.status === "ARCHIVED") {
+      return { success: false, message: "Archived subjects cannot receive new examinations." };
+    }
+
     // Insert new examination
     const { data: newExam, error: dbError } = await admin
       .from("exams")
       .insert({
         batch_id: data.batchId,
+        subject_id: data.subjectId,
         name: data.name,
         description: data.description || null,
         exam_type: data.examType,
@@ -163,6 +181,7 @@ export async function createExamAction(formData: FormData) {
     }
 
     revalidatePath(`/teacher/batches/${newExam.batch_id}/exams`);
+    revalidatePath(`/teacher/academic/${newExam.batch_id}`);
     revalidatePath(`/student/batches/${newExam.batch_id}/exams`);
     return { success: true, exam: newExam };
   } catch (err: any) {
@@ -175,6 +194,7 @@ export async function updateExamAction(examId: string, formData: FormData) {
     const teacher = await assertActiveTeacher();
 
     const batchId = formData.get("batchId") as string;
+    const subjectId = formData.get("subjectId") as string;
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
     const examType = formData.get("examType") as any;
@@ -187,6 +207,7 @@ export async function updateExamAction(examId: string, formData: FormData) {
 
     const validated = examSchema.safeParse({
       batchId,
+      subjectId,
       name,
       description,
       examType,
@@ -216,6 +237,25 @@ export async function updateExamAction(examId: string, formData: FormData) {
       return { success: false, message: "Examination not found." };
     }
 
+    if (data.batchId !== oldExam.batch_id) {
+      return { success: false, message: "An examination cannot be moved to another batch." };
+    }
+
+    const { data: subject, error: subjectError } = await admin
+      .from("batch_subjects")
+      .select("id, batch_id, status")
+      .eq("id", data.subjectId)
+      .eq("batch_id", oldExam.batch_id)
+      .single();
+
+    if (subjectError || !subject) {
+      return { success: false, message: "Select a subject that belongs to this examination's batch." };
+    }
+
+    if (subject.status === "ARCHIVED") {
+      return { success: false, message: "Archived subjects cannot receive examinations." };
+    }
+
     // Published examinations should not be edited without first unpublishing
     if (oldExam.status === "RESULT_PUBLISHED") {
       return {
@@ -235,6 +275,13 @@ export async function updateExamAction(examId: string, formData: FormData) {
     }
 
     const hasEnteredResults = existingResults && existingResults.length > 0;
+
+    if (hasEnteredResults && oldExam.subject_id !== data.subjectId) {
+      return {
+        success: false,
+        message: "The subject cannot be changed after student results have been entered.",
+      };
+    }
 
     if (hasEnteredResults && oldExam.total_marks !== data.totalMarks) {
       // Revalidate existing marks
@@ -266,6 +313,7 @@ export async function updateExamAction(examId: string, formData: FormData) {
     const { data: updatedExam, error: dbError } = await admin
       .from("exams")
       .update({
+        subject_id: data.subjectId,
         name: data.name,
         description: data.description || null,
         exam_type: data.examType,
@@ -329,6 +377,7 @@ export async function updateExamAction(examId: string, formData: FormData) {
 
     revalidatePath(`/teacher/exams`);
     revalidatePath(`/teacher/batches/${updatedExam.batch_id}/exams`);
+    revalidatePath(`/teacher/academic/${updatedExam.batch_id}`);
     revalidatePath(`/student/batches/${updatedExam.batch_id}/exams`);
     revalidatePath(`/student`);
     return { success: true, exam: updatedExam };
@@ -388,6 +437,7 @@ export async function updateExamStatusAction(examId: string, newStatus: string) 
 
     revalidatePath(`/teacher/exams`);
     revalidatePath(`/teacher/batches/${updatedExam.batch_id}/exams`);
+    revalidatePath(`/teacher/academic/${updatedExam.batch_id}`);
     revalidatePath(`/student/batches/${updatedExam.batch_id}/exams`);
     revalidatePath(`/student`);
     return { success: true, exam: updatedExam };
@@ -483,6 +533,7 @@ export async function saveDraftResultsAction(
     });
 
     revalidatePath(`/teacher/exams/${examId}/results`);
+    revalidatePath(`/teacher/academic/${exam.batch_id}`);
     return { success: true };
   } catch (err: any) {
     return { success: false, message: err.message || "Internal server error" };
@@ -608,6 +659,7 @@ export async function publishResultsAction(examId: string, publicationNote: stri
     );
 
     revalidatePath(`/teacher/exams/${examId}`);
+    revalidatePath(`/teacher/academic/${exam.batch_id}`);
     revalidatePath(`/student/batches/${exam.batch_id}/exams`);
     revalidatePath(`/student/results`);
     return { success: true, exam: updatedExam };
@@ -676,6 +728,7 @@ export async function unpublishResultsAction(examId: string, reason: string) {
     );
 
     revalidatePath(`/teacher/exams/${examId}`);
+    revalidatePath(`/teacher/academic/${exam.batch_id}`);
     revalidatePath(`/student/batches/${exam.batch_id}/exams`);
     revalidatePath(`/student/results`);
     return { success: true, exam: updatedExam };
@@ -709,6 +762,7 @@ export async function archiveExamAction(examId: string) {
     });
 
     revalidatePath(`/teacher/batches/${updatedExam.batch_id}/exams`);
+    revalidatePath(`/teacher/academic/${updatedExam.batch_id}`);
     revalidatePath("/teacher/exams");
     return { success: true, exam: updatedExam };
   } catch (err: any) {
@@ -750,6 +804,7 @@ export async function unarchiveExamAction(examId: string) {
     });
 
     revalidatePath(`/teacher/batches/${updatedExam.batch_id}/exams`);
+    revalidatePath(`/teacher/academic/${updatedExam.batch_id}`);
     revalidatePath("/teacher/exams");
     revalidatePath(`/teacher/exams/${examId}`);
     return { success: true, exam: updatedExam };

@@ -18,14 +18,14 @@ import {
   Settings,
   ShieldAlert,
   GraduationCap,
-  Megaphone,
   User,
   Globe,
   Image as ImageIcon,
   MessageSquare,
   ChevronDown,
   Star,
-  Calendar
+  Calendar,
+  BookOpenCheck
 } from "lucide-react";
 
 interface SidebarProps {
@@ -45,6 +45,7 @@ export const teacherNavItems: NavItem[] = [
   { label: "Overview", href: "/teacher", icon: LayoutDashboard },
   { label: "Manage Students", href: "/teacher/students", icon: Users },
   { label: "Manage Batches", href: "/teacher/batches", icon: BookOpen },
+  { label: "Academic Control", href: "/teacher/academic", icon: BookOpenCheck },
   { label: "Payment Ledger", href: "/teacher/payments", icon: CreditCard },
   { label: "Study Materials", href: "/teacher/materials", icon: FileText },
   { label: "Academic Calendar", href: "/teacher/website/academic-calendar", icon: Calendar },
@@ -327,7 +328,7 @@ export function TeacherSidebar({ className, onLinkClick, adminMode = "coaching" 
 
       {/* Footer / Account indicator */}
       <div className="p-4 border-t border-slate-900 bg-slate-950/10 text-xs font-semibold text-white/50 text-center">
-        &copy; {new Date().getFullYear()} Shifat's Tales
+        &copy; {new Date().getFullYear()} Shifat&apos;s Tales
       </div>
     </div>
   );

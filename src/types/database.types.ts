@@ -276,6 +276,164 @@ export interface Database {
         }
         Relationships: []
       }
+      batch_subjects: {
+        Row: {
+          id: string
+          batch_id: string
+          name: string
+          code: string
+          description: string | null
+          status: "DRAFT" | "UPCOMING" | "RUNNING" | "PAUSED" | "COMPLETED" | "ARCHIVED"
+          start_date: string | null
+          end_date: string | null
+          theme_key: "NAVY" | "BLUE" | "VIOLET" | "EMERALD" | "AMBER" | "ROSE"
+          display_order: number
+          weight: number
+          is_default: boolean
+          completed_at: string | null
+          created_by: string | null
+          updated_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          batch_id: string
+          name: string
+          code: string
+          description?: string | null
+          status?: "DRAFT" | "UPCOMING" | "RUNNING" | "PAUSED" | "COMPLETED" | "ARCHIVED"
+          start_date?: string | null
+          end_date?: string | null
+          theme_key?: "NAVY" | "BLUE" | "VIOLET" | "EMERALD" | "AMBER" | "ROSE"
+          display_order?: number
+          weight?: number
+          is_default?: boolean
+          completed_at?: string | null
+          created_by?: string | null
+          updated_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          batch_id?: string
+          name?: string
+          code?: string
+          description?: string | null
+          status?: "DRAFT" | "UPCOMING" | "RUNNING" | "PAUSED" | "COMPLETED" | "ARCHIVED"
+          start_date?: string | null
+          end_date?: string | null
+          theme_key?: "NAVY" | "BLUE" | "VIOLET" | "EMERALD" | "AMBER" | "ROSE"
+          display_order?: number
+          weight?: number
+          is_default?: boolean
+          completed_at?: string | null
+          created_by?: string | null
+          updated_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "batch_subjects_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedSchema: "public"
+          },
+          {
+            foreignKeyName: "batch_subjects_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedSchema: "public"
+          },
+          {
+            foreignKeyName: "batch_subjects_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedSchema: "public"
+          }
+        ]
+      }
+      subject_units: {
+        Row: {
+          id: string
+          subject_id: string
+          title: string
+          description: string | null
+          unit_type: "CHAPTER" | "TOPIC" | "MODULE"
+          status: "PLANNED" | "RUNNING" | "COMPLETED" | "SKIPPED"
+          sequence_no: number
+          weight: number
+          planned_start_date: string | null
+          planned_end_date: string | null
+          completed_at: string | null
+          created_by: string | null
+          updated_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          subject_id: string
+          title: string
+          description?: string | null
+          unit_type?: "CHAPTER" | "TOPIC" | "MODULE"
+          status?: "PLANNED" | "RUNNING" | "COMPLETED" | "SKIPPED"
+          sequence_no: number
+          weight?: number
+          planned_start_date?: string | null
+          planned_end_date?: string | null
+          completed_at?: string | null
+          created_by?: string | null
+          updated_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          subject_id?: string
+          title?: string
+          description?: string | null
+          unit_type?: "CHAPTER" | "TOPIC" | "MODULE"
+          status?: "PLANNED" | "RUNNING" | "COMPLETED" | "SKIPPED"
+          sequence_no?: number
+          weight?: number
+          planned_start_date?: string | null
+          planned_end_date?: string | null
+          completed_at?: string | null
+          created_by?: string | null
+          updated_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subject_units_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "batch_subjects"
+            referencedSchema: "public"
+          },
+          {
+            foreignKeyName: "subject_units_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedSchema: "public"
+          },
+          {
+            foreignKeyName: "subject_units_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedSchema: "public"
+          }
+        ]
+      }
       enrollments: {
         Row: {
           id: string
@@ -416,6 +574,7 @@ export interface Database {
         Row: {
           id: string
           batch_id: string
+          subject_id: string | null
           title: string
           description: string | null
           content_type: "PDF" | "DOC" | "DOCX" | "IMAGE" | "LINK" | "YOUTUBE" | "NOTE" | "ANNOUNCEMENT"
@@ -447,6 +606,7 @@ export interface Database {
         Insert: {
           id?: string
           batch_id: string
+          subject_id?: string | null
           title: string
           description?: string | null
           content_type: "PDF" | "DOC" | "DOCX" | "IMAGE" | "LINK" | "YOUTUBE" | "NOTE" | "ANNOUNCEMENT"
@@ -478,6 +638,7 @@ export interface Database {
         Update: {
           id?: string
           batch_id?: string
+          subject_id?: string | null
           title?: string
           description?: string | null
           content_type?: "PDF" | "DOC" | "DOCX" | "IMAGE" | "LINK" | "YOUTUBE" | "NOTE" | "ANNOUNCEMENT"
@@ -513,6 +674,13 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "batches"
             referencedSchema: "public"
+          },
+          {
+            foreignKeyName: "batch_contents_subject_batch_fkey"
+            columns: ["subject_id", "batch_id"]
+            isOneToOne: false
+            referencedRelation: "batch_subjects"
+            referencedSchema: "public"
           }
         ]
       }
@@ -520,13 +688,14 @@ export interface Database {
         Row: {
           id: string
           batch_id: string
+          subject_id: string
           name: string
           description: string | null
           exam_type: "CLASS_TEST" | "WEEKLY_EXAM" | "MONTHLY_EXAM" | "MODEL_TEST" | "ASSIGNMENT" | "FINAL_EXAM"
           exam_date: string
           total_marks: number
           pass_marks: number
-          status: "DRAFT" | "SCHEDULED" | "COMPLETED" | "RESULT_DRAFT" | "RESULT_PUBLISHED" | "ARCHIVED"
+          status: "DRAFT" | "SCHEDULED" | "COMPLETED" | "RESULT_DRAFT" | "RESULT_PUBLISHED" | "ARCHIVED" | "CANCELLED"
           published_at: string | null
           created_at: string
           updated_at: string
@@ -537,13 +706,14 @@ export interface Database {
         Insert: {
           id?: string
           batch_id: string
+          subject_id?: string
           name: string
           description?: string | null
           exam_type: "CLASS_TEST" | "WEEKLY_EXAM" | "MONTHLY_EXAM" | "MODEL_TEST" | "ASSIGNMENT" | "FINAL_EXAM"
           exam_date: string
           total_marks: number
           pass_marks: number
-          status?: "DRAFT" | "SCHEDULED" | "COMPLETED" | "RESULT_DRAFT" | "RESULT_PUBLISHED" | "ARCHIVED"
+          status?: "DRAFT" | "SCHEDULED" | "COMPLETED" | "RESULT_DRAFT" | "RESULT_PUBLISHED" | "ARCHIVED" | "CANCELLED"
           published_at?: string | null
           created_at?: string
           updated_at?: string
@@ -554,13 +724,14 @@ export interface Database {
         Update: {
           id?: string
           batch_id?: string
+          subject_id?: string
           name?: string
           description?: string | null
           exam_type?: "CLASS_TEST" | "WEEKLY_EXAM" | "MONTHLY_EXAM" | "MODEL_TEST" | "ASSIGNMENT" | "FINAL_EXAM"
           exam_date?: string
           total_marks?: number
           pass_marks?: number
-          status?: "DRAFT" | "SCHEDULED" | "COMPLETED" | "RESULT_DRAFT" | "RESULT_PUBLISHED" | "ARCHIVED"
+          status?: "DRAFT" | "SCHEDULED" | "COMPLETED" | "RESULT_DRAFT" | "RESULT_PUBLISHED" | "ARCHIVED" | "CANCELLED"
           published_at?: string | null
           created_at?: string
           updated_at?: string
@@ -574,6 +745,13 @@ export interface Database {
             columns: ["batch_id"]
             isOneToOne: false
             referencedRelation: "batches"
+            referencedSchema: "public"
+          },
+          {
+            foreignKeyName: "exams_subject_batch_fkey"
+            columns: ["subject_id", "batch_id"]
+            isOneToOne: false
+            referencedRelation: "batch_subjects"
             referencedSchema: "public"
           }
         ]
@@ -646,6 +824,7 @@ export interface Database {
         Row: {
           id: string
           batch_id: string
+          subject_id: string | null
           title: string
           message: string
           status: "DRAFT" | "PUBLISHED" | "ARCHIVED"
@@ -661,6 +840,7 @@ export interface Database {
         Insert: {
           id?: string
           batch_id: string
+          subject_id?: string | null
           title: string
           message: string
           status?: "DRAFT" | "PUBLISHED" | "ARCHIVED"
@@ -676,6 +856,7 @@ export interface Database {
         Update: {
           id?: string
           batch_id?: string
+          subject_id?: string | null
           title?: string
           message?: string
           status?: "DRAFT" | "PUBLISHED" | "ARCHIVED"
@@ -694,6 +875,13 @@ export interface Database {
             columns: ["batch_id"]
             isOneToOne: false
             referencedRelation: "batches"
+            referencedSchema: "public"
+          },
+          {
+            foreignKeyName: "announcements_subject_batch_fkey"
+            columns: ["subject_id", "batch_id"]
+            isOneToOne: false
+            referencedRelation: "batch_subjects"
             referencedSchema: "public"
           }
         ]
@@ -788,7 +976,60 @@ export interface Database {
       }
     }
     Views: {
-      [_ in any]: never
+      subject_progress_summary: {
+        Row: {
+          subject_id: string | null
+          batch_id: string | null
+          name: string | null
+          code: string | null
+          status: "DRAFT" | "UPCOMING" | "RUNNING" | "PAUSED" | "COMPLETED" | "ARCHIVED" | null
+          theme_key: string | null
+          display_order: number | null
+          total_units: number | null
+          completed_units: number | null
+          running_units: number | null
+          planned_units: number | null
+          syllabus_progress_percentage: number | null
+          planned_exams: number | null
+          conducted_exams: number | null
+          scheduled_exams: number | null
+          published_results: number | null
+          exam_plan_progress_percentage: number | null
+        }
+        Relationships: []
+      }
+      batch_academic_progress: {
+        Row: {
+          batch_id: string | null
+          batch_name: string | null
+          batch_code: string | null
+          total_subjects: number | null
+          running_subjects: number | null
+          completed_subjects: number | null
+          total_units: number | null
+          completed_units: number | null
+          academic_progress_percentage: number | null
+          planned_exams: number | null
+          conducted_exams: number | null
+          published_results: number | null
+          exam_plan_progress_percentage: number | null
+          result_publication_progress_percentage: number | null
+        }
+        Relationships: []
+      }
+      student_subject_performance: {
+        Row: {
+          student_id: string | null
+          batch_id: string | null
+          subject_id: string | null
+          published_exam_count: number | null
+          attended_exam_count: number | null
+          missed_exam_count: number | null
+          passed_exam_count: number | null
+          average_percentage: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       current_profile_id: {
@@ -816,6 +1057,18 @@ export interface Database {
       student_has_any_active_enrollment: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      legacy_subject_code: {
+        Args: {
+          subject_name: string | null
+        }
+        Returns: string
+      }
+      subject_status_from_batch: {
+        Args: {
+          batch_state: "DRAFT" | "OPEN" | "RUNNING" | "COMPLETED" | "ARCHIVED" | "CANCELLED"
+        }
+        Returns: "DRAFT" | "UPCOMING" | "RUNNING" | "PAUSED" | "COMPLETED" | "ARCHIVED"
       }
       get_student_teacher_note: {
         Args: {
@@ -846,8 +1099,11 @@ export interface Database {
       content_type: "PDF" | "DOC" | "DOCX" | "IMAGE" | "LINK" | "YOUTUBE" | "NOTE" | "ANNOUNCEMENT"
       content_status: "DRAFT" | "PUBLISHED" | "ARCHIVED"
       exam_type: "CLASS_TEST" | "WEEKLY_EXAM" | "MONTHLY_EXAM" | "MODEL_TEST" | "ASSIGNMENT" | "FINAL_EXAM"
-      exam_status: "DRAFT" | "SCHEDULED" | "COMPLETED" | "RESULT_DRAFT" | "RESULT_PUBLISHED" | "ARCHIVED"
+      exam_status: "DRAFT" | "SCHEDULED" | "COMPLETED" | "RESULT_DRAFT" | "RESULT_PUBLISHED" | "ARCHIVED" | "CANCELLED"
       attendance_status: "PRESENT" | "ABSENT"
+      subject_status: "DRAFT" | "UPCOMING" | "RUNNING" | "PAUSED" | "COMPLETED" | "ARCHIVED"
+      subject_unit_status: "PLANNED" | "RUNNING" | "COMPLETED" | "SKIPPED"
+      subject_unit_type: "CHAPTER" | "TOPIC" | "MODULE"
     }
     CompositeTypes: {
       [_ in any]: never
