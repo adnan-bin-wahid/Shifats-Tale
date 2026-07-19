@@ -44,17 +44,13 @@ create table public.media_assets (
 
   constraint media_assets_provider_public_id_unique unique (provider, public_id)
 );
-
 create index media_assets_active_idx on public.media_assets (created_at desc) where deleted_at is null;
 create index media_assets_folder_idx on public.media_assets (folder) where deleted_at is null;
 create index media_assets_public_idx on public.media_assets (is_public) where deleted_at is null;
 create unique index media_assets_asset_id_unique on public.media_assets (asset_id) where asset_id is not null;
-
 create trigger update_media_assets_modtime
 before update on public.media_assets
 for each row execute function public.set_updated_at();
-
-
 -- 2. Global Site Settings
 create table public.site_settings (
   id smallint primary key check (id = 1),
@@ -91,14 +87,10 @@ create table public.site_settings (
   updated_by uuid references public.profiles(id),
   updated_at timestamptz not null default now()
 );
-
 insert into public.site_settings (id) values (1);
-
 create trigger update_site_settings_modtime
 before update on public.site_settings
 for each row execute function public.set_updated_at();
-
-
 -- 3. Social Links
 create table public.site_social_links (
   id uuid primary key default gen_random_uuid(),
@@ -115,12 +107,9 @@ create table public.site_social_links (
   updated_at timestamptz not null default now()
 );
 create index site_social_links_sort_idx on public.site_social_links (is_enabled, sort_order);
-
 create trigger update_site_social_links_modtime
 before update on public.site_social_links
 for each row execute function public.set_updated_at();
-
-
 -- 4. Navbar and Footer Navigation
 create table public.site_navigation_items (
   id uuid primary key default gen_random_uuid(),
@@ -139,12 +128,9 @@ create table public.site_navigation_items (
   updated_at timestamptz not null default now()
 );
 create index site_navigation_items_sort_idx on public.site_navigation_items (location, parent_id, sort_order);
-
 create trigger update_site_navigation_items_modtime
 before update on public.site_navigation_items
 for each row execute function public.set_updated_at();
-
-
 -- 5. Page Registry
 create table public.site_pages (
   id uuid primary key default gen_random_uuid(),
@@ -165,12 +151,9 @@ create table public.site_pages (
   published_at timestamptz
 );
 create index site_pages_status_idx on public.site_pages (status);
-
 create trigger update_site_pages_modtime
 before update on public.site_pages
 for each row execute function public.set_updated_at();
-
-
 -- 6. Page Sections
 create table public.site_page_sections (
   id uuid primary key default gen_random_uuid(),
@@ -199,12 +182,9 @@ create table public.site_page_sections (
   constraint site_page_sections_page_section_unique unique (page_id, section_key)
 );
 create index site_page_sections_order_idx on public.site_page_sections (page_id, sort_order);
-
 create trigger update_site_page_sections_modtime
 before update on public.site_page_sections
 for each row execute function public.set_updated_at();
-
-
 -- 7. Generic Section Items
 create table public.site_section_items (
   id uuid primary key default gen_random_uuid(),
@@ -232,12 +212,9 @@ create table public.site_section_items (
   updated_at timestamptz not null default now()
 );
 create index site_section_items_order_idx on public.site_section_items (section_id, sort_order);
-
 create trigger update_site_section_items_modtime
 before update on public.site_section_items
 for each row execute function public.set_updated_at();
-
-
 -- =========================================================================
 -- Base Table RLS (Teacher Only)
 -- =========================================================================
@@ -249,7 +226,6 @@ alter table public.site_navigation_items enable row level security;
 alter table public.site_pages enable row level security;
 alter table public.site_page_sections enable row level security;
 alter table public.site_section_items enable row level security;
-
 -- Base tables only accessible to teachers
 create policy "Teachers can view media" on public.media_assets for select to authenticated using (public.is_active_teacher());
 create policy "Teachers can insert media" on public.media_assets for insert to authenticated with check (public.is_active_teacher());
@@ -261,8 +237,6 @@ create policy "Teachers can manage nav items" on public.site_navigation_items fo
 create policy "Teachers can manage pages" on public.site_pages for all to authenticated using (public.is_active_teacher()) with check (public.is_active_teacher());
 create policy "Teachers can manage page sections" on public.site_page_sections for all to authenticated using (public.is_active_teacher()) with check (public.is_active_teacher());
 create policy "Teachers can manage section items" on public.site_section_items for all to authenticated using (public.is_active_teacher()) with check (public.is_active_teacher());
-
-
 -- =========================================================================
 -- Public Safe Views (Visitor Access)
 -- =========================================================================
@@ -283,7 +257,6 @@ select
   created_at
 from public.media_assets
 where is_public = true and deleted_at is null;
-
 -- View 2: Public Site Settings
 create view public.vw_public_site_settings as
 select
@@ -312,32 +285,27 @@ select
   registration_enabled,
   updated_at
 from public.site_settings;
-
 -- View 3: Public Social Links
 create view public.vw_public_site_social_links as
 select id, platform, label, url, icon_key, sort_order
 from public.site_social_links
 where is_enabled = true;
-
 -- View 4: Public Nav Items
 create view public.vw_public_site_navigation_items as
 select id, parent_id, location, label, href, icon_key, sort_order, open_in_new_tab
 from public.site_navigation_items
 where is_enabled = true;
-
 -- View 5: Public Pages
 create view public.vw_public_site_pages as
 select id, page_key, name, slug, seo_title, seo_description, canonical_url, og_media_id, published_at
 from public.site_pages
 where status = 'PUBLISHED';
-
 -- View 6: Public Page Sections
 create view public.vw_public_site_page_sections as
 select s.id, s.page_id, s.section_key, s.component_key, s.eyebrow, s.title, s.subtitle, s.description, s.content, s.settings, s.sort_order
 from public.site_page_sections s
 join public.site_pages p on p.id = s.page_id
 where s.status = 'PUBLISHED' and s.is_enabled = true and p.status = 'PUBLISHED';
-
 -- View 7: Public Section Items
 create view public.vw_public_site_section_items as
 select i.id, i.section_id, i.title, i.subtitle, i.body, i.icon_key, i.media_id, i.value, i.link_label, i.link_url, i.sort_order
@@ -345,7 +313,6 @@ from public.site_section_items i
 join public.site_page_sections s on s.id = i.section_id
 join public.site_pages p on p.id = s.page_id
 where i.status = 'PUBLISHED' and s.status = 'PUBLISHED' and s.is_enabled = true and p.status = 'PUBLISHED';
-
 -- Grant SELECT access on all views to anon and authenticated roles
 grant select on public.vw_public_media_assets to anon, authenticated;
 grant select on public.vw_public_site_settings to anon, authenticated;

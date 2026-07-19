@@ -3,7 +3,6 @@
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 -- =========================================================================
 -- 1. ENUM TYPES
 -- =========================================================================
@@ -19,7 +18,6 @@ CREATE TYPE public.content_status AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED');
 CREATE TYPE public.exam_type AS ENUM ('CLASS_TEST', 'WEEKLY_EXAM', 'MONTHLY_EXAM', 'MODEL_TEST', 'ASSIGNMENT', 'FINAL_EXAM');
 CREATE TYPE public.exam_status AS ENUM ('DRAFT', 'SCHEDULED', 'COMPLETED', 'RESULT_DRAFT', 'RESULT_PUBLISHED', 'ARCHIVED');
 CREATE TYPE public.attendance_status AS ENUM ('PRESENT', 'ABSENT');
-
 -- =========================================================================
 -- 2. UPDATED_AT TRIGGER DEFINITION
 -- =========================================================================
@@ -31,7 +29,6 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
 -- =========================================================================
 -- 3. TABLES CREATION
 -- =========================================================================
@@ -49,13 +46,10 @@ CREATE TABLE public.profiles (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
 -- Constraint: Email normalization check and lowercase
 ALTER TABLE public.profiles ADD CONSTRAINT check_lowercase_email CHECK (email = LOWER(email));
-
 -- Constraint: Limit to maximum 1 Teacher account
 CREATE UNIQUE INDEX unique_active_teacher ON public.profiles (role) WHERE (role = 'TEACHER');
-
 -- Student Profiles Table
 CREATE TABLE public.student_profiles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -72,7 +66,6 @@ CREATE TABLE public.student_profiles (
   registered_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
 -- Batches Table
 CREATE TABLE public.batches (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -94,7 +87,6 @@ CREATE TABLE public.batches (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
 -- Enrollments Table
 CREATE TABLE public.enrollments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -109,7 +101,6 @@ CREATE TABLE public.enrollments (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT unique_student_batch UNIQUE (student_id, batch_id)
 );
-
 -- Payments Table
 CREATE TABLE public.payments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -131,7 +122,6 @@ CREATE TABLE public.payments (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT unique_enrollment_month_year UNIQUE (enrollment_id, billing_month, billing_year)
 );
-
 -- Batch Contents Table
 CREATE TABLE public.batch_contents (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -150,7 +140,6 @@ CREATE TABLE public.batch_contents (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
 -- Exams Table
 CREATE TABLE public.exams (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -166,7 +155,6 @@ CREATE TABLE public.exams (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
 -- Exam Results Table
 CREATE TABLE public.exam_results (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -182,7 +170,6 @@ CREATE TABLE public.exam_results (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT unique_exam_student UNIQUE (exam_id, student_id)
 );
-
 -- Announcements Table
 CREATE TABLE public.announcements (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -194,7 +181,6 @@ CREATE TABLE public.announcements (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
 -- Notifications Table
 CREATE TABLE public.notifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -207,7 +193,6 @@ CREATE TABLE public.notifications (
   read_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
 -- Audit Logs Table (Append-only)
 CREATE TABLE public.audit_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -220,7 +205,6 @@ CREATE TABLE public.audit_logs (
   ip_address TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
 -- Prevent update/delete on audit_logs
 CREATE OR REPLACE FUNCTION public.block_audit_log_modification()
 RETURNS TRIGGER AS $$
@@ -228,11 +212,9 @@ BEGIN
   RAISE EXCEPTION 'Audit logs are append-only and cannot be updated or deleted.';
 END;
 $$ LANGUAGE plpgsql;
-
 CREATE TRIGGER audit_logs_immutable
   BEFORE UPDATE OR DELETE ON public.audit_logs
   FOR EACH ROW EXECUTE FUNCTION public.block_audit_log_modification();
-
 -- =========================================================================
 -- 4. REGISTER MUTABLE UPDATED_AT TRIGGERS
 -- =========================================================================
@@ -246,13 +228,11 @@ CREATE TRIGGER update_batch_contents_modtime BEFORE UPDATE ON public.batch_conte
 CREATE TRIGGER update_exams_modtime BEFORE UPDATE ON public.exams FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 CREATE TRIGGER update_exam_results_modtime BEFORE UPDATE ON public.exam_results FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 CREATE TRIGGER update_announcements_modtime BEFORE UPDATE ON public.announcements FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
 -- =========================================================================
 -- 5. SECURE STUDENT ID SEQUENCE & PUBLIC REGISTER TRIGGER
 -- =========================================================================
 
 CREATE SEQUENCE public.student_code_seq START WITH 1 INCREMENT BY 1;
-
 -- Auth Registration Trigger Function
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
@@ -307,12 +287,10 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
-
 -- Register trigger on auth.users
 CREATE OR REPLACE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
 -- Constraint: Prevent updates to student_code field (immutable student code)
 CREATE OR REPLACE FUNCTION public.check_student_code_immutability()
 RETURNS TRIGGER AS $$
@@ -323,11 +301,9 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
 CREATE TRIGGER student_code_immutable
   BEFORE UPDATE ON public.student_profiles
   FOR EACH ROW EXECUTE FUNCTION public.check_student_code_immutability();
-
 -- Constraint: Validate obtained marks against exam total_marks
 CREATE OR REPLACE FUNCTION public.check_obtained_marks()
 RETURNS TRIGGER AS $$
@@ -343,11 +319,9 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
 CREATE TRIGGER validate_obtained_marks
   BEFORE INSERT OR UPDATE ON public.exam_results
   FOR EACH ROW EXECUTE FUNCTION public.check_obtained_marks();
-
 -- =========================================================================
 -- 6. SECURITY DEFINER HELPER FUNCTIONS
 -- =========================================================================
@@ -357,13 +331,11 @@ CREATE OR REPLACE FUNCTION public.current_profile_id()
 RETURNS UUID AS $$
   SELECT id FROM public.profiles WHERE auth_user_id = auth.uid();
 $$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
-
 -- Current User Role string
 CREATE OR REPLACE FUNCTION public.current_user_role()
 RETURNS TEXT AS $$
   SELECT role::text FROM public.profiles WHERE auth_user_id = auth.uid();
 $$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
-
 -- Check if active Teacher
 CREATE OR REPLACE FUNCTION public.is_active_teacher()
 RETURNS BOOLEAN AS $$
@@ -372,13 +344,11 @@ RETURNS BOOLEAN AS $$
     WHERE auth_user_id = auth.uid() AND role = 'TEACHER' AND account_status = 'ACTIVE'
   );
 $$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
-
 -- Get current student profile ID
 CREATE OR REPLACE FUNCTION public.current_student_id()
 RETURNS UUID AS $$
   SELECT id FROM public.student_profiles WHERE profile_id = public.current_profile_id();
 $$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
-
 -- Verify active enrollment in batch
 CREATE OR REPLACE FUNCTION public.has_active_enrollment(batch_uuid UUID)
 RETURNS BOOLEAN AS $$
@@ -387,7 +357,6 @@ RETURNS BOOLEAN AS $$
     WHERE student_id = public.current_student_id() AND batch_id = batch_uuid AND status = 'ACTIVE'
   );
 $$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
-
 -- Verify if student has ANY active enrollment
 CREATE OR REPLACE FUNCTION public.student_has_any_active_enrollment()
 RETURNS BOOLEAN AS $$
@@ -396,7 +365,6 @@ RETURNS BOOLEAN AS $$
     WHERE student_id = public.current_student_id() AND status = 'ACTIVE'
   );
 $$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
-
 -- =========================================================================
 -- 7. COLUMN LEVEL PRIVILEGES AND GETTERS FOR SENSITIVE NOTES
 -- =========================================================================
@@ -404,7 +372,6 @@ $$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
 -- Revoke select on the teacher_note column from public/authenticated/anon
 REVOKE SELECT (teacher_note) ON public.student_profiles FROM public, authenticated, anon;
 REVOKE SELECT (teacher_note) ON public.payments FROM public, authenticated, anon;
-
 -- Secure Teacher Note getter for student profiles (Teacher-only access)
 CREATE OR REPLACE FUNCTION public.get_student_teacher_note(student_uuid UUID)
 RETURNS TEXT AS $$
@@ -416,7 +383,6 @@ BEGIN
   END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
-
 -- Secure Teacher Note getter for payments (Teacher-only access)
 CREATE OR REPLACE FUNCTION public.get_payment_teacher_note(payment_uuid UUID)
 RETURNS TEXT AS $$
@@ -428,7 +394,6 @@ BEGIN
   END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
-
 -- =========================================================================
 -- 8. INDEXES FOR OPTIMAL QUERY PERFORMANCE
 -- =========================================================================
@@ -445,7 +410,6 @@ CREATE INDEX idx_exams_batch_status ON public.exams(batch_id, status);
 CREATE INDEX idx_exam_results_student ON public.exam_results(student_id);
 CREATE INDEX idx_batch_contents_batch_status ON public.batch_contents(batch_id, status);
 CREATE INDEX idx_notifications_user_read ON public.notifications(user_id, read_at);
-
 -- =========================================================================
 -- 9. ROW LEVEL SECURITY (RLS) POLICIES
 -- =========================================================================
@@ -462,57 +426,46 @@ ALTER TABLE public.exam_results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
-
 -- 9.1 Profiles Policies
 CREATE POLICY select_profiles ON public.profiles
   FOR SELECT TO authenticated
   USING (auth.uid() = auth_user_id OR public.is_active_teacher());
-
 CREATE POLICY write_profiles ON public.profiles
   FOR ALL TO authenticated
   USING (public.is_active_teacher())
   WITH CHECK (public.is_active_teacher());
-
 -- 9.2 Student Profiles Policies
 CREATE POLICY select_student_profiles ON public.student_profiles
   FOR SELECT TO authenticated
   USING (profile_id = public.current_profile_id() OR public.is_active_teacher());
-
 CREATE POLICY write_student_profiles ON public.student_profiles
   FOR ALL TO authenticated
   USING (public.is_active_teacher())
   WITH CHECK (public.is_active_teacher());
-
 -- 9.3 Batches Policies
 CREATE POLICY select_batches ON public.batches
   FOR SELECT TO authenticated
   USING (public.is_active_teacher() OR public.has_active_enrollment(id));
-
 CREATE POLICY write_batches ON public.batches
   FOR ALL TO authenticated
   USING (public.is_active_teacher())
   WITH CHECK (public.is_active_teacher());
-
 -- 9.4 Enrollments Policies
 CREATE POLICY select_enrollments ON public.enrollments
   FOR SELECT TO authenticated
   USING (student_id = public.current_student_id() OR public.is_active_teacher());
-
 CREATE POLICY write_enrollments ON public.enrollments
   FOR ALL TO authenticated
   USING (public.is_active_teacher())
   WITH CHECK (public.is_active_teacher());
-
 -- 9.5 Payments Policies
 CREATE POLICY select_payments ON public.payments
   FOR SELECT TO authenticated
   USING (student_id = public.current_student_id() OR public.is_active_teacher());
-
 CREATE POLICY write_payments ON public.payments
   FOR ALL TO authenticated
   USING (public.is_active_teacher())
   WITH CHECK (public.is_active_teacher());
-
 -- 9.6 Batch Contents Policies
 CREATE POLICY select_batch_contents ON public.batch_contents
   FOR SELECT TO authenticated
@@ -520,12 +473,10 @@ CREATE POLICY select_batch_contents ON public.batch_contents
     public.is_active_teacher() OR 
     (status = 'PUBLISHED' AND public.has_active_enrollment(batch_id) AND (release_at IS NULL OR release_at <= now()) AND (expires_at IS NULL OR expires_at >= now()))
   );
-
 CREATE POLICY write_batch_contents ON public.batch_contents
   FOR ALL TO authenticated
   USING (public.is_active_teacher())
   WITH CHECK (public.is_active_teacher());
-
 -- 9.7 Exams Policies
 CREATE POLICY select_exams ON public.exams
   FOR SELECT TO authenticated
@@ -533,12 +484,10 @@ CREATE POLICY select_exams ON public.exams
     public.is_active_teacher() OR 
     (status IN ('SCHEDULED', 'COMPLETED', 'RESULT_PUBLISHED') AND public.has_active_enrollment(batch_id))
   );
-
 CREATE POLICY write_exams ON public.exams
   FOR ALL TO authenticated
   USING (public.is_active_teacher())
   WITH CHECK (public.is_active_teacher());
-
 -- 9.8 Exam Results Policies
 CREATE POLICY select_exam_results ON public.exam_results
   FOR SELECT TO authenticated
@@ -546,12 +495,10 @@ CREATE POLICY select_exam_results ON public.exam_results
     public.is_active_teacher() OR 
     (student_id = public.current_student_id() AND EXISTS (SELECT 1 FROM public.exams WHERE id = exam_id AND status = 'RESULT_PUBLISHED'))
   );
-
 CREATE POLICY write_exam_results ON public.exam_results
   FOR ALL TO authenticated
   USING (public.is_active_teacher())
   WITH CHECK (public.is_active_teacher());
-
 -- 9.9 Announcements Policies
 CREATE POLICY select_announcements ON public.announcements
   FOR SELECT TO authenticated
@@ -559,31 +506,25 @@ CREATE POLICY select_announcements ON public.announcements
     public.is_active_teacher() OR 
     (status = 'PUBLISHED' AND public.has_active_enrollment(batch_id))
   );
-
 CREATE POLICY write_announcements ON public.announcements
   FOR ALL TO authenticated
   USING (public.is_active_teacher())
   WITH CHECK (public.is_active_teacher());
-
 -- 9.10 Notifications Policies
 CREATE POLICY select_notifications ON public.notifications
   FOR SELECT TO authenticated
   USING (user_id = public.current_profile_id() OR public.is_active_teacher());
-
 CREATE POLICY write_notifications ON public.notifications
   FOR ALL TO authenticated
   USING (user_id = public.current_profile_id() OR public.is_active_teacher())
   WITH CHECK (user_id = public.current_profile_id() OR public.is_active_teacher());
-
 -- 9.11 Audit Logs Policies
 CREATE POLICY select_audit_logs ON public.audit_logs
   FOR SELECT TO authenticated
   USING (public.is_active_teacher());
-
 CREATE POLICY write_audit_logs ON public.audit_logs
   FOR INSERT TO authenticated
   WITH CHECK (public.is_active_teacher());
-
 -- =========================================================================
 -- 10. SETUP TEACHER ACTION FUNCTION (Teacher promotion SQL procedure)
 -- =========================================================================

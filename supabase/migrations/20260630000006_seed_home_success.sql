@@ -1,8 +1,7 @@
-INSERT INTO public.site_page_sections (page_id, section_key, component_key, title, eyebrow, description, status, content, sort_order)
+INSERT INTO public.site_page_sections (page_id, section_key, title, eyebrow, description, status, content, sort_order)
 SELECT 
     p.id,
     'HOME_STUDENT_SUCCESS',
-    'ResultsSection',
     'Celebrating Excellence',
     'STUDENT SUCCESS STORIES',
     'Here are some of the remarkable success stories from our past batches.',

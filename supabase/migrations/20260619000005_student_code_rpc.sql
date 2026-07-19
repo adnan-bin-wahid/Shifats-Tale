@@ -15,7 +15,6 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
-
 CREATE OR REPLACE FUNCTION public.update_student_code_admin(student_profile_id UUID, new_code TEXT)
 RETURNS void AS $$
 BEGIN
