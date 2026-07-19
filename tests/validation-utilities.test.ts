@@ -129,6 +129,7 @@ test("Validation Schemas Unit Tests", async (t) => {
     // Valid exam structure
     const validExam = examSchema.safeParse({
       batchId: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+      subjectId: "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22",
       name: "Chemistry Weekly Test 3",
       examType: "WEEKLY_EXAM",
       examDate: "2026-06-25",
@@ -140,6 +141,7 @@ test("Validation Schemas Unit Tests", async (t) => {
     // Pass marks exceeding total marks
     const invalidExam = examSchema.safeParse({
       batchId: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+      subjectId: "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22",
       name: "Chemistry Weekly Test 3",
       examType: "WEEKLY_EXAM",
       examDate: "2026-06-25",
