@@ -15,13 +15,20 @@ import {
   LogOut,
   Loader2,
   Bell,
-  Home
+  Home,
+  BookOpenCheck,
 } from "lucide-react";
+
+interface StudentNavBatch {
+  id: string;
+  name?: string | null;
+  subject?: string | null;
+}
 
 interface SidebarProps {
   className?: string;
   onLinkClick?: () => void;
-  activeBatches?: any[];
+  activeBatches?: StudentNavBatch[];
 }
 
 interface NavItem {
@@ -78,6 +85,7 @@ export function StudentSidebar({ className, onLinkClick, activeBatches = [] }: S
   // Dynamic Navigation Items
   const navItems: NavItem[] = [
     { label: "Dashboard", href: "/student", icon: LayoutDashboard },
+    { label: "Academic Journey", href: "/student/academics", icon: BookOpenCheck },
   ];
 
   // Map active batches to individual navigation links
@@ -168,7 +176,7 @@ export function StudentSidebar({ className, onLinkClick, activeBatches = [] }: S
 
       {/* Footer */}
       <div className="p-4 border-t border-slate-900 bg-slate-950/10 text-xs font-semibold text-white/50 text-center">
-        &copy; {new Date().getFullYear()} Shifat's Tales
+        &copy; {new Date().getFullYear()} Shifat&apos;s Tales
       </div>
     </div>
   );
