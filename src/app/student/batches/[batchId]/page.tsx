@@ -244,10 +244,27 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
 
   const nextClassDisplay = getNextClassDisplay(schedule);
 
-  // Progress gauge calculations (realistic based on actual system items)
-  const progressPercent = totalExamsCount > 0 
-    ? Math.min(Math.round(((publishedBatchResults.length + (materialsCount > 0 ? 1 : 0)) / (totalExamsCount + 1)) * 100), 100) 
-    : materialsCount > 0 ? 50 : 0;
+  const { data: academicProgress } = await supabase
+    .from("batch_academic_progress")
+    .select("*")
+    .eq("batch_id", batchId)
+    .maybeSingle();
+
+  const progressPercent = Math.min(
+    100,
+    Math.max(0, Math.round(Number(academicProgress?.academic_progress_percentage) || 0))
+  );
+  const examProgressPercent = Math.min(
+    100,
+    Math.max(0, Math.round(Number(academicProgress?.exam_plan_progress_percentage) || 0))
+  );
+  const resultProgressPercent = Math.min(
+    100,
+    Math.max(
+      0,
+      Math.round(Number(academicProgress?.result_publication_progress_percentage) || 0)
+    )
+  );
 
   return (
     <div className="space-y-8 text-xs font-bold text-primary max-w-[1500px] mx-auto pb-12">
@@ -327,7 +344,7 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
         {/* Bottom Half: 4 Pill Stats Row (Avg Score, Monthly Fee, Progress, Materials) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 pt-1">
           {/* Stat 1 */}
-          <Link href={`/student/batches/${batchId}/exams`} className="bg-slate-50/60 hover:bg-slate-100/80 border border-slate-200/80 p-4 rounded-2xl flex items-center gap-3.5 transition-all group min-w-0">
+          <Link href={`/student/batches/${batchId}/academics`} className="bg-slate-50/60 hover:bg-slate-100/80 border border-slate-200/80 p-4 rounded-2xl flex items-center gap-3.5 transition-all group min-w-0">
             <div className="p-2.5 bg-amber-100/90 text-amber-800 rounded-xl shrink-0 group-hover:scale-105 transition-transform">
               <Sparkles className="w-5 h-5" />
             </div>
@@ -752,11 +769,11 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
             </Link>
           </div>
 
-          {/* Batch Progress Meter (Realistic based on actual exams & materials) */}
+          {/* Data-driven Academic Progress Meter */}
           <div className="bg-white p-5 sm:p-7 rounded-3xl border border-border/60 shadow-xs space-y-5 min-w-0">
             <h3 className="text-sm font-black font-display text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
               <Activity className="h-4.5 w-4.5 text-emerald-600 shrink-0" />
-              <span>Batch Progress</span>
+              <span>Academic Progress</span>
             </h3>
 
             <div className="flex flex-col sm:flex-row items-center gap-5 pt-1">
@@ -790,35 +807,42 @@ export default async function StudentBatchDetailsPage({ params }: PageProps) {
               <div className="w-full sm:flex-1 space-y-3 min-w-0">
                 <div>
                   <div className="flex justify-between text-[11px] font-extrabold text-slate-700 mb-1">
-                    <span className="truncate pr-2">Study Materials</span>
-                    <span className="shrink-0">{materialsCount} items</span>
+                    <span className="truncate pr-2">Syllabus Completed</span>
+                    <span className="shrink-0">{academicProgress?.completed_units || 0} / {academicProgress?.total_units || 0}</span>
                   </div>
                   <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min(materialsCount * 20, 100)}%` }} />
+                    <div className="h-full bg-blue-500 rounded-full" style={{ width: `${progressPercent}%` }} />
                   </div>
                 </div>
 
                 <div>
                   <div className="flex justify-between text-[11px] font-extrabold text-slate-700 mb-1">
-                    <span className="truncate pr-2">Exams Graded</span>
-                    <span className="shrink-0">{publishedBatchResults.length} / {totalExamsCount || 1}</span>
+                    <span className="truncate pr-2">Exam Journey</span>
+                    <span className="shrink-0">{academicProgress?.conducted_exams || 0} / {academicProgress?.planned_exams || 0}</span>
                   </div>
                   <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${totalExamsCount > 0 ? Math.round((publishedBatchResults.length / totalExamsCount) * 100) : 0}%` }} />
+                    <div className="h-full bg-violet-500 rounded-full" style={{ width: `${examProgressPercent}%` }} />
                   </div>
                 </div>
 
                 <div>
                   <div className="flex justify-between text-[11px] font-extrabold text-slate-700 mb-1">
-                    <span className="truncate pr-2">Average Score</span>
-                    <span className="shrink-0">{avgPercentage}%</span>
+                    <span className="truncate pr-2">Results Published</span>
+                    <span className="shrink-0">{academicProgress?.published_results || 0} live</span>
                   </div>
                   <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-purple-500 rounded-full" style={{ width: `${avgPercentage}%` }} />
+                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${resultProgressPercent}%` }} />
                   </div>
                 </div>
               </div>
             </div>
+            <Link
+              href={`/student/batches/${batchId}/academics`}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 py-2.5 text-xs font-black text-slate-800 transition hover:bg-[#0A192F] hover:text-white"
+            >
+              Open Detailed Learning Map
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
 
           {/* Quick Actions Grid (Exactly the 4 real modules of our system) */}

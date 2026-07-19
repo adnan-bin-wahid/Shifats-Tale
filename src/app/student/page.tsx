@@ -28,7 +28,8 @@ import {
   Zap,
   Check,
   TrendingDown,
-  Minus
+  Minus,
+  BookOpenCheck,
 } from "lucide-react";
 
 // Helper: Calculate Next Class Schedule
@@ -743,9 +744,9 @@ export default async function StudentDashboardPage() {
                 <GraduationCap className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors shrink-0" />
                 <span className="font-extrabold truncate w-full">Examinations</span>
               </Link>
-              <Link href="/student/profile" className="p-3.5 sm:p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center justify-center gap-2 group shadow-2xs min-w-0">
-                <FileText className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors shrink-0" />
-                <span className="font-extrabold truncate w-full">Materials</span>
+              <Link href="/student/academics" className="p-3.5 sm:p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center justify-center gap-2 group shadow-2xs min-w-0">
+                <BookOpenCheck className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors shrink-0" />
+                <span className="font-extrabold truncate w-full">Academic Journey</span>
               </Link>
               <Link href="/class-routine" className="p-3.5 sm:p-4 border border-slate-200/80 rounded-2xl bg-slate-50/60 hover:bg-[#0A192F] hover:text-white transition-all flex flex-col items-center justify-center gap-2 group shadow-2xs min-w-0">
                 <Calendar className="h-5 w-5 text-slate-600 group-hover:text-white transition-colors shrink-0" />
