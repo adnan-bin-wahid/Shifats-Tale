@@ -23,13 +23,21 @@ export default async function StudentBatchAcademicsPage({ params }: PageProps) {
 
   const { data: enrollment, error: enrollmentError } = await supabase
     .from("enrollments")
-    .select("id, enrolled_at")
+    .select("id, approved_at, created_at")
     .eq("student_id", studentProfile.id)
     .eq("batch_id", batchId)
     .eq("status", "ACTIVE")
     .maybeSingle();
 
-  if (enrollmentError || !enrollment) {
+  if (enrollmentError) {
+    console.error("Failed to verify academic batch enrollment", {
+      code: enrollmentError.code,
+      message: enrollmentError.message,
+    });
+    throw new Error("Unable to verify the academic enrollment right now.");
+  }
+
+  if (!enrollment) {
     redirect("/student/academics?error=unauthorized_batch");
   }
 
@@ -134,10 +142,9 @@ export default async function StudentBatchAcademicsPage({ params }: PageProps) {
   return (
     <StudentAcademicJourney
       batch={batchResult.data}
-      enrolledAt={enrollment.enrolled_at}
+      enrolledAt={enrollment.approved_at || enrollment.created_at}
       subjects={subjects}
       batchProgress={batchProgressResult.data || null}
     />
   );
 }
-

@@ -99,14 +99,22 @@ export default async function StudentAcademicsPage() {
   }
 
   const supabase = await createClient();
-  const { data: enrollments } = await supabase
+  const { data: enrollments, error: enrollmentsError } = await supabase
     .from("enrollments")
     .select(
-      "id, batch_id, enrolled_at, batch:batches(id, name, code, academic_level, status, start_date, end_date)"
+      "id, batch_id, approved_at, created_at, batch:batches(id, name, code, academic_level, status, start_date, end_date)"
     )
     .eq("student_id", studentProfile.id)
     .eq("status", "ACTIVE")
-    .order("enrolled_at", { ascending: false });
+    .order("created_at", { ascending: false });
+
+  if (enrollmentsError) {
+    console.error("Failed to load active academic enrollments", {
+      code: enrollmentsError.code,
+      message: enrollmentsError.message,
+    });
+    throw new Error("Unable to load the academic journey right now.");
+  }
 
   const activeEnrollments = enrollments || [];
   const batchIds = activeEnrollments.map((enrollment) => enrollment.batch_id);
