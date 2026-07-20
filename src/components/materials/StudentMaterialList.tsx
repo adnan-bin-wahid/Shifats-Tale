@@ -3,12 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
-import { Eye, Download, ExternalLink, Info, Calendar, FileText, X, ArrowRight, Maximize2 } from "lucide-react";
+import Image from "next/image";
+import { Eye, Download, ExternalLink, Info, Calendar, FileText, X, ArrowRight, BookOpenCheck } from "lucide-react";
 import SecurePdfViewer from "./SecurePdfViewer";
 
 interface Material {
   id: string;
+  subject_id: string | null;
   title: string;
   description: string;
   content_type: string;
@@ -17,14 +18,30 @@ interface Material {
   external_url: string | null;
   published_at: string;
   created_at: string;
+  subject?: { id: string; name: string; code: string } | null;
 }
 
-export function StudentMaterialList({ materials, batchId }: { materials: Material[], batchId: string }) {
+export function StudentMaterialList({
+  materials,
+  initialSubjectId = "ALL",
+}: {
+  materials: Material[];
+  initialSubjectId?: string;
+}) {
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
+  const [subjectFilter, setSubjectFilter] = useState(initialSubjectId);
 
   useEffect(() => {
     if (selectedMaterial) {
       document.body.style.overflow = "hidden";
+      const closeOnEscape = (event: KeyboardEvent) => {
+        if (event.key === "Escape") setSelectedMaterial(null);
+      };
+      document.addEventListener("keydown", closeOnEscape);
+      return () => {
+        document.removeEventListener("keydown", closeOnEscape);
+        document.body.style.overflow = "unset";
+      };
     } else {
       document.body.style.overflow = "unset";
     }
@@ -41,10 +58,60 @@ export function StudentMaterialList({ materials, batchId }: { materials: Materia
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
+  const subjectOptions = Array.from(
+    new Map(
+      materials
+        .filter((material) => material.subject)
+        .map((material) => [material.subject!.id, material.subject!])
+    ).values()
+  ).sort((a, b) => a.name.localeCompare(b.name));
+  const filteredMaterials = materials.filter((material) => {
+    if (subjectFilter === "ALL") return true;
+    if (subjectFilter === "GENERAL") return !material.subject_id;
+    return material.subject_id === subjectFilter;
+  });
+
   return (
     <>
+      <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-3 flex items-center gap-2">
+          <BookOpenCheck className="h-4 w-4 text-blue-700" />
+          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">
+            Browse by subject
+          </p>
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filter study materials by subject">
+          {[
+            { id: "ALL", label: `All resources (${materials.length})` },
+            { id: "GENERAL", label: "General batch" },
+            ...subjectOptions.map((subject) => ({ id: subject.id, label: `${subject.name} · ${subject.code}` })),
+          ].map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              aria-pressed={subjectFilter === option.id}
+              onClick={() => setSubjectFilter(option.id)}
+              className={`shrink-0 rounded-full border px-3 py-2 text-[10px] font-black transition ${
+                subjectFilter === option.id
+                  ? "border-blue-700 bg-blue-700 text-white"
+                  : "border-slate-200 bg-slate-50 text-slate-600 hover:border-blue-200 hover:text-blue-700"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {filteredMaterials.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+          <FileText className="mx-auto h-9 w-9 text-slate-300" />
+          <p className="mt-3 text-sm font-black text-slate-800">No resources in this subject yet</p>
+          <p className="mt-1 text-[11px] font-semibold text-slate-500">Choose another subject or check again after your teacher publishes a resource.</p>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {materials.map((material) => {
+        {filteredMaterials.map((material) => {
           const isFile = ["PDF", "DOC", "DOCX", "IMAGE"].includes(material.content_type);
           const isPreviewable = ["PDF", "IMAGE"].includes(material.content_type);
           const isExternal = ["LINK", "YOUTUBE"].includes(material.content_type);
@@ -56,11 +123,13 @@ export function StudentMaterialList({ materials, batchId }: { materials: Materia
               className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] overflow-hidden group hover:shadow-[0_20px_35px_-5px_rgba(0,0,0,0.12)] hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between"
             >
               {/* Thumbnail Header Area */}
-              <div 
+              <button
+                type="button"
+                aria-label={`${isPreviewable ? "Preview" : isExternal ? "Open" : "Read"} ${material.title}`}
                 className="relative w-full aspect-[16/10] bg-[#F8FAFC] overflow-hidden border-b border-gray-100/60 cursor-pointer"
                 onClick={() => {
                   if (isPreviewable) setSelectedMaterial(material);
-                  else if (isExternal && material.external_url) window.open(material.external_url, "_blank");
+                  else if (isExternal && material.external_url) window.open(material.external_url, "_blank", "noopener,noreferrer");
                 }}
               >
                 <div className="w-full h-full bg-gradient-to-br from-[#0B1736] via-[#112350] to-[#0A1329] flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
@@ -94,18 +163,18 @@ export function StudentMaterialList({ materials, batchId }: { materials: Materia
                     <span>{isPreviewable ? "Preview Material" : isExternal ? "Open Link" : "Read Note"}</span>
                   </div>
                 </div>
-              </div>
+              </button>
 
               {/* Content Block */}
               <div className="p-5 flex-1 flex flex-col justify-between bg-white">
                 <div>
                   <span className="text-[11px] font-extrabold text-[#F59E0B] uppercase tracking-wider mb-1.5 block font-mono">
-                    {material.content_type}
+                    {material.subject ? `${material.subject.name} · ${material.subject.code}` : "General batch resource"}
                   </span>
                   <h3 
                     onClick={() => {
                       if (isPreviewable) setSelectedMaterial(material);
-                      else if (isExternal && material.external_url) window.open(material.external_url, "_blank");
+                      else if (isExternal && material.external_url) window.open(material.external_url, "_blank", "noopener,noreferrer");
                     }}
                     className="font-bold text-[#1E293B] text-lg leading-snug group-hover:text-primary transition-colors line-clamp-2 mb-2 cursor-pointer"
                   >
@@ -139,7 +208,7 @@ export function StudentMaterialList({ materials, batchId }: { materials: Materia
                     <button 
                       onClick={() => {
                         if (isPreviewable) setSelectedMaterial(material);
-                        else if (isExternal && material.external_url) window.open(material.external_url, "_blank");
+                        else if (isExternal && material.external_url) window.open(material.external_url, "_blank", "noopener,noreferrer");
                       }}
                       className="text-[#08132E] group-hover:text-[#F59E0B] font-bold flex items-center gap-1 transition-colors"
                     >
@@ -153,6 +222,7 @@ export function StudentMaterialList({ materials, batchId }: { materials: Materia
           );
         })}
       </div>
+      )}
 
       {typeof window !== "undefined" && createPortal(
         <AnimatePresence>
@@ -162,6 +232,9 @@ export function StudentMaterialList({ materials, batchId }: { materials: Materia
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 sm:p-6"
+              role="dialog"
+              aria-modal="true"
+              aria-label={`Preview ${selectedMaterial.title}`}
             >
               <motion.div
                 initial={{ scale: 0.95, opacity: 0 }}
@@ -209,18 +282,21 @@ export function StudentMaterialList({ materials, batchId }: { materials: Materia
                 </div>
 
                 <div className="flex-1 bg-gray-100 relative flex flex-col overflow-hidden">
-                  {selectedMaterial.content_type === "application/pdf" || selectedMaterial.title.toLowerCase().endsWith(".pdf") || !selectedMaterial.content_type?.includes("image/") ? (
+                  {selectedMaterial.content_type === "PDF" || selectedMaterial.title.toLowerCase().endsWith(".pdf") ? (
                     <SecurePdfViewer
                       contentId={selectedMaterial.id}
                       title={selectedMaterial.title}
                       allowDownload={selectedMaterial.allow_download}
                     />
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center p-4 overflow-auto bg-gray-900/90">
-                      <img
+                    <div className="relative w-full h-full flex flex-col items-center justify-center p-4 overflow-auto bg-gray-900/90">
+                      <Image
                         src={`/api/materials/${selectedMaterial.id}/access?mode=preview`}
                         alt={selectedMaterial.title}
-                        className="max-w-full max-h-full object-contain rounded-lg shadow-xl"
+                        fill
+                        unoptimized
+                        sizes="100vw"
+                        className="object-contain rounded-lg shadow-xl"
                       />
                     </div>
                   )}

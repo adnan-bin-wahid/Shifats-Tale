@@ -20,6 +20,28 @@ async function assertActiveTeacher() {
   return profile;
 }
 
+async function resolveSubjectScope(
+  admin: ReturnType<typeof createAdminClient>,
+  batchId: string,
+  subjectId: string | null | undefined
+) {
+  if (!subjectId) return null;
+
+  const { data: subject, error } = await admin
+    .from("batch_subjects")
+    .select("id")
+    .eq("id", subjectId)
+    .eq("batch_id", batchId)
+    .neq("status", "ARCHIVED")
+    .maybeSingle();
+
+  if (error || !subject) {
+    throw new Error("The selected subject does not belong to this batch or is archived.");
+  }
+
+  return subject.id;
+}
+
 /**
  * Notifies all active students enrolled in a batch about new/updated announcements.
  */
@@ -71,11 +93,13 @@ export async function createAnnouncementAction(rawInput: any) {
 
     const data = validated.data;
     const admin = createAdminClient();
+    const scopedSubjectId = await resolveSubjectScope(admin, data.batchId, data.subjectId);
 
     const { data: newAnnouncement, error: dbError } = await admin
       .from("announcements")
       .insert({
         batch_id: data.batchId,
+        subject_id: scopedSubjectId,
         title: data.title,
         message: data.message,
         status: data.status,
@@ -122,6 +146,8 @@ export async function createAnnouncementAction(rawInput: any) {
 
     revalidatePath(`/teacher/batches/${newAnnouncement.batch_id}/announcements`);
     revalidatePath(`/student/batches/${newAnnouncement.batch_id}/announcements`);
+    revalidatePath(`/teacher/academic/${newAnnouncement.batch_id}`);
+    revalidatePath(`/student/batches/${newAnnouncement.batch_id}/academics`);
     return { success: true, announcement: newAnnouncement };
   } catch (err: any) {
     return { success: false, message: err.message || "Internal server error" };
@@ -151,7 +177,18 @@ export async function updateAnnouncementAction(announcementId: string, rawInput:
       return { success: false, message: "Announcement not found." };
     }
 
+    if (data.batchId !== oldAnnouncement.batch_id) {
+      return { success: false, message: "An announcement cannot be moved to another batch." };
+    }
+
+    const scopedSubjectId = await resolveSubjectScope(
+      admin,
+      oldAnnouncement.batch_id,
+      data.subjectId
+    );
+
     const updatedFields: any = {
+      subject_id: scopedSubjectId,
       title: data.title,
       message: data.message,
       status: data.status,
@@ -224,6 +261,8 @@ export async function updateAnnouncementAction(announcementId: string, rawInput:
 
     revalidatePath(`/teacher/batches/${updatedAnnouncement.batch_id}/announcements`);
     revalidatePath(`/student/batches/${updatedAnnouncement.batch_id}/announcements`);
+    revalidatePath(`/teacher/academic/${updatedAnnouncement.batch_id}`);
+    revalidatePath(`/student/batches/${updatedAnnouncement.batch_id}/academics`);
     return { success: true, announcement: updatedAnnouncement };
   } catch (err: any) {
     return { success: false, message: err.message || "Internal server error" };
@@ -269,6 +308,8 @@ export async function deleteAnnouncementAction(announcementId: string) {
 
     revalidatePath(`/teacher/batches/${announcement.batch_id}/announcements`);
     revalidatePath(`/student/batches/${announcement.batch_id}/announcements`);
+    revalidatePath(`/teacher/academic/${announcement.batch_id}`);
+    revalidatePath(`/student/batches/${announcement.batch_id}/academics`);
     revalidatePath(`/teacher/announcements`);
     return { success: true };
   } catch (err: any) {

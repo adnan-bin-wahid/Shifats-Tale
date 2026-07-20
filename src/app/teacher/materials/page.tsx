@@ -30,11 +30,11 @@ export default async function TeacherMaterialsPage() {
   // Load all materials with batch names joined
   const { data: materials, error: materialsError } = await admin
     .from("batch_contents")
-    .select("*, batches(name)")
+    .select("*, batches(name), subject:batch_subjects(id, name, code)")
     .order("created_at", { ascending: false });
 
   if (materialsError) {
-    console.error("Error loading teacher materials list:", materialsError);
+    throw new Error(`Unable to load study materials: ${materialsError.message}`);
   }
 
   // Load all batches for filters
@@ -44,8 +44,12 @@ export default async function TeacherMaterialsPage() {
     .order("name", { ascending: true });
 
   if (batchesError) {
-    console.error("Error loading teacher batches list:", batchesError);
+    throw new Error(`Unable to load material filters: ${batchesError.message}`);
   }
+  const normalizedMaterials = (materials || []).map((material) => ({
+    ...material,
+    subject: material.subject?.[0] || null,
+  }));
 
   return (
     <div className="space-y-8">
@@ -54,8 +58,8 @@ export default async function TeacherMaterialsPage() {
         description="Upload handouts, secure PDF notes, homework assignments, or link reference videos to your student batches."
       />
       <TeacherMaterialsList
-        materials={(materials || []) as any[]}
-        batches={(batches || []) as any[]}
+        materials={normalizedMaterials}
+        batches={batches || []}
       />
     </div>
   );

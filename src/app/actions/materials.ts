@@ -29,6 +29,28 @@ async function assertActiveTeacher() {
   return profile;
 }
 
+async function resolveSubjectScope(
+  admin: ReturnType<typeof createAdminClient>,
+  batchId: string,
+  subjectId: string | null | undefined
+) {
+  if (!subjectId) return null;
+
+  const { data: subject, error } = await admin
+    .from("batch_subjects")
+    .select("id")
+    .eq("id", subjectId)
+    .eq("batch_id", batchId)
+    .neq("status", "ARCHIVED")
+    .maybeSingle();
+
+  if (error || !subject) {
+    throw new Error("The selected subject does not belong to this batch or is archived.");
+  }
+
+  return subject.id;
+}
+
 /**
  * Notifies all active students enrolled in a batch about new/updated content.
  */
@@ -81,6 +103,7 @@ export async function createMaterialAction(formData: FormData) {
 
     // Extract fields from FormData
     const batchId = formData.get("batchId") as string;
+    const subjectId = formData.get("subjectId") as string;
     const title = formData.get("title") as string;
     const contentType = formData.get("contentType") as any;
     const status = formData.get("status") as any;
@@ -93,6 +116,7 @@ export async function createMaterialAction(formData: FormData) {
     // Validate using Zod schema
     const validated = materialSchema.safeParse({
       batchId,
+      subjectId,
       title,
       contentType,
       status,
@@ -108,6 +132,8 @@ export async function createMaterialAction(formData: FormData) {
     }
 
     const data = validated.data;
+    const admin = createAdminClient();
+    const scopedSubjectId = await resolveSubjectScope(admin, data.batchId, data.subjectId);
     const isFileBased = ["PDF", "DOC", "DOCX", "IMAGE"].includes(data.contentType);
     const file = formData.get("file") as File | null;
     const r2Key = formData.get("r2Key") as string | null;
@@ -170,13 +196,12 @@ export async function createMaterialAction(formData: FormData) {
       }
     }
 
-    const admin = createAdminClient();
-
     // 4. Create database record
     const { data: newMaterial, error: dbError } = await admin
       .from("batch_contents")
       .insert({
         batch_id: data.batchId,
+        subject_id: scopedSubjectId,
         title: data.title,
         description: data.description || null,
         content_type: data.contentType,
@@ -234,6 +259,8 @@ export async function createMaterialAction(formData: FormData) {
 
     revalidatePath(`/teacher/batches/${newMaterial.batch_id}/materials`);
     revalidatePath(`/student/batches/${newMaterial.batch_id}/materials`);
+    revalidatePath(`/teacher/academic/${newMaterial.batch_id}`);
+    revalidatePath(`/student/batches/${newMaterial.batch_id}/academics`);
     return { success: true, material: newMaterial };
   } catch (err: any) {
     // Technical error rollback
@@ -260,6 +287,7 @@ export async function updateMaterialAction(contentId: string, formData: FormData
 
     // Extract fields
     const batchId = formData.get("batchId") as string;
+    const subjectId = formData.get("subjectId") as string;
     const title = formData.get("title") as string;
     const contentType = formData.get("contentType") as any;
     const status = formData.get("status") as any;
@@ -272,6 +300,7 @@ export async function updateMaterialAction(contentId: string, formData: FormData
     // Validate using Zod schema
     const validated = materialSchema.safeParse({
       batchId,
+      subjectId,
       title,
       contentType,
       status,
@@ -299,6 +328,16 @@ export async function updateMaterialAction(contentId: string, formData: FormData
     if (fetchError || !oldMaterial) {
       return { success: false, message: "Batch material not found." };
     }
+
+    if (data.batchId !== oldMaterial.batch_id) {
+      return { success: false, message: "A material cannot be moved to another batch." };
+    }
+
+    const scopedSubjectId = await resolveSubjectScope(
+      admin,
+      oldMaterial.batch_id,
+      data.subjectId
+    );
 
     const isFileBased = ["PDF", "DOC", "DOCX", "IMAGE"].includes(data.contentType);
     const file = formData.get("file") as File | null;
@@ -420,6 +459,7 @@ export async function updateMaterialAction(contentId: string, formData: FormData
 
     // Compile update fields
     const updatedFields: any = {
+      subject_id: scopedSubjectId,
       title: data.title,
       description: data.description || null,
       content_type: data.contentType,
@@ -532,6 +572,8 @@ export async function updateMaterialAction(contentId: string, formData: FormData
 
     revalidatePath(`/teacher/batches/${updatedMaterial.batch_id}/materials`);
     revalidatePath(`/student/batches/${updatedMaterial.batch_id}/materials`);
+    revalidatePath(`/teacher/academic/${updatedMaterial.batch_id}`);
+    revalidatePath(`/student/batches/${updatedMaterial.batch_id}/academics`);
     return { success: true, material: updatedMaterial };
   } catch (err: any) {
     if (uploadedPublicId) {
@@ -608,6 +650,8 @@ export async function deleteMaterialAction(contentId: string) {
 
     revalidatePath(`/teacher/batches/${material.batch_id}/materials`);
     revalidatePath(`/student/batches/${material.batch_id}/materials`);
+    revalidatePath(`/teacher/academic/${material.batch_id}`);
+    revalidatePath(`/student/batches/${material.batch_id}/academics`);
     return { success: true };
   } catch (err: any) {
     return { success: false, message: err.message || "Internal server error" };

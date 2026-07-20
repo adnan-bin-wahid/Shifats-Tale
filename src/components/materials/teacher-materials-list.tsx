@@ -6,18 +6,14 @@ import { useRouter } from "next/navigation";
 import { deleteMaterialAction, updateMaterialAction } from "@/app/actions/materials";
 import { 
   Search, 
-  Filter, 
   Eye, 
   Edit3, 
   Trash2, 
   Plus, 
   Copy, 
-  FileText, 
   CheckCircle, 
   XCircle, 
   Archive,
-  ExternalLink,
-  ChevronDown,
   AlertTriangle
 } from "lucide-react";
 import { CascadeDeletionDetails } from "@/components/common/cascade-deletion-details";
@@ -27,9 +23,16 @@ interface Batch {
   name: string;
 }
 
+interface SubjectOption {
+  id: string;
+  name: string;
+  code: string;
+}
+
 interface Material {
   id: string;
   batch_id: string;
+  subject_id: string | null;
   title: string;
   description: string | null;
   content_type: "PDF" | "DOC" | "DOCX" | "IMAGE" | "LINK" | "YOUTUBE" | "NOTE" | "ANNOUNCEMENT";
@@ -49,21 +52,31 @@ interface Material {
   cloudinary_resource_type?: string | null;
   cloudinary_format?: string | null;
   batches?: { name: string } | null;
+  subject?: { id: string; name: string; code: string } | null;
 }
 
 interface Props {
   materials: Material[];
   batches: Batch[];
+  subjects?: SubjectOption[];
   selectedBatchId?: string;
+  selectedSubjectId?: string;
 }
 
-export function TeacherMaterialsList({ materials, batches, selectedBatchId = "" }: Props) {
+export function TeacherMaterialsList({
+  materials,
+  batches,
+  subjects = [],
+  selectedBatchId = "",
+  selectedSubjectId = "",
+}: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   // Search & Filter state
   const [searchTerm, setSearchTerm] = useState("");
   const [batchIdFilter, setBatchIdFilter] = useState(selectedBatchId);
+  const [subjectIdFilter, setSubjectIdFilter] = useState(selectedSubjectId);
   const [contentTypeFilter, setContentTypeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [releaseFilter, setReleaseFilter] = useState("");
@@ -85,6 +98,7 @@ export function TeacherMaterialsList({ materials, batches, selectedBatchId = "" 
   const handleStatusChange = async (materialId: string, currentMaterial: Material, newStatus: "DRAFT" | "PUBLISHED" | "ARCHIVED") => {
     const formData = new FormData();
     formData.append("batchId", currentMaterial.batch_id);
+    formData.append("subjectId", currentMaterial.subject_id || "");
     formData.append("title", currentMaterial.title);
     formData.append("contentType", currentMaterial.content_type);
     formData.append("status", newStatus);
@@ -129,6 +143,9 @@ export function TeacherMaterialsList({ materials, batches, selectedBatchId = "" 
     // 2. Batch filter
     if (batchIdFilter && item.batch_id !== batchIdFilter) return false;
 
+    if (subjectIdFilter === "GENERAL" && item.subject_id) return false;
+    if (subjectIdFilter && subjectIdFilter !== "GENERAL" && item.subject_id !== subjectIdFilter) return false;
+
     // 3. Content Type filter
     if (contentTypeFilter && item.content_type !== contentTypeFilter) return false;
 
@@ -162,10 +179,21 @@ export function TeacherMaterialsList({ materials, batches, selectedBatchId = "" 
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
+  const subjectOptions = (subjects.length
+    ? subjects
+    : Array.from(
+        new Map(
+          materials
+            .filter((material) => material.subject)
+            .map((material) => [material.subject!.id, material.subject!])
+        ).values()
+      )
+  ).sort((a, b) => a.name.localeCompare(b.name));
+
   return (
     <div className="space-y-6 text-xs font-bold text-slate-800">
       {errorMessage && (
-        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl flex justify-between items-center">
+        <div aria-live="polite" className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl flex justify-between items-center">
           <span>{errorMessage}</span>
           <button onClick={() => setErrorMessage("")} className="text-rose-500 hover:text-rose-700">Close</button>
         </div>
@@ -187,7 +215,7 @@ export function TeacherMaterialsList({ materials, batches, selectedBatchId = "" 
           
           <div>
             <Link
-              href="/teacher/materials/new"
+              href={selectedBatchId ? `/teacher/materials/new?batchId=${selectedBatchId}${selectedSubjectId ? `&subjectId=${selectedSubjectId}` : ""}` : "/teacher/materials/new"}
               className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-primary text-white hover:bg-primary-dark rounded-xl transition-all shadow-sm font-bold text-xs shrink-0"
             >
               <Plus className="h-4 w-4" />
@@ -197,7 +225,7 @@ export function TeacherMaterialsList({ materials, batches, selectedBatchId = "" 
         </div>
 
         {/* Filter selectors grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3.5 pt-2 border-t border-slate-50">
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3.5 pt-2 border-t border-slate-50">
           <div>
             <label className="text-[10px] text-slate-400 block mb-1 uppercase">Batch</label>
             <select
@@ -208,6 +236,21 @@ export function TeacherMaterialsList({ materials, batches, selectedBatchId = "" 
               <option value="">All Batches</option>
               {batches.map((b) => (
                 <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-[10px] text-slate-400 block mb-1 uppercase">Subject</label>
+            <select
+              value={subjectIdFilter}
+              onChange={(e) => setSubjectIdFilter(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
+            >
+              <option value="">All Subjects</option>
+              <option value="GENERAL">General Batch</option>
+              {subjectOptions.map((subject) => (
+                <option key={subject.id} value={subject.id}>{subject.name} ({subject.code})</option>
               ))}
             </select>
           </div>
@@ -276,6 +319,7 @@ export function TeacherMaterialsList({ materials, batches, selectedBatchId = "" 
               <tr className="border-b border-slate-100 bg-slate-50/55 text-[10px] text-slate-400 uppercase">
                 <th className="px-6 py-4 font-bold">Title</th>
                 <th className="px-6 py-4 font-bold">Batch</th>
+                <th className="px-6 py-4 font-bold">Subject</th>
                 <th className="px-6 py-4 font-bold">Type</th>
                 <th className="px-6 py-4 font-bold">Size</th>
                 <th className="px-6 py-4 font-bold">Schedule</th>
@@ -286,7 +330,7 @@ export function TeacherMaterialsList({ materials, batches, selectedBatchId = "" 
             <tbody className="divide-y divide-slate-100">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-slate-400 font-semibold">
+                  <td colSpan={8} className="px-6 py-12 text-center text-slate-400 font-semibold">
                     No study materials matched the criteria.
                   </td>
                 </tr>
@@ -310,6 +354,11 @@ export function TeacherMaterialsList({ materials, batches, selectedBatchId = "" 
                       </td>
                       <td className="px-6 py-4 text-slate-600">
                         {material.batches?.name || "Batch Unknown"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex rounded-full bg-blue-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-wide text-blue-700">
+                          {material.subject ? `${material.subject.name} · ${material.subject.code}` : "General batch"}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider uppercase bg-slate-100 text-slate-700">

@@ -36,7 +36,7 @@ export default async function EditMaterialPage({ params }: PageProps) {
   // Load the target material
   const { data: material, error } = await admin
     .from("batch_contents")
-    .select("*")
+    .select("id, batch_id, subject_id, title, description, content_type, status, external_url, allow_download, release_at, expires_at, original_filename")
     .eq("id", contentId)
     .single();
 
@@ -45,10 +45,16 @@ export default async function EditMaterialPage({ params }: PageProps) {
   }
 
   // Load all batches for selection
-  const { data: batches } = await admin
-    .from("batches")
-    .select("id, name")
-    .order("name", { ascending: true });
+  const [batchesResult, subjectsResult] = await Promise.all([
+    admin.from("batches").select("id, name").order("name", { ascending: true }),
+    admin
+      .from("batch_subjects")
+      .select("id, batch_id, name, code, status")
+      .neq("status", "ARCHIVED")
+      .order("display_order", { ascending: true }),
+  ]);
+  if (batchesResult.error) throw batchesResult.error;
+  if (subjectsResult.error) throw subjectsResult.error;
 
   return (
     <div className="space-y-6">
@@ -57,8 +63,9 @@ export default async function EditMaterialPage({ params }: PageProps) {
         description={`Update metadata, status, release schedules, or replace the uploaded file for ${material.title}.`}
       />
       <MaterialForm
-        batches={batches || []}
-        initialData={material as any}
+        batches={batchesResult.data || []}
+        subjects={subjectsResult.data || []}
+        initialData={material}
       />
     </div>
   );

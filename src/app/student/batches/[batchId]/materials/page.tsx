@@ -3,42 +3,36 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { resolveAuthenticatedDestination } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
-import { FileText, Download, Eye, ExternalLink, ArrowLeft, Calendar, Info } from "lucide-react";
+import { FileText, ArrowLeft } from "lucide-react";
 import { StudentMaterialList } from "@/components/materials/StudentMaterialList";
 
 interface PageProps {
   params: Promise<{
     batchId: string;
   }>;
+  searchParams: Promise<{
+    subjectId?: string;
+  }>;
 }
 
-export default async function StudentBatchMaterialsPage({ params }: PageProps) {
+export default async function StudentBatchMaterialsPage({ params, searchParams }: PageProps) {
   const { batchId } = await params;
+  const { subjectId } = await searchParams;
 
-  // 1. Authoritative Auth Check
-  const { destination, profile, studentProfile } = await resolveAuthenticatedDestination();
-
-  if (destination === "UNAUTHENTICATED") {
-    redirect("/login");
-  }
-  if (destination === "PENDING_APPROVAL") {
-    redirect("/pending-approval");
-  }
-  if (destination === "ACCOUNT_DISABLED") {
-    redirect("/account-disabled");
-  }
-  if (destination === "INVALID_PROFILE") {
+  const { destination, studentProfile } = await resolveAuthenticatedDestination();
+  if (destination === "UNAUTHENTICATED") redirect("/login");
+  if (destination === "PENDING_APPROVAL") redirect("/pending-approval");
+  if (destination === "ACCOUNT_DISABLED") redirect("/account-disabled");
+  if (destination !== "STUDENT_DASHBOARD" || !studentProfile) {
     redirect("/login?error=invalid_profile");
   }
 
   const supabase = await createClient();
 
-  // 2. Fetch Batch details
   const { data: batch, error: batchError } = await supabase
     .from("batches")
-    .select("*")
+    .select("id,name")
     .eq("id", batchId)
     .single();
 
@@ -46,52 +40,56 @@ export default async function StudentBatchMaterialsPage({ params }: PageProps) {
     notFound();
   }
 
-  // 3. Authorization Check: Must have an ACTIVE enrollment in this batch
-  if (!studentProfile) {
-    redirect("/login?error=invalid_profile");
-  }
-
   const { data: enrollment, error: enrollError } = await supabase
     .from("enrollments")
-    .select("*")
+    .select("id")
     .eq("student_id", studentProfile.id)
     .eq("batch_id", batchId)
     .eq("status", "ACTIVE")
     .maybeSingle();
 
-  if (enrollError || !enrollment) {
-    redirect("/student?error=unauthorized_batch");
-  }
+  if (enrollError) throw enrollError;
+  if (!enrollment) redirect("/student?error=unauthorized_batch");
 
-  // 4. Fetch published, released and unexpired materials for this batch
   const nowStr = new Date().toISOString();
-  
-  // Use admin client or client. RLS allows select for active enrollment + published + released + unexpired.
   const { data: materials, error: materialsError } = await supabase
     .from("batch_contents")
-    .select("*")
+    .select(`
+      id,
+      batch_id,
+      subject_id,
+      title,
+      description,
+      content_type,
+      file_size,
+      allow_download,
+      external_url,
+      published_at,
+      created_at,
+      release_at,
+      expires_at,
+      subject:batch_subjects(id,name,code)
+    `)
     .eq("batch_id", batchId)
     .eq("status", "PUBLISHED")
+    .or(`release_at.is.null,release_at.lte.${nowStr}`)
+    .or(`expires_at.is.null,expires_at.gt.${nowStr}`)
     .order("created_at", { ascending: false });
 
-  if (materialsError) {
-    console.error("Error loading batch materials:", materialsError);
-  }
+  if (materialsError) throw materialsError;
 
-  // Extra application-level filtering to guarantee safety in case RLS is bypassed or misconfigured
-  const activeMaterials = (materials || []).filter((m) => {
-    const isReleased = !m.release_at || new Date(m.release_at) <= new Date();
-    const isNotExpired = !m.expires_at || new Date(m.expires_at) > new Date();
-    return isReleased && isNotExpired;
-  });
-
-  const formatBytes = (bytes: number | null) => {
-    if (!bytes) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  };
+  const activeMaterials = (materials || [])
+    .filter((material) => {
+      const isReleased = !material.release_at || new Date(material.release_at) <= new Date();
+      const isNotExpired = !material.expires_at || new Date(material.expires_at) > new Date();
+      return isReleased && isNotExpired;
+    })
+    .map((material) => ({
+      ...material,
+      description: material.description || "",
+      published_at: material.published_at || material.created_at,
+      subject: material.subject?.[0] || null,
+    }));
 
   return (
     <div className="space-y-8 text-xs font-bold text-slate-800">
@@ -119,7 +117,10 @@ export default async function StudentBatchMaterialsPage({ params }: PageProps) {
           </p>
         </div>
       ) : (
-        <StudentMaterialList materials={activeMaterials} batchId={batchId} />
+        <StudentMaterialList
+          materials={activeMaterials}
+          initialSubjectId={subjectId || "ALL"}
+        />
       )}
     </div>
   );

@@ -12,6 +12,7 @@ import {
   CreditCard, 
   GraduationCap, 
   BookOpen, 
+  BookOpenCheck,
   FileText, 
   Search, 
   Download, 
@@ -449,15 +450,16 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
       {/* Tabs list */}
       <div className="flex border-b border-border/40 overflow-x-auto pb-px scrollbar-thin">
         {[
-          { id: "enrollment", label: "Enrollment Ledger", icon: <Users className="h-4 w-4" /> },
-          { id: "payment", label: "Monthly Collections", icon: <CreditCard className="h-4 w-4" /> },
-          { id: "examination", label: "Exams Analysis", icon: <GraduationCap className="h-4 w-4" /> },
-          { id: "student", label: "Student Performance", icon: <Award className="h-4 w-4" /> },
-          { id: "batch", label: "Batch Performance", icon: <Layers className="h-4 w-4" /> },
+          { id: "enrollment", label: "Enrollment Ledger", icon: <Users className="h-4 w-4" />, href: "/teacher/reports?tab=enrollment" },
+          { id: "payment", label: "Monthly Collections", icon: <CreditCard className="h-4 w-4" />, href: "/teacher/reports?tab=payment" },
+          { id: "examination", label: "Exams Analysis", icon: <GraduationCap className="h-4 w-4" />, href: "/teacher/reports?tab=examination" },
+          { id: "student", label: "Student Performance", icon: <Award className="h-4 w-4" />, href: "/teacher/reports?tab=student" },
+          { id: "batch", label: "Batch Performance", icon: <Layers className="h-4 w-4" />, href: "/teacher/reports?tab=batch" },
+          { id: "academic", label: "Subject Progress", icon: <BookOpenCheck className="h-4 w-4" />, href: "/teacher/reports/academic" },
         ].map((tab) => (
           <Link
             key={tab.id}
-            href={`/teacher/reports?tab=${tab.id}`}
+            href={tab.href}
             className={`flex items-center gap-2 px-5 py-3 border-b-2 font-display text-xs font-black transition-all shrink-0 ${
               activeTab === tab.id
                 ? "border-primary text-primary"

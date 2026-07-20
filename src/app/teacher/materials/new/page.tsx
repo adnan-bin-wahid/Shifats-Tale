@@ -8,12 +8,14 @@ import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-heade
 interface NewPageProps {
   searchParams: Promise<{
     batchId?: string;
+    subjectId?: string;
   }>;
 }
 
 export default async function NewMaterialPage({ searchParams }: NewPageProps) {
   const sp = await searchParams;
   const preselectedBatchId = sp.batchId || "";
+  const preselectedSubjectId = sp.subjectId || "";
 
   const { destination } = await resolveAuthenticatedDestination();
 
@@ -36,15 +38,22 @@ export default async function NewMaterialPage({ searchParams }: NewPageProps) {
   const admin = createAdminClient();
 
   // Load all batches for the dropdown
-  const { data: batches } = await admin
-    .from("batches")
-    .select("id, name")
-    .order("name", { ascending: true });
+  const [batchesResult, subjectsResult] = await Promise.all([
+    admin.from("batches").select("id, name").order("name", { ascending: true }),
+    admin
+      .from("batch_subjects")
+      .select("id, batch_id, name, code, status")
+      .neq("status", "ARCHIVED")
+      .order("display_order", { ascending: true }),
+  ]);
+  if (batchesResult.error) throw batchesResult.error;
+  if (subjectsResult.error) throw subjectsResult.error;
 
   const initialData = preselectedBatchId
     ? {
         batch_id: preselectedBatchId,
-      } as any
+        subject_id: preselectedSubjectId,
+      }
     : undefined;
 
   return (
@@ -53,7 +62,11 @@ export default async function NewMaterialPage({ searchParams }: NewPageProps) {
         title="Add New Study Material"
         description="Upload handouts, secure PDF notes, homework assignments, or link reference videos to your student batches."
       />
-      <MaterialForm batches={batches || []} initialData={initialData} />
+      <MaterialForm
+        batches={batchesResult.data || []}
+        subjects={subjectsResult.data || []}
+        initialData={initialData}
+      />
     </div>
   );
 }
