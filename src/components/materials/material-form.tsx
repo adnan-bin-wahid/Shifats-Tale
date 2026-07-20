@@ -3,7 +3,7 @@
 import React, { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createMaterialAction, updateMaterialAction } from "@/app/actions/materials";
-import { ArrowLeft, Loader2, Save } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 import Link from "next/link";
 
 interface Batch {
@@ -11,24 +11,37 @@ interface Batch {
   name: string;
 }
 
+interface SubjectOption {
+  id: string;
+  batch_id: string;
+  name: string;
+  code: string;
+  status: string;
+}
+
+type ContentType = "PDF" | "DOC" | "DOCX" | "IMAGE" | "LINK" | "YOUTUBE" | "NOTE" | "ANNOUNCEMENT";
+type MaterialStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
+
 interface Props {
   batches: Batch[];
+  subjects: SubjectOption[];
   initialData?: {
-    id: string;
-    batch_id: string;
-    title: string;
-    description: string | null;
-    content_type: "PDF" | "DOC" | "DOCX" | "IMAGE" | "LINK" | "YOUTUBE" | "NOTE" | "ANNOUNCEMENT";
-    status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
-    external_url: string | null;
-    allow_download: boolean;
-    release_at: string | null;
-    expires_at: string | null;
-    original_filename: string | null;
+    id?: string;
+    batch_id?: string;
+    subject_id?: string | null;
+    title?: string;
+    description?: string | null;
+    content_type?: ContentType;
+    status?: MaterialStatus;
+    external_url?: string | null;
+    allow_download?: boolean;
+    release_at?: string | null;
+    expires_at?: string | null;
+    original_filename?: string | null;
   };
 }
 
-export function MaterialForm({ batches, initialData }: Props) {
+export function MaterialForm({ batches, subjects, initialData }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -36,6 +49,7 @@ export function MaterialForm({ batches, initialData }: Props) {
 
   // Form states
   const [batchId, setBatchId] = useState(initialData?.batch_id || "");
+  const [subjectId, setSubjectId] = useState(initialData?.subject_id || "");
   const [title, setTitle] = useState(initialData?.title || "");
   const [contentType, setContentType] = useState(initialData?.content_type || "PDF");
   const [status, setStatus] = useState(initialData?.status || "DRAFT");
@@ -71,6 +85,9 @@ export function MaterialForm({ batches, initialData }: Props) {
   const isFileBased = ["PDF", "DOC", "DOCX", "IMAGE"].includes(contentType);
   const isLinkBased = ["LINK", "YOUTUBE"].includes(contentType);
   const isTextBased = ["NOTE", "ANNOUNCEMENT"].includes(contentType);
+  const availableSubjects = subjects.filter(
+    (subject) => subject.batch_id === batchId && subject.status !== "ARCHIVED"
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,6 +167,7 @@ export function MaterialForm({ batches, initialData }: Props) {
         // Continue with Server Action saving
         const formData = new FormData();
         formData.append("batchId", batchId);
+        formData.append("subjectId", subjectId);
         formData.append("title", title);
         formData.append("contentType", contentType);
         formData.append("status", status);
@@ -164,8 +182,8 @@ export function MaterialForm({ batches, initialData }: Props) {
 
         startTransition(async () => {
           let result;
-          if (isEdit) {
-            result = await updateMaterialAction(initialData!.id, formData);
+          if (isEdit && initialData?.id) {
+            result = await updateMaterialAction(initialData.id, formData);
           } else {
             result = await createMaterialAction(formData);
           }
@@ -179,9 +197,9 @@ export function MaterialForm({ batches, initialData }: Props) {
           setIsUploading(false);
         });
 
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("R2 Upload Error:", err);
-        setSubmitError(err.message || "An error occurred during file upload.");
+        setSubmitError(err instanceof Error ? err.message : "An error occurred during file upload.");
         setIsUploading(false);
       }
       return;
@@ -190,6 +208,7 @@ export function MaterialForm({ batches, initialData }: Props) {
     // Default Vercel/Cloudinary upload (Images or Text/Link based)
     const formData = new FormData();
     formData.append("batchId", batchId);
+    formData.append("subjectId", subjectId);
     formData.append("title", title);
     formData.append("contentType", contentType);
     formData.append("status", status);
@@ -204,8 +223,8 @@ export function MaterialForm({ batches, initialData }: Props) {
 
     startTransition(async () => {
       let result;
-      if (isEdit) {
-        result = await updateMaterialAction(initialData!.id, formData);
+      if (isEdit && initialData?.id) {
+        result = await updateMaterialAction(initialData.id, formData);
       } else {
         result = await createMaterialAction(formData);
       }
@@ -215,7 +234,7 @@ export function MaterialForm({ batches, initialData }: Props) {
         router.refresh();
       } else {
         if (result.errors) {
-          setErrors(result.errors as any);
+          setErrors(result.errors as Record<string, string[]>);
         } else {
           setSubmitError(result.message || "An error occurred.");
         }
@@ -241,8 +260,15 @@ export function MaterialForm({ batches, initialData }: Props) {
         <div>
           <label className="text-[10px] text-slate-400 block mb-1.5 uppercase">Target Batch</label>
           <select
+            id="material-batch"
             value={batchId}
-            onChange={(e) => setBatchId(e.target.value)}
+            onChange={(e) => {
+              const nextBatchId = e.target.value;
+              setBatchId(nextBatchId);
+              if (!subjects.some((subject) => subject.id === subjectId && subject.batch_id === nextBatchId)) {
+                setSubjectId("");
+              }
+            }}
             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
           >
             <option value="">-- Choose Batch --</option>
@@ -258,7 +284,7 @@ export function MaterialForm({ batches, initialData }: Props) {
           <label className="text-[10px] text-slate-400 block mb-1.5 uppercase">Content Type</label>
           <select
             value={contentType}
-            onChange={(e) => setContentType(e.target.value as any)}
+            onChange={(e) => setContentType(e.target.value as ContentType)}
             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
           >
             {["PDF", "DOC", "DOCX", "IMAGE", "LINK", "YOUTUBE", "NOTE", "ANNOUNCEMENT"].map((t) => (
@@ -266,6 +292,30 @@ export function MaterialForm({ batches, initialData }: Props) {
             ))}
           </select>
         </div>
+      </div>
+
+      <div>
+        <label htmlFor="material-subject" className="text-[10px] text-slate-400 block mb-1.5 uppercase">
+          Subject workspace
+        </label>
+        <select
+          id="material-subject"
+          value={subjectId}
+          onChange={(e) => setSubjectId(e.target.value)}
+          disabled={!batchId}
+          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <option value="">General batch material</option>
+          {availableSubjects.map((subject) => (
+            <option key={subject.id} value={subject.id}>
+              {subject.name} ({subject.code})
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-[9px] font-semibold text-slate-400">
+          Link this resource to a subject, or keep it available across the whole batch.
+        </p>
+        {errors.subjectId && <p className="text-[10px] text-rose-600 mt-1 font-semibold">{errors.subjectId[0]}</p>}
       </div>
 
       {/* Material Title */}
@@ -374,7 +424,7 @@ export function MaterialForm({ batches, initialData }: Props) {
           <label className="text-[10px] text-slate-400 block mb-1.5 uppercase">Publication Status</label>
           <select
             value={status}
-            onChange={(e) => setStatus(e.target.value as any)}
+            onChange={(e) => setStatus(e.target.value as MaterialStatus)}
             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
           >
             <option value="DRAFT">Draft (Visible to Teacher Only)</option>

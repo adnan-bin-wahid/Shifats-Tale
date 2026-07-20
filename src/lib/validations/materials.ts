@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const materialSchema = z.object({
   batchId: z.string().uuid("Invalid Batch selection"),
+  subjectId: z.union([z.string().uuid("Invalid subject selection"), z.literal("")]).optional().nullable(),
   title: z.string().min(1, "Title is required").max(200, "Title is too long"),
   contentType: z.enum(["PDF", "DOC", "DOCX", "IMAGE", "LINK", "YOUTUBE", "NOTE", "ANNOUNCEMENT"]),
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
@@ -57,6 +58,7 @@ export type MaterialFormInput = z.infer<typeof materialSchema>;
 
 export const announcementSchema = z.object({
   batchId: z.string().uuid("Invalid Batch selection"),
+  subjectId: z.union([z.string().uuid("Invalid subject selection"), z.literal("")]).optional().nullable(),
   title: z.string().min(1, "Title is required").max(200, "Title is too long"),
   message: z.string().min(1, "Message is required"),
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),

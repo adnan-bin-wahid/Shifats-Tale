@@ -11,10 +11,12 @@ interface PageProps {
   params: Promise<{
     batchId: string;
   }>;
+  searchParams: Promise<{ subjectId?: string }>;
 }
 
-export default async function TeacherBatchMaterialsPage({ params }: PageProps) {
+export default async function TeacherBatchMaterialsPage({ params, searchParams }: PageProps) {
   const { batchId } = await params;
+  const { subjectId = "" } = await searchParams;
   const { destination } = await resolveAuthenticatedDestination();
 
   if (destination === "UNAUTHENTICATED") {
@@ -38,7 +40,7 @@ export default async function TeacherBatchMaterialsPage({ params }: PageProps) {
   // Load batch details
   const { data: batch, error: batchError } = await admin
     .from("batches")
-    .select("*")
+    .select("id,name")
     .eq("id", batchId)
     .single();
 
@@ -47,17 +49,30 @@ export default async function TeacherBatchMaterialsPage({ params }: PageProps) {
   }
 
   // Load materials for this batch
-  const { data: materials } = await admin
-    .from("batch_contents")
-    .select("*, batches(name)")
-    .eq("batch_id", batchId)
-    .order("created_at", { ascending: false });
-
-  // Load all batches for filters dropdown
-  const { data: batches } = await admin
-    .from("batches")
-    .select("id, name")
-    .order("name", { ascending: true });
+  const [materialsResult, batchesResult, subjectsResult] = await Promise.all([
+    admin
+      .from("batch_contents")
+      .select("*, batches(name), subject:batch_subjects(id, name, code)")
+      .eq("batch_id", batchId)
+      .order("created_at", { ascending: false }),
+    admin
+      .from("batches")
+      .select("id, name")
+      .order("name", { ascending: true }),
+    admin
+      .from("batch_subjects")
+      .select("id,name,code")
+      .eq("batch_id", batchId)
+      .neq("status", "ARCHIVED")
+      .order("display_order", { ascending: true }),
+  ]);
+  if (materialsResult.error) throw materialsResult.error;
+  if (batchesResult.error) throw batchesResult.error;
+  if (subjectsResult.error) throw subjectsResult.error;
+  const normalizedMaterials = (materialsResult.data || []).map((material) => ({
+    ...material,
+    subject: material.subject?.[0] || null,
+  }));
 
   return (
     <div className="space-y-6 text-xs font-bold text-slate-800">
@@ -76,9 +91,11 @@ export default async function TeacherBatchMaterialsPage({ params }: PageProps) {
       </div>
 
       <TeacherMaterialsList
-        materials={(materials || []) as any[]}
-        batches={(batches || []) as any[]}
+        materials={normalizedMaterials}
+        batches={batchesResult.data || []}
+        subjects={subjectsResult.data || []}
         selectedBatchId={batchId}
+        selectedSubjectId={subjectId}
       />
     </div>
   );

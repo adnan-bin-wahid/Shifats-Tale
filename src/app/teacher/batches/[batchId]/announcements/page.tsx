@@ -11,10 +11,12 @@ interface PageProps {
   params: Promise<{
     batchId: string;
   }>;
+  searchParams: Promise<{ subjectId?: string }>;
 }
 
-export default async function TeacherBatchAnnouncementsPage({ params }: PageProps) {
+export default async function TeacherBatchAnnouncementsPage({ params, searchParams }: PageProps) {
   const { batchId } = await params;
+  const { subjectId = "" } = await searchParams;
   const { destination } = await resolveAuthenticatedDestination();
 
   if (destination === "UNAUTHENTICATED") {
@@ -38,7 +40,7 @@ export default async function TeacherBatchAnnouncementsPage({ params }: PageProp
   // Load batch details
   const { data: batch, error: batchError } = await admin
     .from("batches")
-    .select("*")
+    .select("id, name")
     .eq("id", batchId)
     .single();
 
@@ -47,15 +49,27 @@ export default async function TeacherBatchAnnouncementsPage({ params }: PageProp
   }
 
   // Load announcements for this batch
-  const { data: announcements, error: annError } = await admin
-    .from("announcements")
-    .select("*")
-    .eq("batch_id", batchId)
-    .order("created_at", { ascending: false });
+  const [announcementsResult, subjectsResult] = await Promise.all([
+    admin
+      .from("announcements")
+      .select("*, subject:batch_subjects(id, name, code)")
+      .eq("batch_id", batchId)
+      .order("created_at", { ascending: false }),
+    admin
+      .from("batch_subjects")
+      .select("id, name, code")
+      .eq("batch_id", batchId)
+      .neq("status", "ARCHIVED")
+      .order("display_order", { ascending: true }),
+  ]);
 
-  if (annError) {
-    console.error("Error loading batch announcements for teacher:", annError);
+  if (announcementsResult.error || subjectsResult.error) {
+    throw new Error("Unable to load subject announcements right now.");
   }
+  const normalizedAnnouncements = (announcementsResult.data || []).map((announcement) => ({
+    ...announcement,
+    subject: announcement.subject?.[0] || null,
+  }));
 
   return (
     <div className="space-y-6 text-xs font-bold text-slate-800">
@@ -76,7 +90,9 @@ export default async function TeacherBatchAnnouncementsPage({ params }: PageProp
       <TeacherAnnouncementsPanel
         batchId={batchId}
         batchName={batch.name}
-        announcements={(announcements || []) as any[]}
+        announcements={normalizedAnnouncements}
+        subjects={subjectsResult.data || []}
+        preselectedSubjectId={subjectId}
       />
     </div>
   );
