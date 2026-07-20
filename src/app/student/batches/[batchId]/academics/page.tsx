@@ -77,7 +77,6 @@ export default async function StudentBatchAcademicsPage({ params }: PageProps) {
     progressResult,
     performanceResult,
     materialsResult,
-    announcementsResult,
   ] =
     subjectIds.length
       ? await Promise.all([
@@ -119,17 +118,8 @@ export default async function StudentBatchAcademicsPage({ params }: PageProps) {
             .in("subject_id", subjectIds)
             .or(`release_at.is.null,release_at.lte.${nowStr}`)
             .or(`expires_at.is.null,expires_at.gt.${nowStr}`),
-          supabase
-            .from("announcements")
-            .select("id,subject_id")
-            .eq("batch_id", batchId)
-            .eq("status", "PUBLISHED")
-            .in("subject_id", subjectIds)
-            .or(`release_at.is.null,release_at.lte.${nowStr}`)
-            .or(`expires_at.is.null,expires_at.gt.${nowStr}`),
         ])
       : [
-          { data: [], error: null },
           { data: [], error: null },
           { data: [], error: null },
           { data: [], error: null },
@@ -142,8 +132,7 @@ export default async function StudentBatchAcademicsPage({ params }: PageProps) {
     examsResult.error ||
     progressResult.error ||
     performanceResult.error ||
-    materialsResult.error ||
-    announcementsResult.error;
+    materialsResult.error;
   if (academicQueryError) throw academicQueryError;
 
   const examRows = examsResult.data || [];
@@ -182,9 +171,6 @@ export default async function StudentBatchAcademicsPage({ params }: PageProps) {
       ) || null,
     materialCount: (materialsResult.data || []).filter(
       (material) => material.subject_id === subject.id
-    ).length,
-    announcementCount: (announcementsResult.data || []).filter(
-      (announcement) => announcement.subject_id === subject.id
     ).length,
   }));
 

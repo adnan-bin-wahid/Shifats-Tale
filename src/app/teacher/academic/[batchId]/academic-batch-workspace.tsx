@@ -20,7 +20,6 @@ import {
   Layers3,
   Loader2,
   MoreHorizontal,
-  Megaphone,
   Plus,
   Rocket,
   Sparkles,
@@ -119,8 +118,6 @@ type AcademicSubject = {
   progress: SubjectProgress | null;
   materialCount: number;
   publishedMaterialCount: number;
-  announcementCount: number;
-  publishedAnnouncementCount: number;
 };
 
 type BatchProgress = {
@@ -697,7 +694,7 @@ export function AcademicBatchWorkspace({
                       <h3 className="font-display text-lg font-black text-primary">Subject resources</h3>
                     </div>
                     <p className="mt-1 text-xs font-semibold text-muted">
-                      Keep learning files, notices, and performance insight attached to this subject.
+                      Keep learning files and performance insight attached to this subject.
                     </p>
                   </div>
                   <Link
@@ -708,7 +705,7 @@ export function AcademicBatchWorkspace({
                   </Link>
                 </div>
 
-                <div className="mt-5 grid gap-3 md:grid-cols-2">
+                <div className="mt-5">
                   <div className="rounded-2xl border border-amber-100 bg-amber-50/55 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -721,20 +718,6 @@ export function AcademicBatchWorkspace({
                     <div className="mt-4 flex flex-wrap gap-2">
                       <Link href={`/teacher/batches/${batch.id}/materials?subjectId=${selectedSubject.id}`} className="rounded-lg bg-white px-3 py-2 text-[10px] font-black text-amber-700 shadow-sm transition hover:bg-amber-100">Manage resources</Link>
                       <Link href={`/teacher/materials/new?batchId=${batch.id}&subjectId=${selectedSubject.id}`} className="rounded-lg border border-amber-200 px-3 py-2 text-[10px] font-black text-amber-700 transition hover:bg-amber-100">Add material</Link>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-blue-100 bg-blue-50/55 p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-[9px] font-black uppercase tracking-[0.14em] text-blue-600">Announcements</p>
-                        <p className="mt-2 font-display text-2xl font-black text-primary">{selectedSubject.announcementCount}</p>
-                        <p className="mt-1 text-[10px] font-bold text-slate-500">{selectedSubject.publishedAnnouncementCount} currently published</p>
-                      </div>
-                      <span className="rounded-xl bg-white p-2.5 text-blue-600 shadow-sm"><Megaphone className="h-5 w-5" /></span>
-                    </div>
-                    <div className="mt-4">
-                      <Link href={`/teacher/batches/${batch.id}/announcements?subjectId=${selectedSubject.id}`} className="inline-flex rounded-lg bg-white px-3 py-2 text-[10px] font-black text-blue-700 shadow-sm transition hover:bg-blue-100">Manage announcements</Link>
                     </div>
                   </div>
                 </div>

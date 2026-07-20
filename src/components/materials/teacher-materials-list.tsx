@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { deleteMaterialAction, updateMaterialAction } from "@/app/actions/materials";
@@ -25,6 +25,7 @@ interface Batch {
 
 interface SubjectOption {
   id: string;
+  batch_id: string;
   name: string;
   code: string;
 }
@@ -157,7 +158,9 @@ export function TeacherMaterialsList({
     // 5. Release state filter
     if (releaseFilter) {
       const isReleased = !item.release_at || new Date(item.release_at) <= now;
-      if (releaseFilter === "RELEASED" && !isReleased) return false;
+      const isNotExpired = !item.expires_at || new Date(item.expires_at) > now;
+      const isLive = item.status === "PUBLISHED" && isReleased && isNotExpired;
+      if (releaseFilter === "RELEASED" && !isLive) return false;
       if (releaseFilter === "FUTURE" && isReleased) return false;
     }
 
@@ -179,16 +182,62 @@ export function TeacherMaterialsList({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
-  const subjectOptions = (subjects.length
-    ? subjects
+  const subjectOptions = useMemo(() => (subjects.length
+    ? [...subjects]
     : Array.from(
         new Map(
           materials
             .filter((material) => material.subject)
-            .map((material) => [material.subject!.id, material.subject!])
+            .map((material) => [
+              material.subject!.id,
+              { ...material.subject!, batch_id: material.batch_id },
+            ])
         ).values()
       )
-  ).sort((a, b) => a.name.localeCompare(b.name));
+  ).sort((a, b) => a.name.localeCompare(b.name)), [materials, subjects]);
+
+  const availableSubjectOptions = subjectOptions.filter(
+    (subject) => !batchIdFilter || subject.batch_id === batchIdFilter
+  );
+
+  const handleBatchFilterChange = (nextBatchId: string) => {
+    setBatchIdFilter(nextBatchId);
+    if (subjectIdFilter && subjectIdFilter !== "GENERAL") {
+      const selectedSubject = subjectOptions.find(
+        (subject) => subject.id === subjectIdFilter
+      );
+      if (selectedSubject && nextBatchId && selectedSubject.batch_id !== nextBatchId) {
+        setSubjectIdFilter("");
+      }
+    }
+  };
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setBatchIdFilter(selectedBatchId);
+    setSubjectIdFilter(selectedSubjectId);
+    setContentTypeFilter("");
+    setStatusFilter("");
+    setReleaseFilter("");
+    setExpiryFilter("");
+  };
+
+  const hasActiveFilters = Boolean(
+    searchTerm ||
+      batchIdFilter !== selectedBatchId ||
+      subjectIdFilter !== selectedSubjectId ||
+      contentTypeFilter ||
+      statusFilter ||
+      releaseFilter ||
+      expiryFilter
+  );
+
+  const targetBatchId = selectedBatchId || batchIdFilter;
+  const targetSubjectId =
+    subjectIdFilter && subjectIdFilter !== "GENERAL" ? subjectIdFilter : "";
+  const newMaterialHref = targetBatchId
+    ? `/teacher/materials/new?batchId=${targetBatchId}${targetSubjectId ? `&subjectId=${targetSubjectId}` : ""}`
+    : "/teacher/materials/new";
 
   return (
     <div className="space-y-6 text-xs font-bold text-slate-800">
@@ -215,7 +264,7 @@ export function TeacherMaterialsList({
           
           <div>
             <Link
-              href={selectedBatchId ? `/teacher/materials/new?batchId=${selectedBatchId}${selectedSubjectId ? `&subjectId=${selectedSubjectId}` : ""}` : "/teacher/materials/new"}
+              href={newMaterialHref}
               className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-primary text-white hover:bg-primary-dark rounded-xl transition-all shadow-sm font-bold text-xs shrink-0"
             >
               <Plus className="h-4 w-4" />
@@ -230,8 +279,9 @@ export function TeacherMaterialsList({
             <label className="text-[10px] text-slate-400 block mb-1 uppercase">Batch</label>
             <select
               value={batchIdFilter}
-              onChange={(e) => setBatchIdFilter(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
+              onChange={(e) => handleBatchFilterChange(e.target.value)}
+              disabled={Boolean(selectedBatchId)}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none disabled:cursor-not-allowed disabled:opacity-70"
             >
               <option value="">All Batches</option>
               {batches.map((b) => (
@@ -249,7 +299,7 @@ export function TeacherMaterialsList({
             >
               <option value="">All Subjects</option>
               <option value="GENERAL">General Batch</option>
-              {subjectOptions.map((subject) => (
+              {availableSubjectOptions.map((subject) => (
                 <option key={subject.id} value={subject.id}>{subject.name} ({subject.code})</option>
               ))}
             </select>
@@ -308,6 +358,20 @@ export function TeacherMaterialsList({
               <option value="EXPIRED">Expired</option>
             </select>
           </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
+          <p className="text-[10px] font-semibold text-slate-400">
+            Showing {filtered.length} of {materials.length} materials
+          </p>
+          <button
+            type="button"
+            onClick={resetFilters}
+            disabled={!hasActiveFilters}
+            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-[10px] font-black text-slate-600 transition hover:border-blue-200 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Reset filters
+          </button>
         </div>
       </div>
 

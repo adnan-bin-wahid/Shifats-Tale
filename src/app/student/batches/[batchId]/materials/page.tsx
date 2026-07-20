@@ -52,33 +52,42 @@ export default async function StudentBatchMaterialsPage({ params, searchParams }
   if (!enrollment) redirect("/student?error=unauthorized_batch");
 
   const nowStr = new Date().toISOString();
-  const { data: materials, error: materialsError } = await supabase
-    .from("batch_contents")
-    .select(`
-      id,
-      batch_id,
-      subject_id,
-      title,
-      description,
-      content_type,
-      file_size,
-      allow_download,
-      external_url,
-      published_at,
-      created_at,
-      release_at,
-      expires_at,
-      subject:batch_subjects(id,name,code)
-    `)
-    .eq("batch_id", batchId)
-    .eq("status", "PUBLISHED")
-    .or(`release_at.is.null,release_at.lte.${nowStr}`)
-    .or(`expires_at.is.null,expires_at.gt.${nowStr}`)
-    .order("created_at", { ascending: false });
+  const [materialsResult, subjectsResult] = await Promise.all([
+    supabase
+      .from("batch_contents")
+      .select(`
+        id,
+        batch_id,
+        subject_id,
+        title,
+        description,
+        content_type,
+        file_size,
+        allow_download,
+        external_url,
+        published_at,
+        created_at,
+        release_at,
+        expires_at,
+        subject:batch_subjects(id,name,code)
+      `)
+      .eq("batch_id", batchId)
+      .eq("status", "PUBLISHED")
+      .or(`release_at.is.null,release_at.lte.${nowStr}`)
+      .or(`expires_at.is.null,expires_at.gt.${nowStr}`)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("batch_subjects")
+      .select("id,name,code")
+      .eq("batch_id", batchId)
+      .not("status", "in", '("DRAFT","ARCHIVED")')
+      .order("display_order", { ascending: true }),
+  ]);
 
-  if (materialsError) throw materialsError;
+  if (materialsResult.error) throw materialsResult.error;
+  if (subjectsResult.error) throw subjectsResult.error;
 
-  const activeMaterials = (materials || [])
+  const activeMaterials = (materialsResult.data || [])
     .filter((material) => {
       const isReleased = !material.release_at || new Date(material.release_at) <= new Date();
       const isNotExpired = !material.expires_at || new Date(material.expires_at) > new Date();
@@ -90,6 +99,10 @@ export default async function StudentBatchMaterialsPage({ params, searchParams }
       published_at: material.published_at || material.created_at,
       subject: material.subject?.[0] || null,
     }));
+  const validSubjectFilter =
+    subjectId === "GENERAL" || subjectsResult.data?.some((subject) => subject.id === subjectId)
+      ? subjectId
+      : "ALL";
 
   return (
     <div className="space-y-8 text-xs font-bold text-slate-800">
@@ -118,8 +131,10 @@ export default async function StudentBatchMaterialsPage({ params, searchParams }
         </div>
       ) : (
         <StudentMaterialList
+          key={validSubjectFilter}
           materials={activeMaterials}
-          initialSubjectId={subjectId || "ALL"}
+          subjects={subjectsResult.data || []}
+          initialSubjectId={validSubjectFilter}
         />
       )}
     </div>

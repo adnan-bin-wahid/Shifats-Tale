@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  BarChart3,
   BookOpenCheck,
   CheckCircle2,
   ClipboardCheck,
@@ -61,13 +62,22 @@ export default async function TeacherAcademicOverviewPage() {
         title="Academic Control Center"
         description="Plan every batch from subject roadmap to syllabus completion, examinations, and published results."
         actions={
-          <Link
-            href="/teacher/batches/new"
-            className="primary-btn inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-extrabold shadow-lg shadow-primary/10"
-          >
-            <Plus className="h-4 w-4" />
-            Create Batch
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/teacher/reports/academic"
+              className="inline-flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-2.5 text-xs font-extrabold text-blue-700 transition hover:bg-blue-100"
+            >
+              <BarChart3 className="h-4 w-4" />
+              Academic Reports
+            </Link>
+            <Link
+              href="/teacher/batches/new"
+              className="primary-btn inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-extrabold shadow-lg shadow-primary/10"
+            >
+              <Plus className="h-4 w-4" />
+              Create Batch
+            </Link>
+          </div>
         }
       />
 

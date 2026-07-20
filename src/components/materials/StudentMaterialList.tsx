@@ -21,11 +21,19 @@ interface Material {
   subject?: { id: string; name: string; code: string } | null;
 }
 
+interface SubjectOption {
+  id: string;
+  name: string;
+  code: string;
+}
+
 export function StudentMaterialList({
   materials,
+  subjects,
   initialSubjectId = "ALL",
 }: {
   materials: Material[];
+  subjects: SubjectOption[];
   initialSubjectId?: string;
 }) {
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
@@ -58,13 +66,7 @@ export function StudentMaterialList({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
-  const subjectOptions = Array.from(
-    new Map(
-      materials
-        .filter((material) => material.subject)
-        .map((material) => [material.subject!.id, material.subject!])
-    ).values()
-  ).sort((a, b) => a.name.localeCompare(b.name));
+  const subjectOptions = [...subjects].sort((a, b) => a.name.localeCompare(b.name));
   const filteredMaterials = materials.filter((material) => {
     if (subjectFilter === "ALL") return true;
     if (subjectFilter === "GENERAL") return !material.subject_id;

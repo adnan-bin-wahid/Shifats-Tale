@@ -27,26 +27,29 @@ export default async function TeacherMaterialsPage() {
 
   const admin = createAdminClient();
 
-  // Load all materials with batch names joined
-  const { data: materials, error: materialsError } = await admin
-    .from("batch_contents")
-    .select("*, batches(name), subject:batch_subjects(id, name, code)")
-    .order("created_at", { ascending: false });
+  const [materialsResult, batchesResult, subjectsResult] = await Promise.all([
+    admin
+      .from("batch_contents")
+      .select("*, batches(name), subject:batch_subjects(id, name, code)")
+      .order("created_at", { ascending: false }),
+    admin
+      .from("batches")
+      .select("id, name")
+      .order("name", { ascending: true }),
+    admin
+      .from("batch_subjects")
+      .select("id,batch_id,name,code")
+      .neq("status", "ARCHIVED")
+      .order("display_order", { ascending: true }),
+  ]);
 
-  if (materialsError) {
-    throw new Error(`Unable to load study materials: ${materialsError.message}`);
+  if (materialsResult.error) {
+    throw new Error(`Unable to load study materials: ${materialsResult.error.message}`);
   }
-
-  // Load all batches for filters
-  const { data: batches, error: batchesError } = await admin
-    .from("batches")
-    .select("id, name")
-    .order("name", { ascending: true });
-
-  if (batchesError) {
-    throw new Error(`Unable to load material filters: ${batchesError.message}`);
+  if (batchesResult.error || subjectsResult.error) {
+    throw new Error("Unable to load material filters right now.");
   }
-  const normalizedMaterials = (materials || []).map((material) => ({
+  const normalizedMaterials = (materialsResult.data || []).map((material) => ({
     ...material,
     subject: material.subject?.[0] || null,
   }));
@@ -58,8 +61,10 @@ export default async function TeacherMaterialsPage() {
         description="Upload handouts, secure PDF notes, homework assignments, or link reference videos to your student batches."
       />
       <TeacherMaterialsList
+        key="all-materials"
         materials={normalizedMaterials}
-        batches={batches || []}
+        batches={batchesResult.data || []}
+        subjects={subjectsResult.data || []}
       />
     </div>
   );

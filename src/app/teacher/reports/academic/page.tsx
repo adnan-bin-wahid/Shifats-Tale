@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { resolveAuthenticatedDestination } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
+import { AcademicReportFilters } from "./academic-report-filters";
 
 interface PageProps {
   searchParams: Promise<{ batchId?: string; subjectId?: string }>;
@@ -181,23 +182,13 @@ export default async function AcademicPerformanceReportPage({ searchParams }: Pa
         </div>
       </section>
 
-      <form method="GET" className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-        <label className="text-[10px] font-black uppercase tracking-wide text-slate-500">
-          Batch
-          <select name="batchId" defaultValue={selectedBatchId} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-bold normal-case tracking-normal text-slate-800 outline-none focus:border-blue-400">
-            <option value="">All batches</option>
-            {batches.map((batch) => <option key={batch.id} value={batch.id}>{batch.name} ({batch.code})</option>)}
-          </select>
-        </label>
-        <label className="text-[10px] font-black uppercase tracking-wide text-slate-500">
-          Subject
-          <select name="subjectId" defaultValue={selectedSubjectId} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-bold normal-case tracking-normal text-slate-800 outline-none focus:border-blue-400">
-            <option value="">All subjects</option>
-            {visibleSubjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name} ({subject.code})</option>)}
-          </select>
-        </label>
-        <button type="submit" className="primary-btn rounded-xl px-5 py-2.5 text-xs font-black">Apply filters</button>
-      </form>
+      <AcademicReportFilters
+        key={`${selectedBatchId}:${selectedSubjectId}`}
+        batches={batches}
+        subjects={allSubjects}
+        selectedBatchId={selectedBatchId}
+        selectedSubjectId={selectedSubjectId}
+      />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[

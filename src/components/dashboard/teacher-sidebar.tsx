@@ -25,7 +25,8 @@ import {
   ChevronDown,
   Star,
   Calendar,
-  BookOpenCheck
+  BookOpenCheck,
+  BarChart3
 } from "lucide-react";
 
 interface SidebarProps {
@@ -46,6 +47,7 @@ export const teacherNavItems: NavItem[] = [
   { label: "Manage Students", href: "/teacher/students", icon: Users },
   { label: "Manage Batches", href: "/teacher/batches", icon: BookOpen },
   { label: "Academic Control", href: "/teacher/academic", icon: BookOpenCheck },
+  { label: "Academic Reports", href: "/teacher/reports/academic", icon: BarChart3 },
   { label: "Payment Ledger", href: "/teacher/payments", icon: CreditCard },
   { label: "Study Materials", href: "/teacher/materials", icon: FileText },
   { label: "Academic Calendar", href: "/teacher/website/academic-calendar", icon: Calendar },
