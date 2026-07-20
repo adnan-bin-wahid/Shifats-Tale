@@ -17,7 +17,6 @@ export default async function AcademicBatchWorkspacePage({ params }: PageProps) 
     progressResult,
     batchProgressResult,
     contentResult,
-    announcementResult,
   ] =
     await Promise.all([
       supabase
@@ -50,11 +49,6 @@ export default async function AcademicBatchWorkspacePage({ params }: PageProps) 
         .select("id,subject_id,status")
         .eq("batch_id", batchId)
         .neq("status", "ARCHIVED"),
-      supabase
-        .from("announcements")
-        .select("id,subject_id,status")
-        .eq("batch_id", batchId)
-        .neq("status", "ARCHIVED"),
     ]);
 
   if (batchResult.error || !batchResult.data) {
@@ -65,8 +59,7 @@ export default async function AcademicBatchWorkspacePage({ params }: PageProps) 
     examsResult.error ||
     progressResult.error ||
     batchProgressResult.error ||
-    contentResult.error ||
-    announcementResult.error;
+    contentResult.error;
   if (workspaceError) throw workspaceError;
 
   const subjectRows = subjectsResult.data || [];
@@ -95,13 +88,6 @@ export default async function AcademicBatchWorkspacePage({ params }: PageProps) 
     ).length,
     publishedMaterialCount: (contentResult.data || []).filter(
       (content) => content.subject_id === subject.id && content.status === "PUBLISHED"
-    ).length,
-    announcementCount: (announcementResult.data || []).filter(
-      (announcement) => announcement.subject_id === subject.id
-    ).length,
-    publishedAnnouncementCount: (announcementResult.data || []).filter(
-      (announcement) =>
-        announcement.subject_id === subject.id && announcement.status === "PUBLISHED"
     ).length,
   }));
 

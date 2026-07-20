@@ -49,26 +49,25 @@ export default async function TeacherBatchMaterialsPage({ params, searchParams }
   }
 
   // Load materials for this batch
-  const [materialsResult, batchesResult, subjectsResult] = await Promise.all([
+  const [materialsResult, subjectsResult] = await Promise.all([
     admin
       .from("batch_contents")
       .select("*, batches(name), subject:batch_subjects(id, name, code)")
       .eq("batch_id", batchId)
       .order("created_at", { ascending: false }),
     admin
-      .from("batches")
-      .select("id, name")
-      .order("name", { ascending: true }),
-    admin
       .from("batch_subjects")
-      .select("id,name,code")
+      .select("id,batch_id,name,code")
       .eq("batch_id", batchId)
       .neq("status", "ARCHIVED")
       .order("display_order", { ascending: true }),
   ]);
   if (materialsResult.error) throw materialsResult.error;
-  if (batchesResult.error) throw batchesResult.error;
   if (subjectsResult.error) throw subjectsResult.error;
+  const validSubjectId =
+    subjectId === "GENERAL" || subjectsResult.data?.some((subject) => subject.id === subjectId)
+      ? subjectId
+      : "";
   const normalizedMaterials = (materialsResult.data || []).map((material) => ({
     ...material,
     subject: material.subject?.[0] || null,
@@ -91,11 +90,12 @@ export default async function TeacherBatchMaterialsPage({ params, searchParams }
       </div>
 
       <TeacherMaterialsList
+        key={`${batchId}:${validSubjectId}`}
         materials={normalizedMaterials}
-        batches={batchesResult.data || []}
+        batches={[batch]}
         subjects={subjectsResult.data || []}
         selectedBatchId={batchId}
-        selectedSubjectId={subjectId}
+        selectedSubjectId={validSubjectId}
       />
     </div>
   );

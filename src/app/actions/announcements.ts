@@ -7,6 +7,28 @@ import { createNotificationForProfile } from "@/lib/notifications";
 import { announcementSchema } from "@/lib/validations/materials";
 import { revalidatePath } from "next/cache";
 
+type AnnouncementUpdate = {
+  subject_id: null;
+  title: string;
+  message: string;
+  status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+  release_at: string | null;
+  expires_at: string | null;
+  updated_by: string;
+  published_at?: string | null;
+  published_by?: string | null;
+};
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Internal server error";
+}
+
+function getRelatedProfileId(relation: unknown) {
+  const value = Array.isArray(relation) ? relation[0] : relation;
+  if (!value || typeof value !== "object" || !("profile_id" in value)) return null;
+  return typeof value.profile_id === "string" ? value.profile_id : null;
+}
+
 async function assertActiveTeacher() {
   const { destination, profile } = await resolveAuthenticatedDestination();
   if (
@@ -18,28 +40,6 @@ async function assertActiveTeacher() {
     throw new Error("Unauthorized: Only an active teacher can perform this action.");
   }
   return profile;
-}
-
-async function resolveSubjectScope(
-  admin: ReturnType<typeof createAdminClient>,
-  batchId: string,
-  subjectId: string | null | undefined
-) {
-  if (!subjectId) return null;
-
-  const { data: subject, error } = await admin
-    .from("batch_subjects")
-    .select("id")
-    .eq("id", subjectId)
-    .eq("batch_id", batchId)
-    .neq("status", "ARCHIVED")
-    .maybeSingle();
-
-  if (error || !subject) {
-    throw new Error("The selected subject does not belong to this batch or is archived.");
-  }
-
-  return subject.id;
 }
 
 /**
@@ -65,7 +65,7 @@ async function notifyBatchStudents(
     }
 
     for (const enroll of enrollments) {
-      const profileId = (enroll.student_profiles as any)?.profile_id;
+      const profileId = getRelatedProfileId(enroll.student_profiles);
       if (profileId) {
         await createNotificationForProfile({
           profileId,
@@ -82,7 +82,7 @@ async function notifyBatchStudents(
   }
 }
 
-export async function createAnnouncementAction(rawInput: any) {
+export async function createAnnouncementAction(rawInput: unknown) {
   try {
     const teacher = await assertActiveTeacher();
 
@@ -93,13 +93,12 @@ export async function createAnnouncementAction(rawInput: any) {
 
     const data = validated.data;
     const admin = createAdminClient();
-    const scopedSubjectId = await resolveSubjectScope(admin, data.batchId, data.subjectId);
 
     const { data: newAnnouncement, error: dbError } = await admin
       .from("announcements")
       .insert({
         batch_id: data.batchId,
-        subject_id: scopedSubjectId,
+        subject_id: null,
         title: data.title,
         message: data.message,
         status: data.status,
@@ -149,12 +148,12 @@ export async function createAnnouncementAction(rawInput: any) {
     revalidatePath(`/teacher/academic/${newAnnouncement.batch_id}`);
     revalidatePath(`/student/batches/${newAnnouncement.batch_id}/academics`);
     return { success: true, announcement: newAnnouncement };
-  } catch (err: any) {
-    return { success: false, message: err.message || "Internal server error" };
+  } catch (err: unknown) {
+    return { success: false, message: getErrorMessage(err) };
   }
 }
 
-export async function updateAnnouncementAction(announcementId: string, rawInput: any) {
+export async function updateAnnouncementAction(announcementId: string, rawInput: unknown) {
   try {
     const teacher = await assertActiveTeacher();
 
@@ -181,14 +180,8 @@ export async function updateAnnouncementAction(announcementId: string, rawInput:
       return { success: false, message: "An announcement cannot be moved to another batch." };
     }
 
-    const scopedSubjectId = await resolveSubjectScope(
-      admin,
-      oldAnnouncement.batch_id,
-      data.subjectId
-    );
-
-    const updatedFields: any = {
-      subject_id: scopedSubjectId,
+    const updatedFields: AnnouncementUpdate = {
+      subject_id: null,
       title: data.title,
       message: data.message,
       status: data.status,
@@ -264,8 +257,8 @@ export async function updateAnnouncementAction(announcementId: string, rawInput:
     revalidatePath(`/teacher/academic/${updatedAnnouncement.batch_id}`);
     revalidatePath(`/student/batches/${updatedAnnouncement.batch_id}/academics`);
     return { success: true, announcement: updatedAnnouncement };
-  } catch (err: any) {
-    return { success: false, message: err.message || "Internal server error" };
+  } catch (err: unknown) {
+    return { success: false, message: getErrorMessage(err) };
   }
 }
 
@@ -312,7 +305,7 @@ export async function deleteAnnouncementAction(announcementId: string) {
     revalidatePath(`/student/batches/${announcement.batch_id}/academics`);
     revalidatePath(`/teacher/announcements`);
     return { success: true };
-  } catch (err: any) {
-    return { success: false, message: err.message || "Internal server error" };
+  } catch (err: unknown) {
+    return { success: false, message: getErrorMessage(err) };
   }
 }

@@ -26,7 +26,6 @@ import { CascadeDeletionDetails } from "@/components/common/cascade-deletion-det
 interface Announcement {
   id: string;
   batch_id: string;
-  subject_id: string | null;
   title: string;
   message: string;
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
@@ -36,29 +35,18 @@ interface Announcement {
   published_by: string | null;
   created_at: string;
   updated_at: string;
-  subject?: { id: string; name: string; code: string } | null;
-}
-
-interface SubjectOption {
-  id: string;
-  name: string;
-  code: string;
 }
 
 interface Props {
   batchId: string;
   batchName: string;
   announcements: Announcement[];
-  subjects: SubjectOption[];
-  preselectedSubjectId?: string;
 }
 
 export function TeacherAnnouncementsPanel({
   batchId,
   batchName,
   announcements,
-  subjects,
-  preselectedSubjectId = "",
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -68,8 +56,6 @@ export function TeacherAnnouncementsPanel({
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<"DRAFT" | "PUBLISHED" | "ARCHIVED">("DRAFT");
-  const [subjectId, setSubjectId] = useState(preselectedSubjectId);
-  const [subjectFilter, setSubjectFilter] = useState(preselectedSubjectId);
   
   const formatDateForInput = (isoString: string | null) => {
     if (!isoString) return "";
@@ -96,7 +82,6 @@ export function TeacherAnnouncementsPanel({
     setTitle(ann.title);
     setMessage(ann.message);
     setStatus(ann.status);
-    setSubjectId(ann.subject_id || "");
     setReleaseAt(formatDateForInput(ann.release_at));
     setExpiresAt(formatDateForInput(ann.expires_at));
     setErrors({});
@@ -108,7 +93,6 @@ export function TeacherAnnouncementsPanel({
     setTitle("");
     setMessage("");
     setStatus("DRAFT");
-    setSubjectId(preselectedSubjectId);
     setReleaseAt("");
     setExpiresAt("");
     setErrors({});
@@ -134,7 +118,6 @@ export function TeacherAnnouncementsPanel({
 
     const payload = {
       batchId,
-      subjectId,
       title,
       message,
       status,
@@ -168,7 +151,6 @@ export function TeacherAnnouncementsPanel({
   const handleStatusChange = async (ann: Announcement, newStatus: "DRAFT" | "PUBLISHED" | "ARCHIVED") => {
     const payload = {
       batchId: ann.batch_id,
-      subjectId: ann.subject_id || "",
       title: ann.title,
       message: ann.message,
       status: newStatus,
@@ -202,12 +184,6 @@ export function TeacherAnnouncementsPanel({
     });
   };
 
-  const visibleAnnouncements = announcements.filter((announcement) => {
-    if (!subjectFilter) return true;
-    if (subjectFilter === "GENERAL") return !announcement.subject_id;
-    return announcement.subject_id === subjectFilter;
-  });
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-xs font-bold text-slate-800">
       {/* Left side: Form */}
@@ -224,23 +200,6 @@ export function TeacherAnnouncementsPanel({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="announcement-subject" className="text-[10px] text-slate-400 block mb-1 uppercase">
-              Subject workspace
-            </label>
-            <select
-              id="announcement-subject"
-              value={subjectId}
-              onChange={(e) => setSubjectId(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
-            >
-              <option value="">General batch announcement</option>
-              {subjects.map((subject) => (
-                <option key={subject.id} value={subject.id}>{subject.name} ({subject.code})</option>
-              ))}
-            </select>
-            {errors.subjectId && <p className="text-[10px] text-rose-600 mt-1 font-semibold">{errors.subjectId[0]}</p>}
-          </div>
           <div>
             <label className="text-[10px] text-slate-400 block mb-1 uppercase">Title *</label>
             <input
@@ -336,31 +295,19 @@ export function TeacherAnnouncementsPanel({
           <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
             Announcements Log · {batchName}
             <span className="inline-flex px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-slate-100 text-slate-500 border border-slate-200">
-              {visibleAnnouncements.length} shown
+              {announcements.length} total
             </span>
           </h3>
-          <select
-            aria-label="Filter announcements by subject"
-            value={subjectFilter}
-            onChange={(e) => setSubjectFilter(e.target.value)}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[10px] font-black text-slate-600 outline-none focus:border-blue-400"
-          >
-            <option value="">All subjects</option>
-            <option value="GENERAL">General batch</option>
-            {subjects.map((subject) => (
-              <option key={subject.id} value={subject.id}>{subject.name} ({subject.code})</option>
-            ))}
-          </select>
         </div>
 
-        {visibleAnnouncements.length === 0 ? (
+        {announcements.length === 0 ? (
           <div className="bg-white p-12 border border-slate-100 rounded-2xl shadow-sm text-center">
             <Bell className="h-10 w-10 text-slate-300 mx-auto stroke-1 mb-3" />
             <p className="text-slate-500 font-semibold">No announcements posted for this batch yet.</p>
           </div>
         ) : (
           <div className="space-y-4">
-            {visibleAnnouncements.map((ann) => {
+            {announcements.map((ann) => {
               const now = new Date();
               const isScheduled = ann.release_at && new Date(ann.release_at) > now;
               const isExpired = ann.expires_at && new Date(ann.expires_at) <= now;
@@ -375,9 +322,6 @@ export function TeacherAnnouncementsPanel({
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h4 className="text-xs font-black text-slate-900">{ann.title}</h4>
-                      <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-[8px] font-black uppercase tracking-wide text-blue-700">
-                        {ann.subject ? `${ann.subject.name} · ${ann.subject.code}` : "General batch"}
-                      </span>
                       
                       {/* Status label */}
                       <span

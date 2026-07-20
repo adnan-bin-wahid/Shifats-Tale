@@ -11,12 +11,10 @@ interface PageProps {
   params: Promise<{
     batchId: string;
   }>;
-  searchParams: Promise<{ subjectId?: string }>;
 }
 
-export default async function TeacherBatchAnnouncementsPage({ params, searchParams }: PageProps) {
+export default async function TeacherBatchAnnouncementsPage({ params }: PageProps) {
   const { batchId } = await params;
-  const { subjectId = "" } = await searchParams;
   const { destination } = await resolveAuthenticatedDestination();
 
   if (destination === "UNAUTHENTICATED") {
@@ -49,27 +47,15 @@ export default async function TeacherBatchAnnouncementsPage({ params, searchPara
   }
 
   // Load announcements for this batch
-  const [announcementsResult, subjectsResult] = await Promise.all([
-    admin
-      .from("announcements")
-      .select("*, subject:batch_subjects(id, name, code)")
-      .eq("batch_id", batchId)
-      .order("created_at", { ascending: false }),
-    admin
-      .from("batch_subjects")
-      .select("id, name, code")
-      .eq("batch_id", batchId)
-      .neq("status", "ARCHIVED")
-      .order("display_order", { ascending: true }),
-  ]);
+  const announcementsResult = await admin
+    .from("announcements")
+    .select("*")
+    .eq("batch_id", batchId)
+    .order("created_at", { ascending: false });
 
-  if (announcementsResult.error || subjectsResult.error) {
-    throw new Error("Unable to load subject announcements right now.");
+  if (announcementsResult.error) {
+    throw new Error("Unable to load batch announcements right now.");
   }
-  const normalizedAnnouncements = (announcementsResult.data || []).map((announcement) => ({
-    ...announcement,
-    subject: announcement.subject?.[0] || null,
-  }));
 
   return (
     <div className="space-y-6 text-xs font-bold text-slate-800">
@@ -90,9 +76,7 @@ export default async function TeacherBatchAnnouncementsPage({ params, searchPara
       <TeacherAnnouncementsPanel
         batchId={batchId}
         batchName={batch.name}
-        announcements={normalizedAnnouncements}
-        subjects={subjectsResult.data || []}
-        preselectedSubjectId={subjectId}
+        announcements={announcementsResult.data || []}
       />
     </div>
   );

@@ -7,7 +7,6 @@ import {
   ArrowRight,
   Award,
   BarChart3,
-  Bell,
   BookOpenCheck,
   CalendarDays,
   Check,
@@ -126,7 +125,6 @@ type AcademicSubject = {
   progress: SubjectProgress | null;
   performance: SubjectPerformance | null;
   materialCount: number;
-  announcementCount: number;
 };
 
 type BatchProgress = {
@@ -616,10 +614,10 @@ function OverviewPanel({
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div>
         <Link
           href={`/student/batches/${batchId}/materials?subjectId=${subject.id}`}
-          className="group rounded-2xl border border-amber-100 bg-amber-50/60 p-5 transition hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-md"
+          className="group block max-w-2xl rounded-2xl border border-amber-100 bg-amber-50/60 p-5 transition hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-md"
         >
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -630,21 +628,6 @@ function OverviewPanel({
             <span className="rounded-xl bg-white p-2.5 text-amber-600 shadow-sm"><FolderOpen className="h-5 w-5" /></span>
           </div>
           <span className="mt-4 inline-flex items-center gap-2 text-xs font-black text-amber-800">Open subject materials <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-1" /></span>
-        </Link>
-
-        <Link
-          href={`/student/batches/${batchId}/announcements?subjectId=${subject.id}`}
-          className="group rounded-2xl border border-blue-100 bg-blue-50/60 p-5 transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
-        >
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-[9px] font-black uppercase tracking-[0.15em] text-blue-700">Subject updates</p>
-              <p className="mt-2 font-display text-2xl font-black text-slate-900">{subject.announcementCount}</p>
-              <p className="mt-1 text-[10px] font-semibold text-slate-500">Active notices from your teacher</p>
-            </div>
-            <span className="rounded-xl bg-white p-2.5 text-blue-600 shadow-sm"><Bell className="h-5 w-5" /></span>
-          </div>
-          <span className="mt-4 inline-flex items-center gap-2 text-xs font-black text-blue-800">Read subject announcements <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-1" /></span>
         </Link>
       </div>
     </div>
