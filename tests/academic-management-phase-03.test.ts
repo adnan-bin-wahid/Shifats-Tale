@@ -22,6 +22,26 @@ test("Academic Management Phase 03", async (t) => {
     assert.doesNotMatch(overview, /createAdminClient/);
   });
 
+  await t.test("uses real enrollment timestamps and never converts query failures into an empty journey", () => {
+    const overview = readProjectFile("src/app/student/academics/page.tsx");
+    const detail = readProjectFile(
+      "src/app/student/batches/[batchId]/academics/page.tsx"
+    );
+
+    assert.match(overview, /approved_at, created_at/);
+    assert.match(overview, /error: enrollmentsError/);
+    assert.match(overview, /if \(enrollmentsError\)[\s\S]*?throw new Error/);
+    assert.match(detail, /\.select\("id, approved_at, created_at"\)/);
+    assert.match(detail, /if \(enrollmentError\)[\s\S]*?throw new Error/);
+    assert.match(detail, /if \(!enrollment\)[\s\S]*?unauthorized_batch/);
+    assert.match(
+      detail,
+      /enrolledAt=\{enrollment\.approved_at \|\| enrollment\.created_at\}/
+    );
+    assert.doesNotMatch(overview, /enrolled_at/);
+    assert.doesNotMatch(detail, /enrolled_at/);
+  });
+
   await t.test("checks batch enrollment before loading detailed academic data", () => {
     const page = readProjectFile(
       "src/app/student/batches/[batchId]/academics/page.tsx"
@@ -93,4 +113,3 @@ test("Academic Management Phase 03", async (t) => {
     assert.match(migration, /student_subject_performance/);
   });
 });
-
