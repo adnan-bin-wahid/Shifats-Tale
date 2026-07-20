@@ -11,7 +11,7 @@ function readProjectFile(relativePath: string): string {
 }
 
 test("Academic Management Phase 04", async (t) => {
-  await t.test("validates subject-scoped materials and announcements on the server", () => {
+  await t.test("validates subject-scoped materials and batch-scoped announcements", () => {
     const validation = readProjectFile("src/lib/validations/materials.ts");
     const materials = readProjectFile("src/app/actions/materials.ts");
     const announcements = readProjectFile("src/app/actions/announcements.ts");
@@ -21,11 +21,12 @@ test("Academic Management Phase 04", async (t) => {
     assert.match(materials, /\.eq\("batch_id", batchId\)/);
     assert.match(materials, /\.neq\("status", "ARCHIVED"\)/);
     assert.match(materials, /subject_id: scopedSubjectId/);
-    assert.match(announcements, /resolveSubjectScope/);
-    assert.match(announcements, /subject_id: scopedSubjectId/);
+    assert.match(announcements, /subject_id: null/);
+    assert.doesNotMatch(announcements, /resolveSubjectScope/);
+    assert.doesNotMatch(announcements, /subject_id: scopedSubjectId/);
   });
 
-  await t.test("keeps subject resource filters connected across teacher and student routes", () => {
+  await t.test("keeps subject materials connected without subject announcements", () => {
     const teacherWorkspace = readProjectFile(
       "src/app/teacher/academic/[batchId]/academic-batch-workspace.tsx"
     );
@@ -41,11 +42,38 @@ test("Academic Management Phase 04", async (t) => {
 
     assert.match(teacherWorkspace, /Subject resources/);
     assert.match(teacherWorkspace, /materials\?subjectId=/);
-    assert.match(teacherWorkspace, /announcements\?subjectId=/);
+    assert.doesNotMatch(teacherWorkspace, /announcements\?subjectId=/);
     assert.match(studentJourney, /Learning library/);
-    assert.match(studentJourney, /Subject updates/);
+    assert.doesNotMatch(studentJourney, /Subject updates/i);
     assert.match(studentMaterials, /subject:batch_subjects\(id,name,code\)/);
-    assert.match(studentAnnouncements, /subject:batch_subjects\(id,name,code\)/);
+    assert.doesNotMatch(studentAnnouncements, /subject:batch_subjects/);
+    assert.doesNotMatch(studentAnnouncements, /subjectId/);
+  });
+
+  await t.test("cascades material and report filters and exposes report navigation", () => {
+    const sidebar = readProjectFile("src/components/dashboard/teacher-sidebar.tsx");
+    const academicOverview = readProjectFile("src/app/teacher/academic/page.tsx");
+    const report = readProjectFile("src/app/teacher/reports/academic/page.tsx");
+    const reportFilters = readProjectFile(
+      "src/app/teacher/reports/academic/academic-report-filters.tsx"
+    );
+    const materialsPage = readProjectFile("src/app/teacher/materials/page.tsx");
+    const materialsList = readProjectFile(
+      "src/components/materials/teacher-materials-list.tsx"
+    );
+
+    assert.match(sidebar, /Academic Reports/);
+    assert.match(sidebar, /\/teacher\/reports\/academic/);
+    assert.match(academicOverview, /Academic Reports/);
+    assert.match(report, /AcademicReportFilters/);
+    assert.match(reportFilters, /subject\.batch_id === batchId/);
+    assert.match(reportFilters, /setSubjectId\(""\)/);
+    assert.match(reportFilters, /\s+Clear\s+<\/Link>/);
+    assert.match(materialsPage, /id,batch_id,name,code/);
+    assert.match(materialsList, /availableSubjectOptions/);
+    assert.match(materialsList, /handleBatchFilterChange/);
+    assert.match(materialsList, /Reset filters/);
+    assert.match(materialsList, /disabled=\{Boolean\(selectedBatchId\)\}/);
   });
 
   await t.test("pushes visibility windows into student database queries", () => {
