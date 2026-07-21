@@ -5,6 +5,7 @@ import {
   BookOpenCheck,
   CheckCircle2,
   ClipboardCheck,
+  ClipboardList,
   Layers3,
   Plus,
   Sparkles,
@@ -63,6 +64,13 @@ export default async function TeacherAcademicOverviewPage() {
         description="Plan every batch from subject roadmap to syllabus completion, examinations, and published results."
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/teacher/assignments"
+              className="inline-flex items-center gap-2 rounded-xl border border-violet-100 bg-violet-50 px-4 py-2.5 text-xs font-extrabold text-violet-700 transition hover:bg-violet-100"
+            >
+              <ClipboardList className="h-4 w-4" />
+              Assignments
+            </Link>
             <Link
               href="/teacher/reports/academic"
               className="inline-flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-2.5 text-xs font-extrabold text-blue-700 transition hover:bg-blue-100"

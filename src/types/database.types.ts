@@ -434,6 +434,170 @@ export interface Database {
           }
         ]
       }
+      academic_assignments: {
+        Row: {
+          id: string
+          batch_id: string
+          subject_id: string
+          unit_id: string | null
+          title: string
+          description: string | null
+          instructions: string | null
+          assignment_type: "HOMEWORK" | "CLASSWORK" | "PRACTICE" | "PROJECT"
+          status: "DRAFT" | "PUBLISHED" | "CLOSED" | "ARCHIVED"
+          assigned_at: string
+          due_at: string
+          total_marks: number
+          allow_late_submission: boolean
+          resource_url: string | null
+          published_at: string | null
+          closed_at: string | null
+          created_by: string | null
+          updated_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          batch_id: string
+          subject_id: string
+          unit_id?: string | null
+          title: string
+          description?: string | null
+          instructions?: string | null
+          assignment_type?: "HOMEWORK" | "CLASSWORK" | "PRACTICE" | "PROJECT"
+          status?: "DRAFT" | "PUBLISHED" | "CLOSED" | "ARCHIVED"
+          assigned_at?: string
+          due_at: string
+          total_marks?: number
+          allow_late_submission?: boolean
+          resource_url?: string | null
+          published_at?: string | null
+          closed_at?: string | null
+          created_by?: string | null
+          updated_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          batch_id?: string
+          subject_id?: string
+          unit_id?: string | null
+          title?: string
+          description?: string | null
+          instructions?: string | null
+          assignment_type?: "HOMEWORK" | "CLASSWORK" | "PRACTICE" | "PROJECT"
+          status?: "DRAFT" | "PUBLISHED" | "CLOSED" | "ARCHIVED"
+          assigned_at?: string
+          due_at?: string
+          total_marks?: number
+          allow_late_submission?: boolean
+          resource_url?: string | null
+          published_at?: string | null
+          closed_at?: string | null
+          created_by?: string | null
+          updated_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academic_assignments_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedSchema: "public"
+          },
+          {
+            foreignKeyName: "academic_assignments_subject_batch_fkey"
+            columns: ["subject_id", "batch_id"]
+            isOneToOne: false
+            referencedRelation: "batch_subjects"
+            referencedSchema: "public"
+          },
+          {
+            foreignKeyName: "academic_assignments_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "subject_units"
+            referencedSchema: "public"
+          }
+        ]
+      }
+      academic_assignment_submissions: {
+        Row: {
+          id: string
+          assignment_id: string
+          student_id: string
+          enrollment_id: string
+          submission_text: string | null
+          submission_url: string | null
+          status: "SUBMITTED" | "LATE" | "REVIEWED" | "RETURNED"
+          submitted_at: string
+          marks_obtained: number | null
+          feedback: string | null
+          reviewed_by: string | null
+          reviewed_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          assignment_id: string
+          student_id: string
+          enrollment_id: string
+          submission_text?: string | null
+          submission_url?: string | null
+          status?: "SUBMITTED" | "LATE" | "REVIEWED" | "RETURNED"
+          submitted_at?: string
+          marks_obtained?: number | null
+          feedback?: string | null
+          reviewed_by?: string | null
+          reviewed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          assignment_id?: string
+          student_id?: string
+          enrollment_id?: string
+          submission_text?: string | null
+          submission_url?: string | null
+          status?: "SUBMITTED" | "LATE" | "REVIEWED" | "RETURNED"
+          submitted_at?: string
+          marks_obtained?: number | null
+          feedback?: string | null
+          reviewed_by?: string | null
+          reviewed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academic_assignment_submissions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "academic_assignments"
+            referencedSchema: "public"
+          },
+          {
+            foreignKeyName: "academic_assignment_submissions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_profiles"
+            referencedSchema: "public"
+          },
+          {
+            foreignKeyName: "academic_assignment_submissions_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "enrollments"
+            referencedSchema: "public"
+          }
+        ]
+      }
       enrollments: {
         Row: {
           id: string

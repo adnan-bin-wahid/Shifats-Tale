@@ -17,6 +17,7 @@ import {
   Bell,
   Home,
   BookOpenCheck,
+  ClipboardList,
 } from "lucide-react";
 
 interface StudentNavBatch {
@@ -86,6 +87,7 @@ export function StudentSidebar({ className, onLinkClick, activeBatches = [] }: S
   const navItems: NavItem[] = [
     { label: "Dashboard", href: "/student", icon: LayoutDashboard },
     { label: "Academic Journey", href: "/student/academics", icon: BookOpenCheck },
+    { label: "Assignments", href: "/student/assignments", icon: ClipboardList },
   ];
 
   // Map active batches to individual navigation links
