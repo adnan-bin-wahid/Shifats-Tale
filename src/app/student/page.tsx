@@ -30,6 +30,7 @@ import {
   TrendingDown,
   Minus,
   BookOpenCheck,
+  ClipboardList,
 } from "lucide-react";
 
 // Helper: Calculate Next Class Schedule
@@ -226,6 +227,28 @@ export default async function StudentDashboardPage() {
 
   const upcomingExams = exams || [];
 
+  const [{ data: assignmentRows }, { data: assignmentSubmissionRows }] = activeBatchIds.length > 0
+    ? await Promise.all([
+        supabase
+          .from("academic_assignments")
+          .select("id,title,batch_id,due_at,total_marks,batch:batches(name),subject:batch_subjects(name)")
+          .in("batch_id", activeBatchIds)
+          .eq("status", "PUBLISHED")
+          .order("due_at", { ascending: true })
+          .limit(5),
+        supabase
+          .from("academic_assignment_submissions")
+          .select("assignment_id,status")
+          .eq("student_id", studentProfile.id),
+      ])
+    : [{ data: [] }, { data: [] }];
+  const submittedAssignmentIds = new Set(
+    (assignmentSubmissionRows || []).map((row) => row.assignment_id)
+  );
+  const pendingAssignments = (assignmentRows || []).filter(
+    (assignment) => !submittedAssignmentIds.has(assignment.id)
+  );
+
   // 5. Fetch recently published exam results (limit 10 for insights)
   const { data: results } = activeBatchIds.length > 0
     ? await supabase
@@ -318,7 +341,7 @@ export default async function StudentDashboardPage() {
   // Next Class Info
   const nextClassInfo = getNextClassInfo(activeEnrollments);
 
-  const totalActionItems = (totalOutstandingDue > 0 ? 1 : 0) + ((unreadCount || 0) > 0 ? 1 : 0);
+  const totalActionItems = (totalOutstandingDue > 0 ? 1 : 0) + ((unreadCount || 0) > 0 ? 1 : 0) + (pendingAssignments.length > 0 ? 1 : 0);
 
   return (
     <div className="space-y-8 text-xs font-bold text-primary max-w-[1500px] mx-auto pb-12">
@@ -464,6 +487,34 @@ export default async function StudentDashboardPage() {
           </div>
         </Link>
       </div>
+
+      <section className="overflow-hidden rounded-3xl border border-blue-100 bg-[linear-gradient(135deg,#F8FBFF,#EEF4FF)] p-5 shadow-xs sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="rounded-2xl bg-blue-100 p-3 text-blue-700"><ClipboardList className="h-5 w-5" /></span>
+            <div>
+              <h2 className="font-display text-base font-black text-slate-900">Assignment desk</h2>
+              <p className="mt-1 text-[11px] font-semibold text-slate-500">{pendingAssignments.length > 0 ? `${pendingAssignments.length} task${pendingAssignments.length === 1 ? "" : "s"} waiting for your submission.` : "You are all caught up with published assignments."}</p>
+            </div>
+          </div>
+          <Link href="/student/assignments" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#102A66] px-4 py-2.5 text-xs font-black text-white transition hover:bg-[#173B89]">Open assignments <ChevronRight className="h-4 w-4" /></Link>
+        </div>
+        {pendingAssignments.length > 0 && (
+          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {pendingAssignments.slice(0, 3).map((assignment) => {
+              const batch = Array.isArray(assignment.batch) ? assignment.batch[0] : assignment.batch;
+              const subject = Array.isArray(assignment.subject) ? assignment.subject[0] : assignment.subject;
+              return (
+                <Link key={assignment.id} href={`/student/assignments/${assignment.id}`} className="rounded-2xl border border-white bg-white/85 p-4 transition hover:border-blue-200 hover:shadow-sm">
+                  <p className="line-clamp-2 text-xs font-black text-slate-900">{assignment.title}</p>
+                  <p className="mt-2 truncate text-[10px] font-bold text-blue-600">{batch?.name || "Batch"} · {subject?.name || "Subject"}</p>
+                  <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 text-[10px] font-bold"><span className="text-slate-500">Due</span><span className="text-slate-800">{new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Dhaka" }).format(new Date(assignment.due_at))}</span></div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
       {/* 4. Main 3-Column Layout Split */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

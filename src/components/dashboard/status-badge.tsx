@@ -17,18 +17,21 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     case "PAID":
     case "APPROVED":
     case "RUNNING":
+    case "REVIEWED":
       colors = "bg-[#DDF8EC] text-[#087A55] border-[#DDF8EC]";
       break;
     case "PENDING":
     case "UPCOMING":
     case "SCHEDULED":
     case "PLANNED":
+    case "SUBMITTED":
       colors = "bg-[#FFF2CC] text-[#A15C00] border-[#FFF2CC]";
       break;
     case "DRAFT":
       colors = "bg-[#EEF2F6] text-[#475569] border-[#E2E8F0]";
       break;
     case "PAUSED":
+    case "RETURNED":
       colors = "bg-[#F3E8FF] text-[#7E22CE] border-[#E9D5FF]";
       break;
     case "CLOSED":
@@ -42,11 +45,13 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     case "FAILED":
     case "OVERDUE":
     case "CANCELLED":
+    case "LATE":
       colors = "bg-[#FEE4E2] text-[#B42318] border-[#FEE4E2]";
       break;
     case "INFORMATION":
     case "COMPLETED":
     case "RESULT_PUBLISHED":
+    case "PUBLISHED":
       colors = "bg-[#E8F1FF] text-[#175CD3] border-[#E8F1FF]";
       break;
     case "RESULT_DRAFT":

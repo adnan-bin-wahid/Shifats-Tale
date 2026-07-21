@@ -12,6 +12,7 @@ import {
   ChevronRight,
   CircleDashed,
   Clock3,
+  ClipboardList,
   Edit3,
   FileCheck2,
   FileText,
@@ -705,7 +706,7 @@ export function AcademicBatchWorkspace({
                   </Link>
                 </div>
 
-                <div className="mt-5">
+                <div className="mt-5 grid gap-3 md:grid-cols-2">
                   <div className="rounded-2xl border border-amber-100 bg-amber-50/55 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -718,6 +719,19 @@ export function AcademicBatchWorkspace({
                     <div className="mt-4 flex flex-wrap gap-2">
                       <Link href={`/teacher/batches/${batch.id}/materials?subjectId=${selectedSubject.id}`} className="rounded-lg bg-white px-3 py-2 text-[10px] font-black text-amber-700 shadow-sm transition hover:bg-amber-100">Manage resources</Link>
                       <Link href={`/teacher/materials/new?batchId=${batch.id}&subjectId=${selectedSubject.id}`} className="rounded-lg border border-amber-200 px-3 py-2 text-[10px] font-black text-amber-700 transition hover:bg-amber-100">Add material</Link>
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-blue-100 bg-blue-50/55 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-[0.14em] text-blue-600">Assignments & homework</p>
+                        <p className="mt-2 text-xs font-bold leading-5 text-slate-600">Create tasks, collect student work, and publish feedback.</p>
+                      </div>
+                      <span className="rounded-xl bg-white p-2.5 text-blue-600 shadow-sm"><ClipboardList className="h-5 w-5" /></span>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Link href={`/teacher/assignments?batchId=${batch.id}&subjectId=${selectedSubject.id}`} className="rounded-lg bg-white px-3 py-2 text-[10px] font-black text-blue-700 shadow-sm transition hover:bg-blue-100">View assignments</Link>
+                      <Link href={`/teacher/assignments/new?batchId=${batch.id}&subjectId=${selectedSubject.id}`} className="rounded-lg border border-blue-200 px-3 py-2 text-[10px] font-black text-blue-700 transition hover:bg-blue-100">Create assignment</Link>
                     </div>
                   </div>
                 </div>
