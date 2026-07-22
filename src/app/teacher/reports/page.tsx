@@ -16,6 +16,7 @@ import {
   FileText, 
   Search, 
   Download, 
+  Printer,
   TrendingUp, 
   AlertCircle, 
   CheckCircle2, 
@@ -456,6 +457,7 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
           { id: "student", label: "Student Performance", icon: <Award className="h-4 w-4" />, href: "/teacher/reports?tab=student" },
           { id: "batch", label: "Batch Performance", icon: <Layers className="h-4 w-4" />, href: "/teacher/reports?tab=batch" },
           { id: "academic", label: "Subject Progress", icon: <BookOpenCheck className="h-4 w-4" />, href: "/teacher/reports/academic" },
+          { id: "progress-report", label: "Progress Report", icon: <Printer className="h-4 w-4" />, href: "/teacher/reports/student-progress" },
         ].map((tab) => (
           <Link
             key={tab.id}
