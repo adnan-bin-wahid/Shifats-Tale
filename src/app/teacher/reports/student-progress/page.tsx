@@ -8,21 +8,11 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { StudentProgressReportFilters } from "@/components/reports/student-progress-report-filters";
+import { getStudentProgressReportDirectory } from "@/lib/reports/student-progress-report-directory";
 import { resolveAuthenticatedDestination } from "@/lib/supabase/auth";
-import { createClient } from "@/lib/supabase/server";
 
 interface PageProps {
   searchParams: Promise<{ batchId?: string; studentId?: string }>;
-}
-
-interface EnrollmentDirectoryRow {
-  status: string;
-  batch_id: string;
-  student: {
-    id: string;
-    student_code: string;
-    profile: { full_name: string } | null;
-  } | null;
 }
 
 export default async function StudentProgressReportBuilderPage({
@@ -37,49 +27,11 @@ export default async function StudentProgressReportBuilderPage({
     redirect("/login");
   }
 
-  const supabase = await createClient();
-  const [{ data: batches, error: batchError }, enrollmentResult] =
-    await Promise.all([
-      supabase
-        .from("batches")
-        .select("id,name,code")
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("enrollments")
-        .select(`
-          status,
-          batch_id,
-          student:student_profiles(
-            id,
-            student_code,
-            profile:profiles(full_name)
-          )
-        `)
-        .in("status", ["ACTIVE", "COMPLETED"])
-        .order("created_at", { ascending: false }),
-    ]);
-
-  if (batchError) throw batchError;
-  if (enrollmentResult.error) throw enrollmentResult.error;
-
-  const enrollmentRows = (enrollmentResult.data || []) as unknown as EnrollmentDirectoryRow[];
-  const studentOptions = enrollmentRows
-    .map((enrollment) => ({
-      id: enrollment.student?.id || "",
-      batchId: enrollment.batch_id,
-      fullName: enrollment.student?.profile?.full_name || "Student",
-      studentCode: enrollment.student?.student_code || "—",
-      enrollmentStatus: enrollment.status,
-    }))
-    .filter((student) => student.id && student.batchId)
-    .sort((a, b) =>
-      `${a.fullName}-${a.studentCode}`.localeCompare(
-        `${b.fullName}-${b.studentCode}`
-      )
-    );
+  const { batches, students: studentOptions } =
+    await getStudentProgressReportDirectory();
 
   const { batchId = "", studentId = "" } = await searchParams;
-  const validBatchId = (batches || []).some((batch) => batch.id === batchId)
+  const validBatchId = batches.some((batch) => batch.id === batchId)
     ? batchId
     : "";
   const validStudentId = studentOptions.some(
@@ -133,7 +85,7 @@ export default async function StudentProgressReportBuilderPage({
       </section>
 
       <StudentProgressReportFilters
-        batches={batches || []}
+        batches={batches}
         students={studentOptions}
         initialBatchId={validBatchId}
         initialStudentId={validStudentId}

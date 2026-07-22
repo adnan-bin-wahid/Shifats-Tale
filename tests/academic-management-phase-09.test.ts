@@ -63,6 +63,10 @@ test("Academic Management Phase 09 - Printable Student Progress Report", async (
     assert.match(dataService, /academic_assignment_submissions/);
     assert.match(dataService, /calculateSyllabusProgress/);
     assert.match(dataService, /calculateExamReportSummary/);
+    assert.match(dataService, /site_name/);
+    assert.match(dataService, /primary_phone/);
+    assert.match(dataService, /\.eq\("id", 1\)/);
+    assert.doesNotMatch(dataService, /section_key|settingsResult\.data\?\.content/);
     assert.doesNotMatch(dataService, /createAdminClient/);
     assert.doesNotMatch(dataService, /\.insert\(|\.update\(|\.delete\(/);
   });
@@ -78,6 +82,12 @@ test("Academic Management Phase 09 - Printable Student Progress Report", async (
       "src/app/teacher/reports/student-progress/[studentId]/page.tsx"
     );
     const reportsCenter = readProjectFile("src/app/teacher/reports/page.tsx");
+    const academicReport = readProjectFile(
+      "src/app/teacher/reports/academic/page.tsx"
+    );
+    const directory = readProjectFile(
+      "src/lib/reports/student-progress-report-directory.ts"
+    );
 
     assert.match(builder, /destination !== "TEACHER_DASHBOARD"/);
     assert.match(filters, /student\.batchId === batchId/);
@@ -86,6 +96,11 @@ test("Academic Management Phase 09 - Printable Student Progress Report", async (
     assert.match(preview, /Print A4/);
     assert.match(preview, /Download PDF/);
     assert.match(reportsCenter, /\/teacher\/reports\/student-progress/);
+    assert.match(academicReport, /StudentProgressReportFilters/);
+    assert.match(academicReport, /Build a student progress report/);
+    assert.match(directory, /student:student_profiles!inner/);
+    assert.match(directory, /profile:profiles!inner/);
+    assert.match(directory, /\.in\("status", \["ACTIVE", "COMPLETED"\]\)/);
   });
 
   await t.test("ships A4 print and authenticated audited PDF export", () => {

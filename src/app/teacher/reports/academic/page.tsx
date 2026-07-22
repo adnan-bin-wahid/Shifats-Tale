@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { resolveAuthenticatedDestination } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
+import { StudentProgressReportFilters } from "@/components/reports/student-progress-report-filters";
+import { getStudentProgressReportDirectory } from "@/lib/reports/student-progress-report-directory";
 import { AcademicReportFilters } from "./academic-report-filters";
 
 interface PageProps {
@@ -40,7 +42,7 @@ export default async function AcademicPerformanceReportPage({ searchParams }: Pa
   const { batchId = "", subjectId = "" } = await searchParams;
   const supabase = await createClient();
 
-  const [batchResult, subjectResult] = await Promise.all([
+  const [batchResult, subjectResult, progressReportDirectory] = await Promise.all([
     supabase
       .from("batches")
       .select("id,name,code,status")
@@ -50,6 +52,7 @@ export default async function AcademicPerformanceReportPage({ searchParams }: Pa
       .select("id,batch_id,name,code,status,theme_key,display_order")
       .neq("status", "ARCHIVED")
       .order("display_order", { ascending: true }),
+    getStudentProgressReportDirectory(),
   ]);
 
   if (batchResult.error) throw batchResult.error;
@@ -189,6 +192,25 @@ export default async function AcademicPerformanceReportPage({ searchParams }: Pa
         selectedBatchId={selectedBatchId}
         selectedSubjectId={selectedSubjectId}
       />
+
+      <section className="space-y-4 rounded-3xl border border-blue-100 bg-blue-50/40 p-4 sm:p-5">
+        <div>
+          <p className="text-[9px] font-black uppercase tracking-[0.16em] text-blue-600">
+            Individual report
+          </p>
+          <h2 className="mt-1 font-display text-lg font-black text-slate-900">
+            Build a student progress report
+          </h2>
+          <p className="mt-1 text-[10px] font-semibold leading-5 text-slate-500">
+            Select a batch and one enrolled student to open the printable report.
+          </p>
+        </div>
+        <StudentProgressReportFilters
+          batches={progressReportDirectory.batches}
+          students={progressReportDirectory.students}
+          initialBatchId={selectedBatchId}
+        />
+      </section>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
