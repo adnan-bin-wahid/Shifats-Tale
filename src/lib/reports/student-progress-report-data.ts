@@ -169,6 +169,13 @@ function asRecord(value: unknown): Record<string, unknown> {
     : {};
 }
 
+function joinedAddress(settings: Record<string, unknown>) {
+  return [settings.address_line, settings.city, settings.country]
+    .map((value) => textValue(value))
+    .filter(Boolean)
+    .join(", ");
+}
+
 function textValue(value: unknown, fallback = "") {
   return typeof value === "string" && value.trim() ? value.trim() : fallback;
 }
@@ -249,8 +256,20 @@ export async function getStudentProgressReportData(
         .order("due_at", { ascending: true }),
       supabase
         .from("site_settings")
-        .select("content")
-        .eq("section_key", "SITE_INFO")
+        .select(`
+          site_name,
+          site_short_name,
+          tagline,
+          site_description,
+          primary_phone,
+          secondary_phone,
+          whatsapp_number,
+          email,
+          address_line,
+          city,
+          country
+        `)
+        .eq("id", 1)
         .maybeSingle(),
     ]);
 
@@ -466,7 +485,7 @@ export async function getStudentProgressReportData(
     allUnits > 0 ? Math.round((completedUnits / allUnits) * 10_000) / 100 : 0;
   const examSummary = calculateExamReportSummary(reportExams);
   const assignmentSummary = calculateAssignmentReportSummary(reportAssignments);
-  const settings = asRecord(settingsResult.data?.content);
+  const settings = asRecord(settingsResult.data);
   const teacherObservations = Array.from(
     new Set(
       reportExams
@@ -484,20 +503,21 @@ export async function getStudentProgressReportData(
     }),
     branding: {
       title: textValue(
-        settings.coachingName || settings.coachingCenterName,
+        settings.site_name || settings.site_short_name,
         "SHIFAT'S TALES"
       ),
       subtitle: textValue(
-        settings.tagline || settings.heroDescription,
+        settings.tagline || settings.site_description,
         "Academic & Admission Care"
       ),
-      phone: textValue(settings.phone || settings.contactNumber),
-      email: textValue(settings.email),
-      address: textValue(settings.address),
-      teacherName: textValue(
-        settings.teacherName,
-        "Md. Zia Uddin Azad Sifat"
+      phone: textValue(
+        settings.primary_phone ||
+          settings.whatsapp_number ||
+          settings.secondary_phone
       ),
+      email: textValue(settings.email),
+      address: joinedAddress(settings),
+      teacherName: "Md. Zia Uddin Azad Sifat",
     },
     student: {
       id: student.id,
