@@ -93,7 +93,7 @@ export default async function StudentAssignmentsPage() {
         <div className="relative grid gap-8 xl:grid-cols-[1.2fr_1fr] xl:items-center">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-100"><Sparkles className="h-3.5 w-3.5" /> Personal study desk</div>
-            <h1 className="mt-5 max-w-2xl font-display text-3xl font-black leading-tight sm:text-4xl">Know what is due, submit with confidence, improve with feedback.</h1>
+            <h1 className="text-white mt-5 max-w-2xl font-display text-3xl font-black leading-tight sm:text-4xl">Know what is due, submit with confidence, improve with feedback.</h1>
             <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-blue-100/80">Every task is linked to the exact subject and topic you are learning.</p>
           </div>
           <div className="grid grid-cols-2 gap-3">

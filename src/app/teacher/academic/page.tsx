@@ -99,7 +99,7 @@ export default async function TeacherAcademicOverviewPage() {
               Live academic operations
             </div>
             <div>
-              <h2 className="max-w-2xl font-display text-2xl font-black leading-tight sm:text-3xl">
+              <h2 className="text-white max-w-2xl font-display text-2xl font-black leading-tight sm:text-3xl">
                 One clear command view for every learning journey.
               </h2>
               <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-blue-100/85">

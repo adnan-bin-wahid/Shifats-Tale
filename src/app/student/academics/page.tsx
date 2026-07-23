@@ -219,7 +219,7 @@ export default async function StudentAcademicsPage() {
               <Sparkles className="h-3.5 w-3.5" />
               Personalized learning map
             </div>
-            <h1 className="mt-5 max-w-2xl font-display text-2xl font-black leading-tight sm:text-4xl">
+            <h1 className="text-white mt-5 max-w-2xl font-display text-2xl font-black leading-tight sm:text-4xl">
               Your complete learning story, made easy to understand.
             </h1>
             <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-blue-100/80">
