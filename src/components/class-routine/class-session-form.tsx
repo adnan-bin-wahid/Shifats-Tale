@@ -1,18 +1,18 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, CalendarClock, Loader2, Save, Send } from "lucide-react";
-import toast from "react-hot-toast";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, CalendarDays, Loader2, Save } from "lucide-react";
+import toast from "react-hot-toast";
 import {
-  createAssignmentAction,
-  updateAssignmentAction,
-} from "@/app/actions/assignments";
+  createClassSessionAction,
+  updateClassSessionAction,
+} from "@/app/actions/class-routine";
 import {
-  assignmentStatuses,
-  assignmentTypes,
-} from "@/lib/validations/assignments";
+  classSessionStatuses,
+  classSessionTypes,
+} from "@/lib/validations/class-routine";
 
 type BatchOption = { id: string; name: string; code: string };
 type SubjectOption = {
@@ -28,25 +28,26 @@ type UnitOption = {
   title: string;
   sequence_no: number;
 };
-type AssignmentInitial = {
+type SessionInitial = {
   id: string;
   batch_id: string;
   subject_id: string;
   unit_id: string | null;
   title: string;
-  description: string | null;
-  instructions: string | null;
-  assignment_type: string;
+  session_type: string;
   status: string;
-  assigned_at: string;
-  due_at: string;
-  total_marks: number;
-  allow_late_submission: boolean;
-  resource_url: string | null;
+  starts_at: string;
+  ends_at: string;
+  location: string | null;
+  class_link: string | null;
+  student_note: string | null;
 };
 
 function humanize(value: string) {
-  return value.toLowerCase().replaceAll("_", " ").replace(/\b\w/g, (m) => m.toUpperCase());
+  return value
+    .toLowerCase()
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function dhakaInputValue(value: string | Date) {
@@ -64,32 +65,30 @@ function dhakaInputValue(value: string | Date) {
   return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
 }
 
-export function AssignmentForm({
+export function ClassSessionForm({
   batches,
   subjects,
   units,
   initialData,
   preselectedBatchId = "",
   preselectedSubjectId = "",
+  defaultStartsAt,
+  defaultEndsAt,
 }: {
   batches: BatchOption[];
   subjects: SubjectOption[];
   units: UnitOption[];
-  initialData?: AssignmentInitial;
+  initialData?: SessionInitial;
   preselectedBatchId?: string;
   preselectedSubjectId?: string;
+  defaultStartsAt?: string;
+  defaultEndsAt?: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const now = new Date();
-  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-  const [batchId, setBatchId] = useState(
-    initialData?.batch_id || preselectedBatchId
-  );
-  const [subjectId, setSubjectId] = useState(
-    initialData?.subject_id || preselectedSubjectId
-  );
-  const [status, setStatus] = useState(initialData?.status || "DRAFT");
+  const [batchId, setBatchId] = useState(initialData?.batch_id || preselectedBatchId);
+  const [subjectId, setSubjectId] = useState(initialData?.subject_id || preselectedSubjectId);
+  const [unitId, setUnitId] = useState(initialData?.unit_id || "");
   const [validationMessages, setValidationMessages] = useState<string[]>([]);
 
   const visibleSubjects = useMemo(
@@ -104,8 +103,8 @@ export function AssignmentForm({
   function submit(formData: FormData) {
     startTransition(async () => {
       const result = initialData
-        ? await updateAssignmentAction(initialData.id, formData)
-        : await createAssignmentAction(formData);
+        ? await updateClassSessionAction(initialData.id, formData)
+        : await createClassSessionAction(formData);
       if (!result.success) {
         setValidationMessages(
           Array.from(
@@ -120,7 +119,7 @@ export function AssignmentForm({
       }
       setValidationMessages([]);
       toast.success(result.message);
-      router.push(`/teacher/assignments/${result.entityId || initialData?.id}`);
+      router.push("/teacher/routine");
       router.refresh();
     });
   }
@@ -142,12 +141,12 @@ export function AssignmentForm({
         <div className="border-b border-slate-100 bg-[linear-gradient(135deg,#F8FBFF,#EEF4FF)] px-5 py-5 sm:px-7">
           <div className="flex items-start gap-3">
             <span className="rounded-2xl bg-blue-100 p-3 text-blue-700">
-              <CalendarClock className="h-5 w-5" />
+              <CalendarDays className="h-5 w-5" />
             </span>
             <div>
-              <h2 className="font-display text-lg font-black text-primary">Assignment setup</h2>
+              <h2 className="font-display text-lg font-black text-primary">Class setup</h2>
               <p className="mt-1 text-xs font-semibold text-muted">
-                Link the task to its exact batch, subject, and optional syllabus unit.
+                Connect this class to the exact batch, subject, and chapter students are studying.
               </p>
             </div>
           </div>
@@ -163,6 +162,7 @@ export function AssignmentForm({
               onChange={(event) => {
                 setBatchId(event.target.value);
                 setSubjectId("");
+                setUnitId("");
               }}
               className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-xs font-bold outline-none focus:border-blue-400"
             >
@@ -180,7 +180,10 @@ export function AssignmentForm({
               value={subjectId}
               required
               disabled={!batchId}
-              onChange={(event) => setSubjectId(event.target.value)}
+              onChange={(event) => {
+                setSubjectId(event.target.value);
+                setUnitId("");
+              }}
               className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-xs font-bold outline-none disabled:bg-slate-50 focus:border-blue-400"
             >
               <option value="">{batchId ? "Select subject" : "Select a batch first"}</option>
@@ -194,11 +197,12 @@ export function AssignmentForm({
             Syllabus unit <span className="font-semibold text-muted">(optional)</span>
             <select
               name="unitId"
-              defaultValue={initialData?.unit_id || ""}
+              value={unitId}
               disabled={!subjectId}
+              onChange={(event) => setUnitId(event.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-xs font-bold outline-none disabled:bg-slate-50 focus:border-blue-400"
             >
-              <option value="">General subject assignment</option>
+              <option value="">General subject class</option>
               {visibleUnits.map((unit) => (
                 <option key={unit.id} value={unit.id}>#{unit.sequence_no} · {unit.title}</option>
               ))}
@@ -206,92 +210,65 @@ export function AssignmentForm({
           </label>
 
           <label className="space-y-2 text-xs font-black text-primary lg:col-span-2">
-            Title <span className="text-rose-500">*</span>
+            Class title / topic <span className="text-rose-500">*</span>
             <input
               name="title"
               required
               maxLength={180}
               defaultValue={initialData?.title || ""}
-              placeholder="e.g. Vector decomposition practice set"
+              placeholder="e.g. Vector addition and resolution"
               className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm font-bold outline-none focus:border-blue-400"
             />
           </label>
 
-          <label className="space-y-2 text-xs font-black text-primary lg:col-span-2">
-            Short description
-            <textarea
-              name="description"
-              rows={3}
-              maxLength={3000}
-              defaultValue={initialData?.description || ""}
-              placeholder="What students will practise or demonstrate"
-              className="w-full resize-y rounded-xl border border-slate-200 px-3.5 py-3 text-xs font-semibold leading-6 outline-none focus:border-blue-400"
-            />
-          </label>
-
-          <label className="space-y-2 text-xs font-black text-primary lg:col-span-2">
-            Detailed instructions
-            <textarea
-              name="instructions"
-              rows={6}
-              maxLength={8000}
-              defaultValue={initialData?.instructions || ""}
-              placeholder="List questions, expected format, and submission rules"
-              className="w-full resize-y rounded-xl border border-slate-200 px-3.5 py-3 text-xs font-semibold leading-6 outline-none focus:border-blue-400"
-            />
-          </label>
-
           <label className="space-y-2 text-xs font-black text-primary">
-            Assignment type
-            <select name="assignmentType" defaultValue={initialData?.assignment_type || "HOMEWORK"} className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-xs font-bold outline-none focus:border-blue-400">
-              {assignmentTypes.map((type) => <option key={type} value={type}>{humanize(type)}</option>)}
+            Class type
+            <select name="sessionType" defaultValue={initialData?.session_type || "REGULAR"} className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-xs font-bold outline-none focus:border-blue-400">
+              {classSessionTypes.map((type) => <option key={type} value={type}>{humanize(type)}</option>)}
             </select>
           </label>
 
           <label className="space-y-2 text-xs font-black text-primary">
             Status
-            <select name="status" value={status} onChange={(event) => setStatus(event.target.value)} className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-xs font-bold outline-none focus:border-blue-400">
-              {assignmentStatuses.map((option) => <option key={option} value={option}>{humanize(option)}</option>)}
+            <select name="status" defaultValue={initialData?.status || "SCHEDULED"} className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-xs font-bold outline-none focus:border-blue-400">
+              {classSessionStatuses.map((status) => <option key={status} value={status}>{humanize(status)}</option>)}
             </select>
           </label>
 
           <label className="space-y-2 text-xs font-black text-primary">
-            Release date & time <span className="text-rose-500">*</span>
-            <input name="assignedAt" type="datetime-local" required defaultValue={dhakaInputValue(initialData?.assigned_at || now)} className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-xs font-bold outline-none focus:border-blue-400" />
+            Start date & time <span className="text-rose-500">*</span>
+            <input name="startsAt" type="datetime-local" required defaultValue={dhakaInputValue(initialData?.starts_at || defaultStartsAt || "1970-01-01T00:00:00.000Z")} className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-xs font-bold outline-none focus:border-blue-400" />
           </label>
 
           <label className="space-y-2 text-xs font-black text-primary">
-            Due date & time <span className="text-rose-500">*</span>
-            <input name="dueAt" type="datetime-local" required defaultValue={dhakaInputValue(initialData?.due_at || tomorrow)} className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-xs font-bold outline-none focus:border-blue-400" />
+            End date & time <span className="text-rose-500">*</span>
+            <input name="endsAt" type="datetime-local" required defaultValue={dhakaInputValue(initialData?.ends_at || defaultEndsAt || "1970-01-01T01:30:00.000Z")} className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-xs font-bold outline-none focus:border-blue-400" />
           </label>
 
           <label className="space-y-2 text-xs font-black text-primary">
-            Total marks <span className="text-rose-500">*</span>
-            <input name="totalMarks" type="number" min="0.01" max="10000" step="0.01" required defaultValue={initialData?.total_marks || 10} className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-xs font-bold outline-none focus:border-blue-400" />
+            Room / location <span className="font-semibold text-muted">(optional)</span>
+            <input name="location" maxLength={240} defaultValue={initialData?.location || ""} placeholder="e.g. Room 301" className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-xs font-semibold outline-none focus:border-blue-400" />
           </label>
 
           <label className="space-y-2 text-xs font-black text-primary">
-            Supporting link <span className="font-semibold text-muted">(optional)</span>
-            <input name="resourceUrl" type="url" defaultValue={initialData?.resource_url || ""} placeholder="https://..." className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-xs font-semibold outline-none focus:border-blue-400" />
+            Online class link <span className="font-semibold text-muted">(optional)</span>
+            <input name="classLink" type="url" defaultValue={initialData?.class_link || ""} placeholder="https://..." className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-xs font-semibold outline-none focus:border-blue-400" />
           </label>
 
-          <label className="flex items-start gap-3 rounded-2xl border border-amber-100 bg-amber-50/60 p-4 lg:col-span-2">
-            <input name="allowLateSubmission" type="checkbox" defaultChecked={initialData?.allow_late_submission || false} className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600" />
-            <span>
-              <span className="block text-xs font-black text-amber-900">Allow late submission</span>
-              <span className="mt-1 block text-[10px] font-semibold leading-5 text-amber-700">Late work will be clearly labelled for the teacher.</span>
-            </span>
+          <label className="space-y-2 text-xs font-black text-primary lg:col-span-2">
+            Note for students <span className="font-semibold text-muted">(optional)</span>
+            <textarea name="studentNote" rows={4} maxLength={3000} defaultValue={initialData?.student_note || ""} placeholder="Preparation, book, chapter range, or anything students should bring" className="w-full resize-y rounded-xl border border-slate-200 px-3.5 py-3 text-xs font-semibold leading-6 outline-none focus:border-blue-400" />
           </label>
         </div>
       </section>
 
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-        <Link href={initialData ? `/teacher/assignments/${initialData.id}` : "/teacher/assignments"} className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-xs font-black text-slate-600 transition hover:bg-slate-50">
+        <Link href="/teacher/routine" className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-xs font-black text-slate-600 transition hover:bg-slate-50">
           <ArrowLeft className="h-4 w-4" /> Cancel
         </Link>
         <button type="submit" disabled={pending} className="primary-btn inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-xs font-black disabled:opacity-60">
-          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : status === "PUBLISHED" ? <Send className="h-4 w-4" /> : <Save className="h-4 w-4" />}
-          {pending ? "Saving..." : status === "PUBLISHED" ? "Save & publish" : "Save assignment"}
+          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          {pending ? "Saving..." : initialData ? "Save routine entry" : "Schedule class"}
         </button>
       </div>
     </form>

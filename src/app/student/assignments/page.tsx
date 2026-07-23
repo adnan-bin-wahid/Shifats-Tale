@@ -69,7 +69,12 @@ export default async function StudentAssignmentsPage() {
   // Server-rendered request snapshot used only to classify current deadlines.
   // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
-  const open = assignments.filter((item) => item.status === "PUBLISHED" && !submissionByAssignment.has(item.id));
+  const open = assignments.filter(
+    (item) =>
+      item.status === "PUBLISHED" &&
+      !submissionByAssignment.has(item.id) &&
+      (new Date(item.due_at).getTime() >= now || item.allow_late_submission)
+  );
   const urgent = open.filter((item) => {
     const remaining = new Date(item.due_at).getTime() - now;
     return remaining >= 0 && remaining <= 48 * 60 * 60 * 1000;

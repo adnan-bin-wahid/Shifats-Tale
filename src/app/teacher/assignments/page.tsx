@@ -15,6 +15,7 @@ import { StatusBadge } from "@/components/dashboard/status-badge";
 import { AssignmentFilters } from "@/components/assignments/assignment-filters";
 import { resolveAuthenticatedDestination } from "@/lib/supabase/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { assignmentStatuses } from "@/lib/validations/assignments";
 
 type Relation = { id: string; name: string; code?: string };
 
@@ -32,6 +33,9 @@ function formatDhaka(value: string) {
     timeZone: "Asia/Dhaka",
   }).format(new Date(value));
 }
+
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export default async function TeacherAssignmentsPage({
   searchParams,
@@ -51,26 +55,41 @@ export default async function TeacherAssignmentsPage({
   if (destination !== "TEACHER_DASHBOARD") redirect("/student");
 
   const admin = createAdminClient();
+  const batchId = filters.batchId && UUID_PATTERN.test(filters.batchId) ? filters.batchId : "";
+  const subjectId = filters.subjectId && UUID_PATTERN.test(filters.subjectId) ? filters.subjectId : "";
+  const status = assignmentStatuses.includes(
+    filters.status as (typeof assignmentStatuses)[number]
+  )
+    ? (filters.status as (typeof assignmentStatuses)[number])
+    : "";
+  const searchQuery = filters.q?.trim().slice(0, 120) || "";
   let query = admin
     .from("academic_assignments")
     .select("*,batch:batches(id,name,code),subject:batch_subjects(id,name,code),unit:subject_units(id,title)")
     .order("due_at", { ascending: true });
-  if (filters.batchId) query = query.eq("batch_id", filters.batchId);
-  if (filters.subjectId) query = query.eq("subject_id", filters.subjectId);
-  if (filters.status) query = query.eq("status", filters.status as "DRAFT" | "PUBLISHED" | "CLOSED" | "ARCHIVED");
-  if (filters.q?.trim()) query = query.ilike("title", `%${filters.q.trim()}%`);
+  if (batchId) query = query.eq("batch_id", batchId);
+  if (subjectId) query = query.eq("subject_id", subjectId);
+  if (status) query = query.eq("status", status);
+  if (searchQuery) query = query.ilike("title", `%${searchQuery}%`);
 
-  const [assignmentsResult, submissionsResult, batchesResult, subjectsResult] =
+  const [assignmentsResult, batchesResult, subjectsResult] =
     await Promise.all([
       query,
-      admin.from("academic_assignment_submissions").select("assignment_id,status"),
       admin.from("batches").select("id,name").order("name"),
       admin.from("batch_subjects").select("id,batch_id,name").order("display_order"),
     ]);
-  const error = assignmentsResult.error || submissionsResult.error || batchesResult.error || subjectsResult.error;
+  const error = assignmentsResult.error || batchesResult.error || subjectsResult.error;
   if (error) throw error;
 
   const assignments = assignmentsResult.data || [];
+  const assignmentIds = assignments.map((assignment) => assignment.id);
+  const submissionsResult = assignmentIds.length
+    ? await admin
+        .from("academic_assignment_submissions")
+        .select("assignment_id,status")
+        .in("assignment_id", assignmentIds)
+    : { data: [], error: null };
+  if (submissionsResult.error) throw submissionsResult.error;
   const submissions = submissionsResult.data || [];
   // Server-rendered request snapshot used only to classify current deadlines.
   // eslint-disable-next-line react-hooks/purity
@@ -123,10 +142,10 @@ export default async function TeacherAssignmentsPage({
       <AssignmentFilters
         batches={batchesResult.data || []}
         subjects={subjectsResult.data || []}
-        initialBatchId={filters.batchId || ""}
-        initialSubjectId={filters.subjectId || ""}
-        initialStatus={filters.status || ""}
-        initialQuery={filters.q || ""}
+        initialBatchId={batchId}
+        initialSubjectId={subjectId}
+        initialStatus={status}
+        initialQuery={searchQuery}
       />
 
       {assignments.length === 0 ? (

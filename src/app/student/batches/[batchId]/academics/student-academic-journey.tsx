@@ -1161,12 +1161,20 @@ export function StudentAcademicJourney({
         >
           <ArrowLeft className="h-4 w-4" /> Back to batch console
         </Link>
-        <Link
-          href={`/student/batches/${batch.id}/exams`}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0A192F] px-4 py-2.5 text-xs font-black text-white transition hover:bg-blue-900"
-        >
-          Open examination schedule <ArrowRight className="h-4 w-4" />
-        </Link>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Link
+            href="/student/routine"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-4 py-2.5 text-xs font-black text-violet-700 transition hover:bg-violet-100"
+          >
+            <CalendarDays className="h-4 w-4" /> Open class routine
+          </Link>
+          <Link
+            href={`/student/batches/${batch.id}/exams`}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0A192F] px-4 py-2.5 text-xs font-black text-white transition hover:bg-blue-900"
+          >
+            Open examination schedule <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
       </div>
     </div>
   );

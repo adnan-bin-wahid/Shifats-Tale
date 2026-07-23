@@ -4,23 +4,15 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { resolveAuthenticatedDestination } from "@/lib/supabase/auth";
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
-import { DashboardCard } from "@/components/dashboard/dashboard-card";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { formatCurrency } from "@/lib/currency";
 import { 
   Users, 
   CreditCard, 
   GraduationCap, 
-  BookOpen, 
   BookOpenCheck,
-  FileText, 
-  Search, 
   Download, 
   Printer,
-  TrendingUp, 
-  AlertCircle, 
-  CheckCircle2, 
-  Calendar,
   Layers,
   Award
 } from "lucide-react";
@@ -42,6 +34,131 @@ interface PageProps {
   }>;
 }
 
+interface ProfileRelation {
+  full_name?: string | null;
+  account_status?: string | null;
+  email?: string | null;
+  phone?: string | null;
+}
+
+interface BatchRelation {
+  id: string;
+  name: string;
+  code: string;
+  schedule?: string | null;
+}
+
+interface StudentRelation {
+  id: string;
+  student_code: string;
+  profile: ProfileRelation | null;
+}
+
+interface EnrollmentReportRow {
+  status: string;
+  approved_at: string | null;
+  disabled_at: string | null;
+  disable_reason: string | null;
+  created_at: string;
+  batch: BatchRelation | null;
+  student: StudentRelation | null;
+}
+
+interface PaymentReportRow {
+  billing_month: number;
+  billing_year: number;
+  expected_amount: number;
+  paid_amount: number;
+  status: string;
+  payment_date: string | null;
+  reference_number: string | null;
+  payment_method: string | null;
+  batch: BatchRelation | null;
+  student: StudentRelation | null;
+}
+
+interface ExamAnalyticsRow {
+  id: string;
+  name: string;
+  exam_type: string;
+  exam_date: string;
+  total_marks: number;
+  pass_marks: number;
+  status: string;
+  batch: BatchRelation | null;
+  totalStudents: number;
+  present: number;
+  absent: number;
+  passed: number;
+  failed: number;
+  averageMark: string;
+  highestMark: number;
+  passPercentage: string;
+}
+
+interface StudentDirectoryRow {
+  id: string;
+  student_code: string;
+  profile: Pick<ProfileRelation, "full_name"> | null;
+}
+
+interface SelectedStudentRow {
+  id: string;
+  student_code: string;
+  academic_level: string;
+  institution: string | null;
+  registered_at: string;
+  guardian_name: string | null;
+  guardian_phone: string | null;
+  registration_status: string;
+  profile: ProfileRelation | null;
+}
+
+interface StudentEnrollmentRow {
+  status: string;
+  approved_at: string | null;
+  batch: BatchRelation | null;
+}
+
+interface StudentExamRow {
+  attendance_status: "PRESENT" | "ABSENT";
+  obtained_marks: number | null;
+  exam: {
+    name: string;
+    exam_date: string;
+    total_marks: number;
+    pass_marks: number;
+    status: string;
+    batches: { name: string } | null;
+  } | null;
+}
+
+interface StudentPaymentRow {
+  billing_month: number;
+  billing_year: number;
+  expected_amount: number;
+  paid_amount: number;
+  status: string;
+  batch: { name: string } | null;
+}
+
+interface BatchPerformanceRow extends BatchRelation {
+  activeStudents: number;
+  collectionRate: number;
+  totalExams: number;
+  averageResultPct: number;
+  passPct: number;
+  materialsPublished: number;
+}
+
+const REPORT_TABS = [
+  "enrollment",
+  "payment",
+  "examination",
+  "student",
+  "batch",
+] as const;
+
 export default async function TeacherReportsPage({ searchParams }: PageProps) {
   const { profile, destination } = await resolveAuthenticatedDestination();
 
@@ -51,14 +168,19 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
 
   const supabase = await createClient();
   const sp = await searchParams;
-  const activeTab = sp.tab || "enrollment";
+  const activeTab = REPORT_TABS.includes(
+    sp.tab as (typeof REPORT_TABS)[number]
+  )
+    ? (sp.tab as (typeof REPORT_TABS)[number])
+    : "enrollment";
 
   // Fetch settings for default currency and timezone
-  const { data: settings } = await supabase
+  const { data: settings, error: settingsError } = await supabase
     .from("app_settings")
     .select("*")
     .eq("id", true)
     .single();
+  if (settingsError) throw settingsError;
 
   const timezone = settings?.timezone || "Asia/Dhaka";
 
@@ -77,10 +199,11 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
   };
 
   // Common filters: Fetch batches list
-  const { data: batches } = await supabase
+  const { data: batches, error: batchesError } = await supabase
     .from("batches")
     .select("id, name, code")
     .order("name", { ascending: true });
+  if (batchesError) throw batchesError;
 
   const monthNames = [
     "January", "February", "March", "April", "May", "June",
@@ -93,7 +216,7 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
   const currentYearVal = currentSystemDate.getFullYear();
 
   // Tab 1: Enrollment Report variables
-  let enrollmentsData: any[] = [];
+  let enrollmentsData: EnrollmentReportRow[] = [];
   const tab1BatchId = sp.batchId || "";
   const tab1Status = sp.status || "";
   const tab1AccountStatus = sp.accountStatus || "";
@@ -123,12 +246,13 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
     if (tab1StartDate) q = q.gte("created_at", tab1StartDate);
     if (tab1EndDate) q = q.lte("created_at", tab1EndDate);
 
-    const { data } = await q.order("created_at", { ascending: false });
-    enrollmentsData = data || [];
+    const { data, error } = await q.order("created_at", { ascending: false });
+    if (error) throw error;
+    enrollmentsData = (data || []) as unknown as EnrollmentReportRow[];
   }
 
   // Tab 2: Payment Report variables
-  let paymentsData: any[] = [];
+  let paymentsData: PaymentReportRow[] = [];
   const tab2Month = sp.month || currentMonth.toString();
   const tab2Year = sp.year || currentYearVal.toString();
   const tab2BatchId = sp.batchId || "";
@@ -170,8 +294,9 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
     if (tab2Status) q = q.eq("status", tab2Status);
     if (tab2Method) q = q.eq("payment_method", tab2Method);
 
-    const { data } = await q.order("created_at", { ascending: false });
-    paymentsData = data || [];
+    const { data, error } = await q.order("created_at", { ascending: false });
+    if (error) throw error;
+    paymentsData = (data || []) as unknown as PaymentReportRow[];
 
     paymentsData.forEach((p) => {
       const exp = Number(p.expected_amount) || 0;
@@ -197,7 +322,7 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
   }
 
   // Tab 3: Examination Report variables
-  let examsData: any[] = [];
+  let examsData: ExamAnalyticsRow[] = [];
   const tab3BatchId = sp.batchId || "";
   const tab3ExamType = sp.examType || "";
   const tab3PubStatus = sp.pubStatus || "";
@@ -224,16 +349,18 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
     if (tab3StartDate) q = q.gte("exam_date", tab3StartDate);
     if (tab3EndDate) q = q.lte("exam_date", tab3EndDate);
 
-    const { data } = await q.order("exam_date", { ascending: false });
+    const { data, error } = await q.order("exam_date", { ascending: false });
+    if (error) throw error;
     const rawExams = data || [];
 
     const examIds = rawExams.map(e => e.id);
-    const { data: results } = examIds.length > 0
+    const { data: results, error: resultsError } = examIds.length > 0
       ? await supabase
           .from("exam_results")
           .select("exam_id, attendance_status, obtained_marks")
           .in("exam_id", examIds)
-      : { data: [] };
+      : { data: [], error: null };
+    if (resultsError) throw resultsError;
 
     examsData = rawExams.map(e => {
       const examResults = results?.filter(r => r.exam_id === e.id) || [];
@@ -270,44 +397,47 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
         highestMark,
         passPercentage
       };
-    });
+    }) as unknown as ExamAnalyticsRow[];
   }
 
   // Tab 4: Student Performance Report variables
-  let studentsList: any[] = [];
-  let selectedStudentData: any = null;
-  let selectedStudentEnrollments: any[] = [];
-  let selectedStudentExams: any[] = [];
-  let selectedStudentPayments: any[] = [];
+  let studentsList: StudentDirectoryRow[] = [];
+  let selectedStudentData: SelectedStudentRow | null = null;
+  let selectedStudentEnrollments: StudentEnrollmentRow[] = [];
+  let selectedStudentExams: StudentExamRow[] = [];
+  let selectedStudentPayments: StudentPaymentRow[] = [];
   let studentExpectedPay = 0;
   let studentPaidPay = 0;
   let studentDuePay = 0;
   const tab4StudentId = sp.studentId || "";
 
   if (activeTab === "student") {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("student_profiles")
       .select("id, student_code, profile:profiles(full_name)")
       .eq("registration_status", "APPROVED")
       .order("student_code", { ascending: true });
-    studentsList = data || [];
+    if (error) throw error;
+    studentsList = (data || []) as unknown as StudentDirectoryRow[];
 
     if (tab4StudentId) {
-      const { data: std } = await supabase
+      const { data: std, error: studentError } = await supabase
         .from("student_profiles")
         .select("*, profile:profiles(*)")
         .eq("id", tab4StudentId)
         .single();
-      selectedStudentData = std;
+      if (studentError) throw studentError;
+      selectedStudentData = std as unknown as SelectedStudentRow | null;
 
       if (std) {
-        const { data: enrolls } = await supabase
+        const { data: enrolls, error: enrollmentsError } = await supabase
           .from("enrollments")
           .select("*, batch:batches(*)")
           .eq("student_id", tab4StudentId);
-        selectedStudentEnrollments = enrolls || [];
+        if (enrollmentsError) throw enrollmentsError;
+        selectedStudentEnrollments = (enrolls || []) as unknown as StudentEnrollmentRow[];
 
-        const { data: exResults } = await supabase
+        const { data: exResults, error: examResultsError } = await supabase
           .from("exam_results")
           .select(`
             *,
@@ -326,14 +456,16 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
           .eq("student_id", tab4StudentId);
 
         // Keep published results
-        selectedStudentExams = (exResults || [])
-          .filter(r => r.exam && r.exam.status === "RESULT_PUBLISHED");
+        if (examResultsError) throw examResultsError;
+        selectedStudentExams = ((exResults || []) as unknown as StudentExamRow[])
+          .filter(r => r.exam?.status === "RESULT_PUBLISHED");
 
-        const { data: pays } = await supabase
+        const { data: pays, error: paymentsError } = await supabase
           .from("payments")
           .select("*, batch:batches(name)")
           .eq("student_id", tab4StudentId);
-        selectedStudentPayments = pays || [];
+        if (paymentsError) throw paymentsError;
+        selectedStudentPayments = (pays || []) as unknown as StudentPaymentRow[];
 
         selectedStudentPayments.forEach(p => {
           const exp = Number(p.expected_amount) || 0;
@@ -349,36 +481,41 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
   }
 
   // Tab 5: Batch Performance Report variables
-  let batchesPerformanceData: any[] = [];
+  let batchesPerformanceData: BatchPerformanceRow[] = [];
   if (activeTab === "batch") {
-    const { data: activeEnrollments } = await supabase
+    const { data: activeEnrollments, error: activeEnrollmentsError } = await supabase
       .from("enrollments")
       .select("batch_id")
       .eq("status", "ACTIVE");
+    if (activeEnrollmentsError) throw activeEnrollmentsError;
 
-    const { data: monthlyPayments } = await supabase
+    const { data: monthlyPayments, error: monthlyPaymentsError } = await supabase
       .from("payments")
       .select("batch_id, expected_amount, paid_amount, status")
       .eq("billing_month", currentMonth)
       .eq("billing_year", currentYearVal);
+    if (monthlyPaymentsError) throw monthlyPaymentsError;
 
-    const { data: allExams } = await supabase
+    const { data: allExams, error: allExamsError } = await supabase
       .from("exams")
       .select("id, batch_id, total_marks, pass_marks, status")
       .neq("status", "DRAFT");
+    if (allExamsError) throw allExamsError;
 
     const examIds = allExams?.map(e => e.id) || [];
-    const { data: examResults } = examIds.length > 0
+    const { data: examResults, error: examResultsError } = examIds.length > 0
       ? await supabase
           .from("exam_results")
           .select("obtained_marks, attendance_status, exam_id")
           .in("exam_id", examIds)
-      : { data: [] };
+      : { data: [], error: null };
+    if (examResultsError) throw examResultsError;
 
-    const { data: materials } = await supabase
+    const { data: materials, error: materialsError } = await supabase
       .from("batch_contents")
       .select("batch_id")
       .eq("status", "PUBLISHED");
+    if (materialsError) throw materialsError;
 
     batchesPerformanceData = (batches || []).map(b => {
       const activeStudents = activeEnrollments?.filter(e => e.batch_id === b.id).length || 0;
@@ -392,11 +529,13 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
           collected += Number(p.paid_amount) || 0;
         }
       });
-      const collectionRate = expected > 0 ? Math.round((collected / expected) * 100) : 100;
+      const collectionRate = expected > 0 ? Math.round((collected / expected) * 100) : 0;
 
       // Exams
       const batchExams = allExams?.filter(e => e.batch_id === b.id) || [];
-      const totalExams = batchExams.length;
+      const totalExams = batchExams.filter((exam) =>
+        ["COMPLETED", "RESULT_DRAFT", "RESULT_PUBLISHED", "ARCHIVED"].includes(exam.status)
+      ).length;
 
       // Published results pass/fail count and average marks
       const publishedExamIds = new Set(batchExams.filter(e => e.status === "RESULT_PUBLISHED").map(e => e.id));
@@ -584,30 +723,32 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
                   </thead>
                   <tbody className="divide-y divide-border/10">
                     {enrollmentsData.map((e, index) => {
-                      const stud = e.student || {};
-                      const prof = stud.profile || {};
-                      const b = e.batch || {};
+                      const stud = e.student;
+                      const prof = stud?.profile;
+                      const b = e.batch;
                       return (
                         <tr key={index} className="hover:bg-slate-50/30">
                           <td className="py-3">
-                            <Link href={`/teacher/students/${stud.id}/edit`} className="font-extrabold text-indigo-600 hover:underline">
-                              {stud.student_code}
-                            </Link>
+                            {stud ? (
+                              <Link href={`/teacher/students/${stud.id}/edit`} className="font-extrabold text-indigo-600 hover:underline">
+                                {stud.student_code}
+                              </Link>
+                            ) : "—"}
                           </td>
-                          <td className="py-3 font-extrabold">{prof.full_name || "Unknown"}</td>
-                          <td className="py-3 text-slate-700">{b.name} ({b.code})</td>
+                          <td className="py-3 font-extrabold">{prof?.full_name || "Unknown"}</td>
+                          <td className="py-3 text-slate-700">{b ? `${b.name} (${b.code})` : "—"}</td>
                           <td className="py-3">
                             <StatusBadge status={e.status} />
                           </td>
                           <td className="py-3">
-                            <StatusBadge status={prof.account_status} />
+                            <StatusBadge status={prof?.account_status || "UNKNOWN"} />
                           </td>
                           <td className="py-3 text-slate-500">{formatDate(e.approved_at)}</td>
                           <td className="py-3 text-slate-500">
                             {e.disabled_at ? (
                               <div className="flex flex-col">
                                 <span>{formatDate(e.disabled_at)}</span>
-                                <span className="text-[9px] text-rose-600 font-bold max-w-[150px] truncate" title={e.disable_reason}>
+                                <span className="text-[9px] text-rose-600 font-bold max-w-[150px] truncate" title={e.disable_reason || undefined}>
                                   {e.disable_reason}
                                 </span>
                               </div>
@@ -782,21 +923,23 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
                   </thead>
                   <tbody className="divide-y divide-border/10">
                     {paymentsData.map((p, index) => {
-                      const stud = p.student || {};
-                      const prof = stud.profile || {};
-                      const b = p.batch || {};
+                      const stud = p.student;
+                      const prof = stud?.profile;
+                      const b = p.batch;
                       const exp = Number(p.expected_amount) || 0;
                       const paid = Number(p.paid_amount) || 0;
                       const due = p.status === "WAIVED" ? 0 : Math.max(exp - paid, 0);
                       return (
                         <tr key={index} className="hover:bg-slate-50/30">
                           <td className="py-3">
-                            <Link href={`/teacher/students/${stud.id}/edit`} className="font-extrabold text-indigo-600 hover:underline">
-                              {stud.student_code}
-                            </Link>
+                            {stud ? (
+                              <Link href={`/teacher/students/${stud.id}/edit`} className="font-extrabold text-indigo-600 hover:underline">
+                                {stud.student_code}
+                              </Link>
+                            ) : "—"}
                           </td>
-                          <td className="py-3 font-extrabold">{prof.full_name || "Unknown"}</td>
-                          <td className="py-3 text-slate-700">{b.name} ({b.code})</td>
+                          <td className="py-3 font-extrabold">{prof?.full_name || "Unknown"}</td>
+                          <td className="py-3 text-slate-700">{b ? `${b.name} (${b.code})` : "—"}</td>
                           <td className="py-3 text-right font-bold text-slate-800">{formatCurrency(exp)}</td>
                           <td className="py-3 text-right font-bold text-emerald-700">{formatCurrency(paid)}</td>
                           <td className="py-3 text-right font-bold text-rose-700">{formatCurrency(due)}</td>
@@ -935,7 +1078,7 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
                   </thead>
                   <tbody className="divide-y divide-border/10">
                     {examsData.map((e, index) => {
-                      const b = e.batch || {};
+                      const b = e.batch;
                       return (
                         <tr key={index} className="hover:bg-slate-50/30">
                           <td className="py-3">
@@ -943,7 +1086,7 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
                               {e.name}
                             </Link>
                           </td>
-                          <td className="py-3 text-slate-700">{b.name} ({b.code})</td>
+                          <td className="py-3 text-slate-700">{b ? `${b.name} (${b.code})` : "—"}</td>
                           <td className="py-3 text-slate-500">{formatDate(e.exam_date)}</td>
                           <td className="py-3 text-center text-slate-800">{e.totalStudents}</td>
                           <td className="py-3 text-center text-emerald-700">{e.present}</td>
@@ -988,7 +1131,7 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
                 >
                   <option value="">-- Choose student --</option>
                   {studentsList.map(s => (
-                    <option key={s.id} value={s.id}>{s.student_code} - {(s.profile as any)?.full_name}</option>
+                    <option key={s.id} value={s.id}>{s.student_code} - {s.profile?.full_name || "Unknown"}</option>
                   ))}
                 </select>
               </div>
@@ -1007,7 +1150,7 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
               <div className="bg-white p-6 rounded-2xl border border-border/40 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2 border-b md:border-b-0 md:border-r border-border/20 pb-4 md:pb-0 md:pr-6">
                   <h4 className="text-[10px] text-muted uppercase tracking-wider font-extrabold">Student Info</h4>
-                  <p className="text-base font-black text-primary">{(selectedStudentData.profile as any)?.full_name}</p>
+                  <p className="text-base font-black text-primary">{selectedStudentData.profile?.full_name || "Unknown"}</p>
                   <span className="text-[10px] bg-primary/5 border border-primary/10 text-primary px-3 py-1 rounded-full font-black">
                     Code: {selectedStudentData.student_code}
                   </span>
@@ -1021,8 +1164,8 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
                 <div className="space-y-2 border-b md:border-b-0 md:border-r border-border/20 pb-4 md:pb-0 md:pr-6">
                   <h4 className="text-[10px] text-muted uppercase tracking-wider font-extrabold">Contact & Guardian Info</h4>
                   <div className="text-[10px] text-primary/80 space-y-1.5 pt-1 font-semibold">
-                    <div>Student Email: <span className="text-primary font-bold">{(selectedStudentData.profile as any)?.email}</span></div>
-                    <div>Student Phone: <span className="text-primary font-bold">{(selectedStudentData.profile as any)?.phone || "N/A"}</span></div>
+                    <div>Student Email: <span className="text-primary font-bold">{selectedStudentData.profile?.email || "N/A"}</span></div>
+                    <div>Student Phone: <span className="text-primary font-bold">{selectedStudentData.profile?.phone || "N/A"}</span></div>
                     <div>Guardian Name: <span className="text-primary font-bold">{selectedStudentData.guardian_name || "N/A"}</span></div>
                     <div>Guardian Phone: <span className="text-primary font-bold">{selectedStudentData.guardian_phone || "N/A"}</span></div>
                   </div>
@@ -1037,7 +1180,7 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-bold text-muted">System Account:</span>
-                      <StatusBadge status={(selectedStudentData.profile as any)?.account_status} />
+                      <StatusBadge status={selectedStudentData.profile?.account_status || "UNKNOWN"} />
                     </div>
                   </div>
                 </div>
@@ -1142,7 +1285,8 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
                       </thead>
                       <tbody className="divide-y divide-border/10">
                         {selectedStudentExams.map((r, index) => {
-                          const exam = r.exam || {};
+                          const exam = r.exam;
+                          if (!exam) return null;
                           const marks = Number(r.obtained_marks) || 0;
                           const total = Number(exam.total_marks) || 100;
                           const percentage = ((marks / total) * 100).toFixed(0);
