@@ -168,7 +168,7 @@ export default async function AcademicPerformanceReportPage({ searchParams }: Pa
             <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.17em] text-cyan-100">
               <TrendingUp className="h-3.5 w-3.5" /> Academic intelligence
             </span>
-            <h1 className="mt-4 font-display text-2xl font-black sm:text-4xl">Subject performance report</h1>
+            <h1 className="text-white mt-4 font-display text-2xl font-black sm:text-4xl">Subject performance report</h1>
             <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-blue-100/80">
               Compare syllabus delivery, examination progress, and published student outcomes without changing any grade, mark, or rank.
             </p>

@@ -113,7 +113,7 @@ export default async function TeacherRoutinePage({
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-cyan-100">
               <CalendarCheck2 className="h-3.5 w-3.5" /> Subject-connected schedule
             </div>
-            <h2 className="mt-4 max-w-xl font-display text-2xl font-black sm:text-3xl">One timeline from classroom plan to completed lesson.</h2>
+            <h2 className="text-white mt-4 max-w-xl font-display text-2xl font-black sm:text-3xl">One timeline from classroom plan to completed lesson.</h2>
             <p className="mt-2 max-w-xl text-xs font-semibold leading-6 text-blue-100/80">Students see the right subject, chapter, room, link, and schedule only for their enrolled batches.</p>
           </div>
           <div className="grid grid-cols-2 gap-3">
