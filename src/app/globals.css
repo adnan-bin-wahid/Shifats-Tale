@@ -294,14 +294,7 @@
 }
 
 /* Fonts and headers */
-.authenticated-shell h1,
-.authenticated-shell h2,
-.authenticated-shell h3,
-.authenticated-shell h4,
-.authenticated-shell h5,
-.authenticated-shell h6 {
-  color: #0B1F55 !important;
-}
+
 
 /* Neutral text formatting */
 .authenticated-shell .text-muted,
@@ -476,6 +469,7 @@
 .animate-pulse-glow {
   animation: loader-pulse-glow 3s ease-in-out infinite;
 }
+
 
 
 
