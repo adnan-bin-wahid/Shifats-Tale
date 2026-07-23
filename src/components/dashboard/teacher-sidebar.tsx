@@ -54,8 +54,6 @@ export const teacherNavItems: NavItem[] = [
   { label: "Academic Reports", href: "/teacher/reports/academic", icon: BarChart3 },
   { label: "Payment Ledger", href: "/teacher/payments", icon: CreditCard },
   { label: "Study Materials", href: "/teacher/materials", icon: FileText },
-  { label: "Academic Calendar", href: "/teacher/website/academic-calendar", icon: Calendar },
-  { label: "Class Routine", href: "/teacher/website/class-routine", icon: Calendar },
   { label: "Exams & Grading", href: "/teacher/exams", icon: GraduationCap },
   { label: "Security & Audit Logs", href: "/teacher/audit-logs", icon: ShieldAlert },
   { label: "Notifications", href: "/teacher/notifications", icon: Bell },
