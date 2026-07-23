@@ -18,6 +18,7 @@ import {
   Home,
   BookOpenCheck,
   ClipboardList,
+  CalendarDays,
 } from "lucide-react";
 
 interface StudentNavBatch {
@@ -87,6 +88,7 @@ export function StudentSidebar({ className, onLinkClick, activeBatches = [] }: S
   const navItems: NavItem[] = [
     { label: "Dashboard", href: "/student", icon: LayoutDashboard },
     { label: "Academic Journey", href: "/student/academics", icon: BookOpenCheck },
+    { label: "Class Routine", href: "/student/routine", icon: CalendarDays },
     { label: "Assignments", href: "/student/assignments", icon: ClipboardList },
   ];
 

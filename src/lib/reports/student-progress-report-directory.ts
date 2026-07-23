@@ -55,6 +55,7 @@ export async function getStudentProgressReportDirectory(): Promise<{
 
   const rows = (enrollmentResult.data || []) as unknown as EnrollmentDirectoryRow[];
   const uniqueStudents = new Map<string, StudentProgressReportStudentOption>();
+  const eligibleBatchIds = new Set(rows.map((row) => row.batch_id));
 
   for (const enrollment of rows) {
     const student = enrollment.student;
@@ -71,7 +72,8 @@ export async function getStudentProgressReportDirectory(): Promise<{
   }
 
   return {
-    batches: (batchResult.data || []) as StudentProgressReportBatchOption[],
+    batches: ((batchResult.data || []) as StudentProgressReportBatchOption[])
+      .filter((batch) => eligibleBatchIds.has(batch.id)),
     students: Array.from(uniqueStudents.values()).sort((a, b) =>
       `${a.fullName}-${a.studentCode}`.localeCompare(
         `${b.fullName}-${b.studentCode}`

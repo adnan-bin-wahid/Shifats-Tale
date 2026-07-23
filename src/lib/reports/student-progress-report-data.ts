@@ -473,16 +473,10 @@ export async function getStudentProgressReportData(
     }
   );
 
-  const allUnits = reportSubjects.reduce(
-    (sum, subject) => sum + subject.syllabus.totalUnits,
-    0
-  );
-  const completedUnits = reportSubjects.reduce(
-    (sum, subject) => sum + subject.syllabus.completedUnits,
-    0
-  );
-  const syllabusPercentage =
-    allUnits > 0 ? Math.round((completedUnits / allUnits) * 10_000) / 100 : 0;
+  const overallSyllabusProgress = calculateSyllabusProgress(units);
+  const allUnits = overallSyllabusProgress.totalUnits;
+  const completedUnits = overallSyllabusProgress.completedUnits;
+  const syllabusPercentage = overallSyllabusProgress.percentage;
   const examSummary = calculateExamReportSummary(reportExams);
   const assignmentSummary = calculateAssignmentReportSummary(reportAssignments);
   const settings = asRecord(settingsResult.data);

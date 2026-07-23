@@ -706,7 +706,7 @@ export function AcademicBatchWorkspace({
                   </Link>
                 </div>
 
-                <div className="mt-5 grid gap-3 md:grid-cols-2">
+                <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                   <div className="rounded-2xl border border-amber-100 bg-amber-50/55 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -732,6 +732,19 @@ export function AcademicBatchWorkspace({
                     <div className="mt-4 flex flex-wrap gap-2">
                       <Link href={`/teacher/assignments?batchId=${batch.id}&subjectId=${selectedSubject.id}`} className="rounded-lg bg-white px-3 py-2 text-[10px] font-black text-blue-700 shadow-sm transition hover:bg-blue-100">View assignments</Link>
                       <Link href={`/teacher/assignments/new?batchId=${batch.id}&subjectId=${selectedSubject.id}`} className="rounded-lg border border-blue-200 px-3 py-2 text-[10px] font-black text-blue-700 transition hover:bg-blue-100">Create assignment</Link>
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-violet-100 bg-violet-50/55 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-[0.14em] text-violet-600">Subject-linked class routine</p>
+                        <p className="mt-2 text-xs font-bold leading-5 text-slate-600">Plan the next class by date, time, chapter, room, and student note.</p>
+                      </div>
+                      <span className="rounded-xl bg-white p-2.5 text-violet-600 shadow-sm"><CalendarDays className="h-5 w-5" /></span>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Link href={`/teacher/routine?batchId=${batch.id}&subjectId=${selectedSubject.id}`} className="rounded-lg bg-white px-3 py-2 text-[10px] font-black text-violet-700 shadow-sm transition hover:bg-violet-100">View routine</Link>
+                      <Link href={`/teacher/routine/new?batchId=${batch.id}&subjectId=${selectedSubject.id}`} className="rounded-lg border border-violet-200 px-3 py-2 text-[10px] font-black text-violet-700 transition hover:bg-violet-100">Schedule class</Link>
                     </div>
                   </div>
                 </div>
