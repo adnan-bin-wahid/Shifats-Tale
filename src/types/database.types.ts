@@ -598,6 +598,91 @@ export interface Database {
           }
         ]
       }
+      academic_class_sessions: {
+        Row: {
+          id: string
+          batch_id: string
+          subject_id: string
+          unit_id: string | null
+          title: string
+          session_type: "REGULAR" | "REVISION" | "EXTRA_CLASS" | "EXAM_PREP"
+          status: "SCHEDULED" | "COMPLETED" | "CANCELLED"
+          starts_at: string
+          ends_at: string
+          location: string | null
+          class_link: string | null
+          student_note: string | null
+          created_by: string | null
+          updated_by: string | null
+          completed_at: string | null
+          cancelled_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          batch_id: string
+          subject_id: string
+          unit_id?: string | null
+          title: string
+          session_type?: "REGULAR" | "REVISION" | "EXTRA_CLASS" | "EXAM_PREP"
+          status?: "SCHEDULED" | "COMPLETED" | "CANCELLED"
+          starts_at: string
+          ends_at: string
+          location?: string | null
+          class_link?: string | null
+          student_note?: string | null
+          created_by?: string | null
+          updated_by?: string | null
+          completed_at?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          batch_id?: string
+          subject_id?: string
+          unit_id?: string | null
+          title?: string
+          session_type?: "REGULAR" | "REVISION" | "EXTRA_CLASS" | "EXAM_PREP"
+          status?: "SCHEDULED" | "COMPLETED" | "CANCELLED"
+          starts_at?: string
+          ends_at?: string
+          location?: string | null
+          class_link?: string | null
+          student_note?: string | null
+          created_by?: string | null
+          updated_by?: string | null
+          completed_at?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academic_class_sessions_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedSchema: "public"
+          },
+          {
+            foreignKeyName: "academic_class_sessions_subject_batch_fkey"
+            columns: ["subject_id", "batch_id"]
+            isOneToOne: false
+            referencedRelation: "batch_subjects"
+            referencedSchema: "public"
+          },
+          {
+            foreignKeyName: "academic_class_sessions_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "subject_units"
+            referencedSchema: "public"
+          }
+        ]
+      }
       enrollments: {
         Row: {
           id: string
@@ -1268,6 +1353,8 @@ export interface Database {
       subject_status: "DRAFT" | "UPCOMING" | "RUNNING" | "PAUSED" | "COMPLETED" | "ARCHIVED"
       subject_unit_status: "PLANNED" | "RUNNING" | "COMPLETED" | "SKIPPED"
       subject_unit_type: "CHAPTER" | "TOPIC" | "MODULE"
+      academic_class_session_status: "SCHEDULED" | "COMPLETED" | "CANCELLED"
+      academic_class_session_type: "REGULAR" | "REVISION" | "EXTRA_CLASS" | "EXAM_PREP"
     }
     CompositeTypes: {
       [_ in any]: never
