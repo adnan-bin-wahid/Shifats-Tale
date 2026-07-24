@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveAuthenticatedDestination } from "@/lib/supabase/auth";
+import { requireTeacher } from "@/lib/auth-guards";
 import { createAuditLog } from "@/lib/audit";
 import { createNotificationForProfile } from "@/lib/notifications";
 import { revalidatePath } from "next/cache";
@@ -131,10 +132,7 @@ export async function updateStudentProfileSelfAction(rawInput: any) {
  */
 export async function updateTeacherProfileSelfAction(rawInput: any) {
   try {
-    const { destination, profile } = await resolveAuthenticatedDestination();
-    if (destination !== "TEACHER_DASHBOARD" || !profile || profile.role !== "TEACHER") {
-      return { success: false, message: "Unauthorized: Only active teachers can update their profile." };
-    }
+    const { profile } = await requireTeacher();
 
     // Validate inputs
     const validated = teacherProfileSelfSchema.safeParse({
@@ -239,10 +237,7 @@ export async function updateTeacherProfileSelfAction(rawInput: any) {
  */
 export async function updateStudentProfileByTeacherAction(studentId: string, rawInput: any) {
   try {
-    const { destination, profile: teacher } = await resolveAuthenticatedDestination();
-    if (destination !== "TEACHER_DASHBOARD" || !teacher || teacher.role !== "TEACHER") {
-      return { success: false, message: "Unauthorized: Only active teachers can manage student profiles." };
-    }
+    const { profile: teacher } = await requireTeacher();
 
     const validated = studentProfileTeacherEditSchema.safeParse({
       fullName: rawInput.fullName,
@@ -420,10 +415,7 @@ export async function updateStudentProfileByTeacherAction(studentId: string, raw
  */
 export async function deleteStudentByAdminAction(studentId: string) {
   try {
-    const { destination, profile: teacher } = await resolveAuthenticatedDestination();
-    if (destination !== "TEACHER_DASHBOARD" || !teacher || teacher.role !== "TEACHER") {
-      return { success: false, message: "Unauthorized: Only active teachers/admins can delete students." };
-    }
+    const { profile: teacher } = await requireTeacher();
 
     const admin = createAdminClient();
 
@@ -440,7 +432,8 @@ export async function deleteStudentByAdminAction(studentId: string) {
 
     const profileId = student.profile_id;
 
-    // 2. Fetch all student enrollments to properly cascade-delete payments, exam_results, attendance, notifications
+    // 2. Fetch enrollments so related notifications can be removed before
+    // database foreign-key cascades delete enrollment-owned records.
     const { data: studentEnrollments } = await admin
       .from("enrollments")
       .select("id")
@@ -450,15 +443,13 @@ export async function deleteStudentByAdminAction(studentId: string) {
       const enrollmentIds = studentEnrollments.map((e) => e.id);
       await admin.from("payments").delete().in("enrollment_id", enrollmentIds);
       await admin.from("exam_results").delete().in("enrollment_id", enrollmentIds);
-      await admin.from("attendance").delete().in("enrollment_id", enrollmentIds);
       await admin.from("notifications").delete().in("related_entity_id", enrollmentIds);
       await admin.from("enrollments").delete().eq("student_id", studentId);
     }
 
-    // 3. Clean up child records linked to profile.id where relevant
+    // 3. Clean up notifications linked to this profile.
     if (profileId) {
-      await admin.from("notifications").delete().eq("recipient_profile_id", profileId);
-      await admin.from("attendance").delete().eq("profile_id", profileId);
+      await admin.from("notifications").delete().eq("user_id", profileId);
     }
 
     // 4. Delete the student_profiles row
@@ -508,10 +499,7 @@ export async function deleteStudentByAdminAction(studentId: string) {
  */
 export async function updateAppSettingsAction(rawInput: any) {
   try {
-    const { destination, profile: teacher } = await resolveAuthenticatedDestination();
-    if (destination !== "TEACHER_DASHBOARD" || !teacher || teacher.role !== "TEACHER") {
-      return { success: false, message: "Unauthorized: Only active teachers can change application settings." };
-    }
+    const { profile: teacher } = await requireTeacher();
 
     const validated = appSettingsSchema.safeParse({
       coachingCenterName: rawInput.coachingCenterName,

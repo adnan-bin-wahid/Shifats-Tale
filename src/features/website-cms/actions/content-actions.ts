@@ -1,7 +1,6 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { requireTeacher } from "@/lib/auth-guards";
 import { revalidatePath } from "next/cache";
 import { SitePageSection } from "../types/cms-types";
@@ -16,12 +15,9 @@ export async function getPageSection(pageKey: string, sectionKey: string) {
   const { data: section, error } = await supabase
     .from("vw_public_site_page_sections")
     .select("*")
+    .eq("page_key", pageKey)
     .eq("section_key", sectionKey)
     .maybeSingle();
-
-  // Validate the page_key matches implicitly since the view filters active pages, 
-  // but to be perfectly strict we should join or just trust the section_key if it's unique enough.
-  // We'll rely on the view logic.
   
   if (error || !section) {
     return null;
@@ -155,11 +151,11 @@ export async function updatePageSection(
  * Automatically resolves media URLs if media_id is present.
  */
 export async function getSectionItems(sectionKey: string) {
-  const adminAuth = createAdminClient();
+  const supabase = await createClient();
 
   // 1. Get the section ID
-  const { data: section, error: sectionError } = await adminAuth
-    .from("site_page_sections")
+  const { data: section, error: sectionError } = await supabase
+    .from("vw_public_site_page_sections")
     .select("id")
     .eq("section_key", sectionKey)
     .maybeSingle();
@@ -168,12 +164,11 @@ export async function getSectionItems(sectionKey: string) {
     return [];
   }
 
-  // 2. Get the items (fetch from base table instead of view to ensure metadata is included)
-  const { data: items, error: itemsError } = await adminAuth
-    .from("site_section_items")
+  // 2. Get only fields intentionally exposed by the public view.
+  const { data: items, error: itemsError } = await supabase
+    .from("vw_public_site_section_items")
     .select("*")
     .eq("section_id", section.id)
-    .eq("status", "PUBLISHED")
     .order("sort_order", { ascending: true });
 
   if (itemsError) {
@@ -182,10 +177,11 @@ export async function getSectionItems(sectionKey: string) {
   }
 
   // 3. Get media for these items
-  const mediaIds = items.map((i: any) => i.media_id).filter(Boolean);
+  const publishedItems = items ?? [];
+  const mediaIds = publishedItems.map((i: any) => i.media_id).filter(Boolean);
   let mediaMap: Record<string, string> = {};
   if (mediaIds.length > 0) {
-    const { data: mediaAssets } = await adminAuth
+    const { data: mediaAssets } = await supabase
       .from("vw_public_media_assets")
       .select("id, secure_url")
       .in("id", mediaIds);
@@ -195,7 +191,7 @@ export async function getSectionItems(sectionKey: string) {
   }
 
   // Map to include mediaUrl directly for easier frontend consumption
-  return items.map((item: any) => {
+  return publishedItems.map((item: any) => {
     let parsedMetadata = item.metadata;
     if (typeof item.metadata === 'string') {
       try {

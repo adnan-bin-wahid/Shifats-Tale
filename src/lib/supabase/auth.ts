@@ -1,4 +1,4 @@
-import { Database } from "../../types/database.types";
+import type { Database } from "../../types/database.types";
 
 export type AuthDestination =
   | "UNAUTHENTICATED"
@@ -149,8 +149,13 @@ export async function resolveUserDestination(supabase: any): Promise<AuthResolut
   }
 }
 
-export async function resolveAuthenticatedDestination(): Promise<AuthResolution> {
-  const { createClient } = await import("./server");
-  const supabase = await createClient();
+export async function resolveAuthenticatedDestination(
+  supabaseOverride?: any
+): Promise<AuthResolution> {
+  const supabase =
+    supabaseOverride ??
+    (await (await import("./server")).createClient());
+
   return resolveUserDestination(supabase);
 }
+

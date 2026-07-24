@@ -1,7 +1,7 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import { resolveAuthenticatedDestination } from "@/lib/supabase/auth";
+import { requireTeacher } from "@/lib/auth-guards";
 import { createAuditLog } from "@/lib/audit";
 import { createNotificationForProfile } from "@/lib/notifications";
 import { examSchema } from "@/lib/validations/exams";
@@ -9,15 +9,7 @@ import { calculateGrade, calculatePassFailStatus, calculateCompetitionRanks } fr
 import { revalidatePath } from "next/cache";
 
 async function assertActiveTeacher() {
-  const { destination, profile } = await resolveAuthenticatedDestination();
-  if (
-    destination !== "TEACHER_DASHBOARD" ||
-    !profile ||
-    profile.role !== "TEACHER" ||
-    profile.account_status !== "ACTIVE"
-  ) {
-    throw new Error("Unauthorized: Only an active teacher can perform this action.");
-  }
+  const { profile } = await requireTeacher();
   return profile;
 }
 
@@ -831,7 +823,6 @@ export async function deleteExamAction(examId: string) {
 
     // Clean up child records linked to examId
     await admin.from("exam_results").delete().eq("exam_id", examId);
-    try { await admin.from("attendance").delete().eq("exam_id", examId); } catch (e) {}
     await admin.from("notifications").delete().eq("related_entity_id", examId);
 
     // Step down status sequentially so DB trigger allows deletion

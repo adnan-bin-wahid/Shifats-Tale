@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { resolveAuthenticatedDestination } from "@/lib/supabase/auth";
+import { requireTeacher } from "@/lib/auth-guards";
 import { createAuditLog } from "@/lib/audit";
 import { createNotification, createNotificationForProfile } from "@/lib/notifications";
 import { batchSchema } from "@/lib/validations/batch";
@@ -11,15 +11,7 @@ import { deleteR2File } from "@/lib/r2";
 import { revalidatePath } from "next/cache";
 
 async function assertActiveTeacher() {
-  const { destination, profile } = await resolveAuthenticatedDestination();
-  if (
-    destination !== "TEACHER_DASHBOARD" ||
-    !profile ||
-    profile.role !== "TEACHER" ||
-    profile.account_status !== "ACTIVE"
-  ) {
-    throw new Error("Unauthorized: Only an active teacher can perform this action.");
-  }
+  const { profile } = await requireTeacher();
   return profile;
 }
 
@@ -331,12 +323,11 @@ export async function deleteBatchAction(batchId: string) {
       const enrollmentIds = batchEnrollments.map((e) => e.id);
       await admin.from("payments").delete().in("enrollment_id", enrollmentIds);
       await admin.from("exam_results").delete().in("enrollment_id", enrollmentIds);
-      try { await admin.from("attendance").delete().in("enrollment_id", enrollmentIds); } catch (e) {}
       await admin.from("notifications").delete().in("related_entity_id", enrollmentIds);
       await admin.from("enrollments").delete().in("id", enrollmentIds);
     }
 
-    // 2. Get all exams for this batch to clean up exam_results, attendance, and notifications
+    // 2. Get all exams for this batch to clean up results and notifications.
     const { data: batchExams } = await admin
       .from("exams")
       .select("id")
@@ -345,7 +336,6 @@ export async function deleteBatchAction(batchId: string) {
     if (batchExams && batchExams.length > 0) {
       const examIds = batchExams.map((e) => e.id);
       await admin.from("exam_results").delete().in("exam_id", examIds);
-      try { await admin.from("attendance").delete().in("exam_id", examIds); } catch (e) {}
       await admin.from("notifications").delete().in("related_entity_id", examIds);
       for (const examId of examIds) {
         // Step down through status transitions so DB trigger allows deletion
@@ -386,8 +376,7 @@ export async function deleteBatchAction(batchId: string) {
       await admin.from("batch_contents").delete().eq("batch_id", batchId);
     }
 
-    // 4. Clean up attendance, announcements, contents, payments, and enrollments specifically tied by batch_id
-    try { await admin.from("attendance").delete().eq("batch_id", batchId); } catch (e) {}
+    // 4. Clean up records specifically tied by batch_id.
     await admin.from("announcements").delete().eq("batch_id", batchId);
     await admin.from("batch_contents").delete().eq("batch_id", batchId);
     await admin.from("payments").delete().eq("batch_id", batchId);
@@ -732,10 +721,7 @@ export async function deleteEnrollmentAction(enrollmentId: string) {
     // 3. Clean up notifications tied specifically to this enrollment
     await admin.from("notifications").delete().eq("related_entity_id", enrollmentId);
 
-    // 4. Clean up attendance records tied specifically to this enrollment if any
-    try { await admin.from("attendance").delete().eq("enrollment_id", enrollmentId); } catch (e) {}
-
-    // 5. Delete the enrollment record itself
+    // 4. Delete the enrollment record itself.
     const { error: dbError } = await admin
       .from("enrollments")
       .delete()
