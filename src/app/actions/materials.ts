@@ -1,7 +1,7 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import { resolveAuthenticatedDestination } from "@/lib/supabase/auth";
+import { requireTeacher } from "@/lib/auth-guards";
 import { createAuditLog } from "@/lib/audit";
 import { createNotificationForProfile } from "@/lib/notifications";
 import { materialSchema } from "@/lib/validations/materials";
@@ -17,15 +17,7 @@ import { validateUploadedFile, validateFileMagicBytes } from "@/lib/cloudinary/v
 import { revalidatePath } from "next/cache";
 
 async function assertActiveTeacher() {
-  const { destination, profile } = await resolveAuthenticatedDestination();
-  if (
-    destination !== "TEACHER_DASHBOARD" ||
-    !profile ||
-    profile.role !== "TEACHER" ||
-    profile.account_status !== "ACTIVE"
-  ) {
-    throw new Error("Unauthorized: Only an active teacher can perform this action.");
-  }
+  const { profile } = await requireTeacher();
   return profile;
 }
 

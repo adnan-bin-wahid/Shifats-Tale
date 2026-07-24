@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { resolveAuthenticatedDestination } from "@/lib/supabase/auth";
+import { requireTeacher } from "@/lib/auth-guards";
 import { createAuditLog } from "@/lib/audit";
 import { createNotification } from "@/lib/notifications";
 import { revalidatePath } from "next/cache";
@@ -11,15 +11,7 @@ import { revalidatePath } from "next/cache";
  * Assures the actor is an active teacher.
  */
 async function assertActiveTeacher() {
-  const { destination, profile } = await resolveAuthenticatedDestination();
-  if (
-    destination !== "TEACHER_DASHBOARD" ||
-    !profile ||
-    profile.role !== "TEACHER" ||
-    profile.account_status !== "ACTIVE"
-  ) {
-    throw new Error("Unauthorized: Only an active teacher can perform this action.");
-  }
+  const { profile } = await requireTeacher();
   return profile;
 }
 
