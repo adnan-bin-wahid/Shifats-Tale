@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert";
-import { resolveUserDestination } from "../src/lib/supabase/auth";
+import {
+  resolveAuthenticatedDestination,
+  resolveUserDestination,
+} from "../src/lib/supabase/auth";
 
 // =========================================================================
 // MOCK SUPABASE CLIENT BUILDER FOR TESTING ACCESS CONTROL RULES
@@ -258,5 +261,28 @@ test("Auth & Routing Gating Rules Test Suite", async (t) => {
 
     const inactiveRes = await resolveUserDestination(mockSupabaseInactive);
     assert.strictEqual(inactiveRes.destination, "PENDING_APPROVAL");
+  });
+
+  await t.test("9. Production auth wrapper delegates to the real session resolver", async () => {
+    const mockUser = { id: "user-teacher-uuid", email: "teacher@coaching.com" };
+    const mockProfile = {
+      id: "profile-teacher-uuid",
+      auth_user_id: "user-teacher-uuid",
+      role: "TEACHER",
+      full_name: "Teacher Admin",
+      email: "teacher@coaching.com",
+      account_status: "ACTIVE",
+    };
+
+    const result = await resolveAuthenticatedDestination(
+      createMockSupabase({
+        user: mockUser,
+        profile: mockProfile,
+      })
+    );
+
+    assert.strictEqual(result.destination, "TEACHER_DASHBOARD");
+    assert.deepEqual(result.user, mockUser);
+    assert.deepEqual(result.profile, mockProfile);
   });
 });
