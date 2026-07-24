@@ -173,7 +173,7 @@ export function QuickActions({ batchId, status, admissionOpen }: QuickActionsPro
               <div>
                 <h4 className="font-extrabold text-primary text-base">Confirm Permanent Deletion</h4>
                 <p className="text-xs text-muted leading-relaxed font-medium mt-1">
-                  Are you sure you want to permanently delete this batch along with all associated enrollments, study materials, exams, attendance, and fee records? <span className="font-bold text-emerald-700">(Note: Registered student account profiles will remain preserved).</span> This action cannot be undone.
+                  Are you sure you want to permanently delete this batch along with all associated enrollments, study materials, exams, results, and fee records? <span className="font-bold text-emerald-700">(Note: Registered student account profiles will remain preserved).</span> This action cannot be undone.
                 </p>
               </div>
             </div>
@@ -185,7 +185,7 @@ export function QuickActions({ batchId, status, admissionOpen }: QuickActionsPro
                   label: "Student Enrollments",
                   description: "All enrollment links under this batch",
                   subItems: [
-                    "Student-to-Batch enrollment link records (`batch_enrollments` table)",
+                    "Student-to-Batch enrollment link records (`enrollments` table)",
                     "Student dashboard batch access & curriculum assignments",
                     "Assigned seat & roll numbers within this specific batch",
                     "Batch-specific student progress and submission records",
@@ -193,19 +193,17 @@ export function QuickActions({ batchId, status, admissionOpen }: QuickActionsPro
                 },
                 {
                   label: "Exams & Exam Results",
-                  description: "All exams, questions, attendance logs, and student scorecards",
+                  description: "All exams and student result records",
                   subItems: [
                     "All examination setups assigned specifically to this batch (`exams` table)",
-                    "Question papers, MCQs, and rubric configurations attached to this batch's exams",
-                    "Student scorecards, obtained marks, and grading sheets (`exam_marks` table)",
-                    "Exam-specific invigilation & attendance sheets",
+                    "Student scorecards, obtained marks, grades, ranks, and presence status (`exam_results` table)",
                   ],
                 },
                 {
                   label: "Study Materials & R2 Files",
                   description: "All uploaded notes, PDFs, and Cloudflare R2 storage files for this batch",
                   subItems: [
-                    "All lecture notes, PDFs, and links uploaded for this batch (`materials` table)",
+                    "All lecture notes, PDFs, and links uploaded for this batch (`batch_contents` table)",
                     "Cloudflare R2 private document storage files associated with this batch",
                     "Cloudinary media assets & preview banners attached to this batch's lectures",
                     "Student bookmark & access history logs for these materials",
@@ -221,10 +219,9 @@ export function QuickActions({ batchId, status, admissionOpen }: QuickActionsPro
                   ],
                 },
                 {
-                  label: "Attendance & Batch Announcements",
-                  description: "Daily attendance sheets, batch notices, and class updates",
+                  label: "Batch Announcements & Updates",
+                  description: "Batch notices, notifications, and class updates",
                   subItems: [
-                    "Daily student present/absent sheets (`attendance` table)",
                     "All bulletin board notices and announcements posted to this batch (`announcements` table)",
                     "Student notification alerts and push notification logs sent for this batch",
                     "Live class links, schedule entries, and class routine assignments",

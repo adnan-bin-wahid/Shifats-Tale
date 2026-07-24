@@ -325,7 +325,7 @@ export function ExamListActions({ examId, examName, status }: ExamListActionsPro
               <div className="text-left">
                 <h4 className="font-extrabold text-primary text-base">Permanent Delete</h4>
                 <p className="text-xs text-muted leading-relaxed font-medium mt-1">
-                  Are you sure you want to permanently delete <strong className="text-primary font-bold">{examName}</strong> along with all student results and attendance? This action cannot be undone.
+                  Are you sure you want to permanently delete <strong className="text-primary font-bold">{examName}</strong> along with all student results and recorded presence statuses? This action cannot be undone.
                 </p>
               </div>
             </div>
@@ -337,17 +337,16 @@ export function ExamListActions({ examId, examName, status }: ExamListActionsPro
                   label: "Student Marks & Results",
                   description: "All published and internal exam_results scorecards for this test",
                   subItems: [
-                    "Individual student scores, percentage marks, and letter grades (`exam_marks` table)",
+                    "Individual student scores, percentage marks, and letter grades (`exam_results` table)",
                     "Student rank positions, percentile ratings, and performance breakdowns",
                     "Teacher remark notes and answer paper review comments",
                   ],
                 },
                 {
-                  label: "Exam Attendance Logs",
-                  description: "All student presence and roll sheets for this examination",
+                  label: "Exam Presence Status",
+                  description: "Present/absent status stored with each examination result",
                   subItems: [
-                    "Invigilation present/absent sheets specifically for this exam date (`attendance` table)",
-                    "Exam room check-in times and seat allocation tracking",
+                    "Each student's `attendance_status` value in the `exam_results` table",
                   ],
                 },
                 {

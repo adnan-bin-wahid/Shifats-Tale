@@ -571,7 +571,7 @@ export function TeacherMaterialsList({
                   label: "Material DB Record",
                   description: "The central study material title, description, and link row",
                   subItems: [
-                    "Database record row (`materials` table: title, description, category, batch assignment)",
+                    "Database record row (`batch_contents` table: title, description, category, batch assignment)",
                     "Teacher assignment tracking and student download statistics for this item",
                   ],
                 },

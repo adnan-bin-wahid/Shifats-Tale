@@ -252,7 +252,7 @@ export function EnrollmentRowActions({
               deletedItems={[
                 {
                   label: "Enrollment Connection & Access",
-                  description: "The specific student-to-batch connection entry (`batch_enrollments` table)",
+                  description: "The specific student-to-batch connection entry (`enrollments` table)",
                   subItems: [
                     "Assigned seat number, batch roll number, and enrollment status record",
                     "Student access permissions to this specific batch's study materials and recorded lectures",
@@ -268,10 +268,10 @@ export function EnrollmentRowActions({
                   ],
                 },
                 {
-                  label: "Class Attendance Entries",
-                  description: "Class presence records logged under this batch enrollment",
+                  label: "Exam Result Records",
+                  description: "Exam marks and present/absent result status tied to this enrollment",
                   subItems: [
-                    "Daily present/absent logs specifically recorded under this batch (`attendance` table)",
+                    "Marks, grades, ranks, and `attendance_status` values in `exam_results`",
                   ],
                 },
               ]}
@@ -290,7 +290,7 @@ export function EnrollmentRowActions({
                   description: "The academic batch and its curriculum remain untouched",
                   subItems: [
                     "The academic batch record (`batches` table: teacher assignments, routine, syllabus)",
-                    "Other enrolled students and their attendance/payment records in this batch",
+                    "Other enrolled students and their exam-result/payment records in this batch",
                   ],
                 },
               ]}

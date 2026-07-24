@@ -401,7 +401,7 @@ export function StudentControlPanel({
                   label: "Batch Enrollments",
                   description: "All active and past batch enrollment records for this student",
                   subItems: [
-                    "Student enrollment connection entries across all academic batches (`batch_enrollments` table)",
+                    "Student enrollment connection entries across all academic batches (`enrollments` table)",
                     "Assigned roll numbers, seat reservations, and batch join histories",
                     "Student access permissions to private batch materials and lectures",
                   ],
@@ -419,17 +419,16 @@ export function StudentControlPanel({
                   label: "Exam Results & Scorecards",
                   description: "All published and internal exam marks and answer records",
                   subItems: [
-                    "All exam marks, grades, and answer submission sheets (`exam_marks` table)",
+                    "All exam marks, grades, and result records (`exam_results` table)",
                     "Individual student rank, percentile logs, and SMS result history",
                     "Subject-wise performance tracking and academic report cards",
                   ],
                 },
                 {
-                  label: "Attendance Logs",
-                  description: "All class and examination attendance entries",
+                  label: "Exam Presence Status",
+                  description: "Present/absent status stored with examination results",
                   subItems: [
-                    "Daily present/absent logs across all enrolled classes (`attendance` table)",
-                    "Exam attendance and invigilation check-in records",
+                    "All `attendance_status` values attached to this student's `exam_results` records",
                   ],
                 },
                 {
