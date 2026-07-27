@@ -27,6 +27,25 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  React.useEffect(() => {
+    // Parse URL for PKCE code
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get("code");
+    
+    if (code) {
+      setLoading(true);
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) {
+          setError("Invalid or expired reset link. Please request a new one.");
+        }
+        // Clean up the URL
+        url.searchParams.delete("code");
+        window.history.replaceState({}, document.title, url.toString());
+        setLoading(false);
+      });
+    }
+  }, []);
+
   const {
     register,
     handleSubmit,

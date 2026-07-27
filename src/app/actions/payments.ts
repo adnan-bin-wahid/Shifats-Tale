@@ -171,6 +171,7 @@ export async function createPaymentAction(rawInput: {
     }
 
     revalidatePath("/teacher/payments");
+    revalidatePath("/teacher/finance");
     revalidatePath(`/teacher/students/${studentId}`);
     revalidatePath(`/teacher/batches/${batchId}`);
     return { success: true, payment: newPayment };
@@ -343,6 +344,7 @@ export async function updatePaymentAction(
     }
 
     revalidatePath("/teacher/payments");
+    revalidatePath("/teacher/finance");
     revalidatePath(`/teacher/payments/${paymentId}`);
     revalidatePath(`/teacher/students/${oldPayment.student_id}`);
     revalidatePath(`/teacher/batches/${oldPayment.batch_id}`);
@@ -463,6 +465,7 @@ export async function generateMonthlyDuesAction(
     }
 
     revalidatePath("/teacher/payments");
+    revalidatePath("/teacher/finance");
     revalidatePath(`/teacher/batches/${batchId}`);
     return {
       success: true,
@@ -514,6 +517,7 @@ export async function deletePaymentAction(paymentId: string) {
     });
 
     revalidatePath("/teacher/payments");
+    revalidatePath("/teacher/finance");
     if (payment.batch_id) {
       revalidatePath(`/teacher/batches/${payment.batch_id}`);
     }

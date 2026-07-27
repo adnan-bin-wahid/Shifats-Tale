@@ -819,6 +819,137 @@ export interface Database {
           }
         ]
       }
+      finance_expense_categories: {
+        Row: {
+          id: string
+          code: string
+          name: string
+          color_hex: string
+          display_order: number
+          is_active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          code: string
+          name: string
+          color_hex?: string
+          display_order?: number
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          code?: string
+          name?: string
+          color_hex?: string
+          display_order?: number
+          is_active?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      finance_expenses: {
+        Row: {
+          id: string
+          category_id: string
+          title: string
+          amount: number
+          expense_date: string
+          payment_method: "CASH" | "BANK_TRANSFER" | "BKASH" | "NAGAD" | "CARD" | "CHEQUE" | "OTHER"
+          payee: string | null
+          reference_number: string | null
+          description: string | null
+          receipt_storage_path: string | null
+          receipt_file_name: string | null
+          receipt_content_type: string | null
+          receipt_size_bytes: number | null
+          status: "POSTED" | "VOID"
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
+          created_by: string
+          updated_by: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          category_id: string
+          title: string
+          amount: number
+          expense_date: string
+          payment_method?: "CASH" | "BANK_TRANSFER" | "BKASH" | "NAGAD" | "CARD" | "CHEQUE" | "OTHER"
+          payee?: string | null
+          reference_number?: string | null
+          description?: string | null
+          receipt_storage_path?: string | null
+          receipt_file_name?: string | null
+          receipt_content_type?: string | null
+          receipt_size_bytes?: number | null
+          status?: "POSTED" | "VOID"
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+          created_by: string
+          updated_by: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          category_id?: string
+          title?: string
+          amount?: number
+          expense_date?: string
+          payment_method?: "CASH" | "BANK_TRANSFER" | "BKASH" | "NAGAD" | "CARD" | "CHEQUE" | "OTHER"
+          payee?: string | null
+          reference_number?: string | null
+          description?: string | null
+          receipt_storage_path?: string | null
+          receipt_file_name?: string | null
+          receipt_content_type?: string | null
+          receipt_size_bytes?: number | null
+          status?: "POSTED" | "VOID"
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+          created_by?: string
+          updated_by?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_expenses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "finance_expense_categories"
+            referencedSchema: "public"
+          },
+          {
+            foreignKeyName: "finance_expenses_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedSchema: "public"
+          },
+          {
+            foreignKeyName: "finance_expenses_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedSchema: "public"
+          },
+          {
+            foreignKeyName: "finance_expenses_voided_by_fkey"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedSchema: "public"
+          }
+        ]
+      }
       batch_contents: {
         Row: {
           id: string
@@ -1225,6 +1356,27 @@ export interface Database {
       }
     }
     Views: {
+      finance_income_ledger: {
+        Row: {
+          payment_id: string | null
+          transaction_date: string | null
+          amount: number | null
+          status: "PAID" | "PARTIALLY_PAID" | null
+          payment_method: string | null
+          reference_number: string | null
+          billing_month: number | null
+          billing_year: number | null
+          student_id: string | null
+          batch_id: string | null
+          student_code: string | null
+          student_name: string | null
+          batch_name: string | null
+          batch_code: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
       subject_progress_summary: {
         Row: {
           subject_id: string | null
@@ -1355,6 +1507,8 @@ export interface Database {
       subject_unit_type: "CHAPTER" | "TOPIC" | "MODULE"
       academic_class_session_status: "SCHEDULED" | "COMPLETED" | "CANCELLED"
       academic_class_session_type: "REGULAR" | "REVISION" | "EXTRA_CLASS" | "EXAM_PREP"
+      finance_expense_status: "POSTED" | "VOID"
+      finance_payment_method: "CASH" | "BANK_TRANSFER" | "BKASH" | "NAGAD" | "CARD" | "CHEQUE" | "OTHER"
     }
     CompositeTypes: {
       [_ in any]: never
