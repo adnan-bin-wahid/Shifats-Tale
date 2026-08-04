@@ -60,7 +60,7 @@ export default async function AcademicBatchWorkspacePage({ params }: PageProps) 
     progressResult.error ||
     batchProgressResult.error ||
     contentResult.error;
-  if (workspaceError) throw workspaceError;
+  if (workspaceError) throw new Error(workspaceError.message || "Failed to load academic workspace data");
 
   const subjectRows = subjectsResult.data || [];
   const subjectIds = subjectRows.map((subject) => subject.id);
@@ -71,7 +71,7 @@ export default async function AcademicBatchWorkspacePage({ params }: PageProps) 
         .in("subject_id", subjectIds)
         .order("sequence_no", { ascending: true })
     : { data: [], error: null };
-  if (unitsResult.error) throw unitsResult.error;
+  if (unitsResult.error) throw new Error(unitsResult.error.message || "Failed to load subject units");
 
   const unitRows = unitsResult.data || [];
   const examRows = examsResult.data || [];

@@ -180,7 +180,7 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
     .select("*")
     .eq("id", true)
     .single();
-  if (settingsError) throw settingsError;
+  if (settingsError) throw new Error(JSON.stringify(settingsError));
 
   const timezone = settings?.timezone || "Asia/Dhaka";
 
@@ -203,7 +203,7 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
     .from("batches")
     .select("id, name, code")
     .order("name", { ascending: true });
-  if (batchesError) throw batchesError;
+  if (batchesError) throw new Error(JSON.stringify(batchesError));
 
   const monthNames = [
     "January", "February", "March", "April", "May", "June",
@@ -247,7 +247,7 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
     if (tab1EndDate) q = q.lte("created_at", tab1EndDate);
 
     const { data, error } = await q.order("created_at", { ascending: false });
-    if (error) throw error;
+    if (error) throw new Error(JSON.stringify(error));
     enrollmentsData = (data || []) as unknown as EnrollmentReportRow[];
   }
 
@@ -295,7 +295,7 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
     if (tab2Method) q = q.eq("payment_method", tab2Method);
 
     const { data, error } = await q.order("created_at", { ascending: false });
-    if (error) throw error;
+    if (error) throw new Error(JSON.stringify(error));
     paymentsData = (data || []) as unknown as PaymentReportRow[];
 
     paymentsData.forEach((p) => {
@@ -350,7 +350,7 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
     if (tab3EndDate) q = q.lte("exam_date", tab3EndDate);
 
     const { data, error } = await q.order("exam_date", { ascending: false });
-    if (error) throw error;
+    if (error) throw new Error(JSON.stringify(error));
     const rawExams = data || [];
 
     const examIds = rawExams.map(e => e.id);
@@ -360,7 +360,7 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
           .select("exam_id, attendance_status, obtained_marks")
           .in("exam_id", examIds)
       : { data: [], error: null };
-    if (resultsError) throw resultsError;
+    if (resultsError) throw new Error(JSON.stringify(resultsError));
 
     examsData = rawExams.map(e => {
       const examResults = results?.filter(r => r.exam_id === e.id) || [];
@@ -417,7 +417,7 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
       .select("id, student_code, profile:profiles(full_name)")
       .eq("registration_status", "APPROVED")
       .order("student_code", { ascending: true });
-    if (error) throw error;
+    if (error) throw new Error(JSON.stringify(error));
     studentsList = (data || []) as unknown as StudentDirectoryRow[];
 
     if (tab4StudentId) {
@@ -426,7 +426,7 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
         .select("*, profile:profiles(*)")
         .eq("id", tab4StudentId)
         .single();
-      if (studentError) throw studentError;
+      if (studentError) throw new Error(JSON.stringify(studentError));
       selectedStudentData = std as unknown as SelectedStudentRow | null;
 
       if (std) {
@@ -434,7 +434,7 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
           .from("enrollments")
           .select("*, batch:batches(*)")
           .eq("student_id", tab4StudentId);
-        if (enrollmentsError) throw enrollmentsError;
+        if (enrollmentsError) throw new Error(JSON.stringify(enrollmentsError));
         selectedStudentEnrollments = (enrolls || []) as unknown as StudentEnrollmentRow[];
 
         const { data: exResults, error: examResultsError } = await supabase
@@ -456,7 +456,7 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
           .eq("student_id", tab4StudentId);
 
         // Keep published results
-        if (examResultsError) throw examResultsError;
+        if (examResultsError) throw new Error(JSON.stringify(examResultsError));
         selectedStudentExams = ((exResults || []) as unknown as StudentExamRow[])
           .filter(r => r.exam?.status === "RESULT_PUBLISHED");
 
@@ -464,7 +464,7 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
           .from("payments")
           .select("*, batch:batches(name)")
           .eq("student_id", tab4StudentId);
-        if (paymentsError) throw paymentsError;
+        if (paymentsError) throw new Error(JSON.stringify(paymentsError));
         selectedStudentPayments = (pays || []) as unknown as StudentPaymentRow[];
 
         selectedStudentPayments.forEach(p => {
@@ -487,20 +487,20 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
       .from("enrollments")
       .select("batch_id")
       .eq("status", "ACTIVE");
-    if (activeEnrollmentsError) throw activeEnrollmentsError;
+    if (activeEnrollmentsError) throw new Error(JSON.stringify(activeEnrollmentsError));
 
     const { data: monthlyPayments, error: monthlyPaymentsError } = await supabase
       .from("payments")
       .select("batch_id, expected_amount, paid_amount, status")
       .eq("billing_month", currentMonth)
       .eq("billing_year", currentYearVal);
-    if (monthlyPaymentsError) throw monthlyPaymentsError;
+    if (monthlyPaymentsError) throw new Error(JSON.stringify(monthlyPaymentsError));
 
     const { data: allExams, error: allExamsError } = await supabase
       .from("exams")
       .select("id, batch_id, total_marks, pass_marks, status")
       .neq("status", "DRAFT");
-    if (allExamsError) throw allExamsError;
+    if (allExamsError) throw new Error(JSON.stringify(allExamsError));
 
     const examIds = allExams?.map(e => e.id) || [];
     const { data: examResults, error: examResultsError } = examIds.length > 0
@@ -509,13 +509,13 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
           .select("obtained_marks, attendance_status, exam_id")
           .in("exam_id", examIds)
       : { data: [], error: null };
-    if (examResultsError) throw examResultsError;
+    if (examResultsError) throw new Error(JSON.stringify(examResultsError));
 
     const { data: materials, error: materialsError } = await supabase
       .from("batch_contents")
       .select("batch_id")
       .eq("status", "PUBLISHED");
-    if (materialsError) throw materialsError;
+    if (materialsError) throw new Error(JSON.stringify(materialsError));
 
     batchesPerformanceData = (batches || []).map(b => {
       const activeStudents = activeEnrollments?.filter(e => e.batch_id === b.id).length || 0;
@@ -1410,3 +1410,4 @@ export default async function TeacherReportsPage({ searchParams }: PageProps) {
     </div>
   );
 }
+

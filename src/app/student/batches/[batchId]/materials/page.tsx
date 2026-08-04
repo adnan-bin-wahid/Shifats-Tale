@@ -48,7 +48,7 @@ export default async function StudentBatchMaterialsPage({ params, searchParams }
     .eq("status", "ACTIVE")
     .maybeSingle();
 
-  if (enrollError) throw enrollError;
+  if (enrollError) throw new Error(JSON.stringify(enrollError));
   if (!enrollment) redirect("/student?error=unauthorized_batch");
 
   const nowStr = new Date().toISOString();

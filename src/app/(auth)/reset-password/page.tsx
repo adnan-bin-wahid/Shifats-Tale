@@ -63,7 +63,7 @@ export default function ResetPasswordPage() {
       });
 
       if (updateError) {
-        throw new Error(updateError.message);
+        throw new Error(JSON.stringify(updateError));
       }
 
       setSuccess(true);

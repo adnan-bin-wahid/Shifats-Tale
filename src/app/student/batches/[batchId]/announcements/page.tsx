@@ -54,7 +54,7 @@ export default async function StudentBatchAnnouncementsPage({ params }: PageProp
     .eq("status", "ACTIVE")
     .maybeSingle();
 
-  if (enrollError) throw enrollError;
+  if (enrollError) throw new Error(JSON.stringify(enrollError));
   if (!enrollment) redirect("/student?error=unauthorized_batch");
 
   const nowStr = new Date().toISOString();

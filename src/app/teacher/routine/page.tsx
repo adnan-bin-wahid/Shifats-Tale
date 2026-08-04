@@ -84,7 +84,7 @@ export default async function TeacherRoutinePage({
     admin.from("batch_subjects").select("id,batch_id,name").order("display_order"),
   ]);
   const error = sessionsResult.error || batchesResult.error || subjectsResult.error;
-  if (error) throw error;
+  if (error) throw new Error(JSON.stringify(error));
 
   const sessions = sessionsResult.data || [];
   // Server-rendered request snapshot used only for routine summary classification.
@@ -183,3 +183,4 @@ export default async function TeacherRoutinePage({
     </div>
   );
 }
+

@@ -82,7 +82,7 @@ export function RegisterView() {
       });
 
       if (authError) {
-        throw new Error(authError.message);
+        throw new Error(JSON.stringify(authError));
       }
 
       // Check if email verification is required or user was auto-logged in

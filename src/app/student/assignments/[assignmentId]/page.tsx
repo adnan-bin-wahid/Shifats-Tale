@@ -59,7 +59,7 @@ export default async function StudentAssignmentDetailPage({
     .eq("assignment_id", assignmentId)
     .eq("student_id", studentProfile.id)
     .maybeSingle();
-  if (submissionError) throw submissionError;
+  if (submissionError) throw new Error(JSON.stringify(submissionError));
 
   const batch = one(assignment.batch as unknown as { name: string; code: string } | { name: string; code: string }[] | null);
   const subject = one(assignment.subject as unknown as { name: string; code: string } | { name: string; code: string }[] | null);
