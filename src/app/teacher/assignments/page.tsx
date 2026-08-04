@@ -79,7 +79,7 @@ export default async function TeacherAssignmentsPage({
       admin.from("batch_subjects").select("id,batch_id,name").order("display_order"),
     ]);
   const error = assignmentsResult.error || batchesResult.error || subjectsResult.error;
-  if (error) throw error;
+  if (error) throw new Error(JSON.stringify(error));
 
   const assignments = assignmentsResult.data || [];
   const assignmentIds = assignments.map((assignment) => assignment.id);
@@ -194,3 +194,4 @@ export default async function TeacherAssignmentsPage({
     </div>
   );
 }
+

@@ -61,7 +61,7 @@ export default async function StudentRoutinePage() {
     .select("batch_id")
     .eq("student_id", studentProfile.id)
     .eq("status", "ACTIVE");
-  if (enrollmentError) throw enrollmentError;
+  if (enrollmentError) throw new Error(JSON.stringify(enrollmentError));
   const batchIds = (enrollments || []).map((row) => row.batch_id);
 
   // Keep recent completed history while prioritizing the live upcoming routine.
@@ -75,7 +75,7 @@ export default async function StudentRoutinePage() {
         .gte("starts_at", historyStart)
         .order("starts_at", { ascending: true })
     : { data: [], error: null };
-  if (sessionsError) throw sessionsError;
+  if (sessionsError) throw new Error(JSON.stringify(sessionsError));
 
   const rows = sessions || [];
   const now = new Date();
@@ -163,3 +163,4 @@ export default async function StudentRoutinePage() {
     </div>
   );
 }
+

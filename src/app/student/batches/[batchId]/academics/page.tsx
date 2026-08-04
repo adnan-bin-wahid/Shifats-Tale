@@ -133,7 +133,7 @@ export default async function StudentBatchAcademicsPage({ params }: PageProps) {
     progressResult.error ||
     performanceResult.error ||
     materialsResult.error;
-  if (academicQueryError) throw academicQueryError;
+  if (academicQueryError) throw new Error(JSON.stringify(academicQueryError));
 
   const examRows = examsResult.data || [];
   const examIds = examRows.map((exam) => exam.id);
@@ -146,7 +146,7 @@ export default async function StudentBatchAcademicsPage({ params }: PageProps) {
         .eq("student_id", studentProfile.id)
         .in("exam_id", examIds)
     : { data: [], error: null };
-  if (resultError) throw resultError;
+  if (resultError) throw new Error(JSON.stringify(resultError));
 
   const unitRows = unitsResult.data || [];
   const progressRows = progressResult.data || [];

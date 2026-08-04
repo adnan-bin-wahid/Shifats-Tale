@@ -42,7 +42,7 @@ export default async function StudentAssignmentsPage() {
     .select("batch_id")
     .eq("student_id", studentProfile.id)
     .eq("status", "ACTIVE");
-  if (enrollmentError) throw enrollmentError;
+  if (enrollmentError) throw new Error(JSON.stringify(enrollmentError));
   const batchIds = (enrollments || []).map((row) => row.batch_id);
 
   const [assignmentsResult, submissionsResult] = batchIds.length
@@ -139,3 +139,4 @@ export default async function StudentAssignmentsPage() {
     </div>
   );
 }
+

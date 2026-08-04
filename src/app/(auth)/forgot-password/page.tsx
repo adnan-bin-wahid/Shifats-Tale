@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
       );
 
       if (resetError) {
-        throw new Error(resetError.message);
+        throw new Error(JSON.stringify(resetError));
       }
 
       setSuccess(true);

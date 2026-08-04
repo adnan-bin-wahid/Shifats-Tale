@@ -49,7 +49,7 @@ export function LoginView() {
       });
 
       if (authError) {
-        throw new Error(authError.message);
+        throw new Error(JSON.stringify(authError));
       }
 
       // Refresh the page state to sync server components

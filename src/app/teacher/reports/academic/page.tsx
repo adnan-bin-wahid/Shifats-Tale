@@ -55,8 +55,8 @@ export default async function AcademicPerformanceReportPage({ searchParams }: Pa
     getStudentProgressReportDirectory(),
   ]);
 
-  if (batchResult.error) throw batchResult.error;
-  if (subjectResult.error) throw subjectResult.error;
+  if (batchResult.error) throw new Error(batchResult.error.message);
+  if (subjectResult.error) throw new Error(subjectResult.error.message);
 
   const batches = batchResult.data || [];
   const allSubjects = subjectResult.data || [];
@@ -83,8 +83,8 @@ export default async function AcademicPerformanceReportPage({ searchParams }: Pa
     progressQuery.order("display_order", { ascending: true }),
     performanceQuery,
   ]);
-  if (progressResult.error) throw progressResult.error;
-  if (performanceResult.error) throw performanceResult.error;
+  if (progressResult.error) throw new Error(progressResult.error.message);
+  if (performanceResult.error) throw new Error(performanceResult.error.message);
 
   const progressRows = progressResult.data || [];
   const performanceRows = performanceResult.data || [];
@@ -97,7 +97,7 @@ export default async function AcademicPerformanceReportPage({ searchParams }: Pa
         .select("id,student_code,profile:profiles(full_name)")
         .in("id", studentIds)
     : { data: [], error: null };
-  if (studentDirectoryResult.error) throw studentDirectoryResult.error;
+  if (studentDirectoryResult.error) throw new Error(studentDirectoryResult.error.message);
 
   const studentDirectory = new Map(
     ((studentDirectoryResult.data || []) as unknown as StudentDirectoryRow[]).map((student) => [
